@@ -1,0 +1,17 @@
+{
+  "name": "happybee",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "dexie": "^4.0.10"
+  },
+  "devDependencies": {
+    "vite": "^5.4.10"
+  }
+}
