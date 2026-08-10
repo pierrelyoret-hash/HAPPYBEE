@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { VueEnsemble } from './features/vue-ensemble';
 import { SaisieVisite } from './features/saisie-visite';
 import { Historique } from './features/historique';
+import { ImportCsv } from './features/import-csv';
 
 export function App() {
   const [ecran, setEcran] = useState('vue_ensemble');
@@ -15,6 +16,10 @@ export function App() {
   function ouvrirHistorique(colonieId) {
     setColonieSelectionnee(colonieId);
     setEcran('historique');
+  }
+
+  function ouvrirImport() {
+    setEcran('import_csv');
   }
 
   function retourVueEnsemble() {
@@ -31,5 +36,15 @@ export function App() {
     return <Historique colonieId={colonieSelectionnee} onRetour={retourVueEnsemble} />;
   }
 
-  return <VueEnsemble onOuvrirVisite={ouvrirSaisie} onOuvrirHistorique={ouvrirHistorique} />;
+  if (ecran === 'import_csv') {
+    return <ImportCsv onRetour={retourVueEnsemble} />;
+  }
+
+  return (
+    <VueEnsemble
+      onOuvrirVisite={ouvrirSaisie}
+      onOuvrirHistorique={ouvrirHistorique}
+      onOuvrirImport={ouvrirImport}
+    />
+  );
 }

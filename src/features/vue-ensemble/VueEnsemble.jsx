@@ -38,7 +38,7 @@ function sommeCadresObserves(visite) {
   return valeurs.reduce((a, b) => a + b, 0);
 }
 
-export function VueEnsemble({ onOuvrirVisite, onOuvrirHistorique }) {
+export function VueEnsemble({ onOuvrirVisite, onOuvrirHistorique, onOuvrirImport }) {
   const [rucher, setRucher] = useState(null);
   const [lignes, setLignes] = useState([]);
   const [chargement, setChargement] = useState(true);
@@ -161,6 +161,14 @@ export function VueEnsemble({ onOuvrirVisite, onOuvrirHistorique }) {
         className="h-[46px] w-full rounded bg-blue-600 text-white text-base font-medium"
       >
         Saisir une visite
+      </button>
+
+      <button
+        type="button"
+        onClick={onOuvrirImport}
+        className="text-sm text-blue-700 underline self-start"
+      >
+        Importer l'historique CSV
       </button>
 
       <section>

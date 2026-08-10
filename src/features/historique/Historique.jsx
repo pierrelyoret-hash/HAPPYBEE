@@ -20,12 +20,12 @@ const ANOMALIE_LIBELLES = {
   autre: 'Autre',
 };
 
-function dateHeureLisible(iso) {
-  const d = new Date(iso);
-  return `${d.toLocaleDateString('fr-FR')} à ${d.toLocaleTimeString('fr-FR', {
-    hour: '2-digit',
-    minute: '2-digit',
-  })}`;
+// L'heure exacte n'est fiable que dans le champ texte "heure" (brief §6 :
+// conservé tel quel, ex. "16h00") — la partie horaire de "date" vaut minuit
+// par défaut dès que l'heure d'origine était absente ou non structurée.
+function dateHeureLisible(visite) {
+  const date = new Date(visite.date).toLocaleDateString('fr-FR');
+  return visite.heure ? `${date} à ${visite.heure}` : date;
 }
 
 // Un champ non renseigné reste distinct d'un champ renseigné à zéro
@@ -77,7 +77,7 @@ export function Historique({ colonieId, onRetour }) {
 
           return (
             <li key={visite.id} className="border border-gray-200 rounded p-3">
-              <p className="text-base font-medium">{dateHeureLisible(visite.date)}</p>
+              <p className="text-base font-medium">{dateHeureLisible(visite)}</p>
               <p className="text-[11px] text-gray-500 mb-2">
                 {ecartJours === null
                   ? 'Première visite enregistrée'
@@ -106,6 +106,18 @@ export function Historique({ colonieId, onRetour }) {
               {visite.anomalies?.length > 0 && (
                 <p className="text-sm text-amber-700 mt-2">
                   Anomalies : {visite.anomalies.map((a) => ANOMALIE_LIBELLES[a] ?? a).join(', ')}
+                </p>
+              )}
+
+              {visite.priorite && (
+                <p className="text-sm text-gray-700 mt-2">
+                  Priorité : {visite.priorite[0].toUpperCase() + visite.priorite.slice(1)}
+                </p>
+              )}
+
+              {visite.action_entreprise && (
+                <p className="text-sm text-gray-700 mt-1">
+                  Action entreprise : {visite.action_entreprise}
                 </p>
               )}
 
