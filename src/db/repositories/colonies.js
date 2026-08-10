@@ -9,13 +9,17 @@ export async function listerColoniesActives() {
     .and((c) => !c.deleted_at)
     .toArray();
 
-  const contexte = await Promise.all(
-    colonies.map(async (colonie) => {
-      const ruche = await db.ruche.get(colonie.ruche_id);
-      const rucher = ruche ? await db.rucher.get(ruche.rucher_id) : null;
+  const ruches = await db.ruche.bulkGet(colonies.map((c) => c.ruche_id));
+  const ruchers = await db.rucher.bulkGet(
+    ruches.map((r) => r?.rucher_id).filter(Boolean)
+  );
+  const rucherParId = new Map(ruchers.filter(Boolean).map((r) => [r.id, r]));
+
+  return colonies
+    .map((colonie, i) => {
+      const ruche = ruches[i];
+      const rucher = ruche ? rucherParId.get(ruche.rucher_id) : null;
       return { colonie, ruche, rucher };
     })
-  );
-
-  return contexte.filter((c) => c.ruche && c.rucher);
+    .filter((c) => c.ruche && c.rucher);
 }
