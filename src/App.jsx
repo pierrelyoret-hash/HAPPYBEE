@@ -3,6 +3,7 @@ import { VueEnsemble } from './features/vue-ensemble';
 import { SaisieVisite } from './features/saisie-visite';
 import { Historique } from './features/historique';
 import { ImportCsv } from './features/import-csv';
+import { Restauration } from './features/restauration';
 
 export function App() {
   const [ecran, setEcran] = useState('vue_ensemble');
@@ -20,6 +21,10 @@ export function App() {
 
   function ouvrirImport() {
     setEcran('import_csv');
+  }
+
+  function ouvrirRestauration() {
+    setEcran('restauration');
   }
 
   function retourVueEnsemble() {
@@ -40,11 +45,16 @@ export function App() {
     return <ImportCsv onRetour={retourVueEnsemble} />;
   }
 
+  if (ecran === 'restauration') {
+    return <Restauration onRetour={retourVueEnsemble} />;
+  }
+
   return (
     <VueEnsemble
       onOuvrirVisite={ouvrirSaisie}
       onOuvrirHistorique={ouvrirHistorique}
       onOuvrirImport={ouvrirImport}
+      onOuvrirRestauration={ouvrirRestauration}
     />
   );
 }

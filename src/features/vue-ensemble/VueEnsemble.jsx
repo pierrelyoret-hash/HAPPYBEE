@@ -7,6 +7,8 @@ import {
 } from '../../db/repositories/ruchers.js';
 import { obtenirDerniereVisite } from '../../db/repositories/visites.js';
 import { listerTachesOuvertesRucher } from '../../db/repositories/taches.js';
+import { exporterDonnees, compterEnregistrements } from '../../db/repositories/sauvegarde.js';
+import { declencherTelechargementJson } from '../../lib/telechargement.js';
 import { calculerEtat, joursDepuis } from '../../lib/etats.js';
 
 function useHorsLigne() {
@@ -38,11 +40,33 @@ function sommeCadresObserves(visite) {
   return valeurs.reduce((a, b) => a + b, 0);
 }
 
-export function VueEnsemble({ onOuvrirVisite, onOuvrirHistorique, onOuvrirImport }) {
+export function VueEnsemble({
+  onOuvrirVisite,
+  onOuvrirHistorique,
+  onOuvrirImport,
+  onOuvrirRestauration,
+}) {
   const [rucher, setRucher] = useState(null);
   const [lignes, setLignes] = useState([]);
   const [chargement, setChargement] = useState(true);
+  const [messageSauvegarde, setMessageSauvegarde] = useState(null);
   const horsLigne = useHorsLigne();
+
+  // Sauvegarde manuelle en un geste, directement depuis l'écran d'accueil
+  // (brief F10.4) — aucun écran intermédiaire pour l'export.
+  async function sauvegarder() {
+    try {
+      const donnees = await exporterDonnees();
+      declencherTelechargementJson(
+        `happybee-sauvegarde-${new Date().toISOString().slice(0, 10)}.json`,
+        donnees
+      );
+      setMessageSauvegarde(`Fichier téléchargé (${compterEnregistrements(donnees)} enregistrement(s)).`);
+    } catch (err) {
+      console.error('[sauvegarde] échec export', err);
+      setMessageSauvegarde("Échec de l'export.");
+    }
+  }
 
   async function charger() {
     const r = await obtenirPremierRucher();
@@ -163,13 +187,30 @@ export function VueEnsemble({ onOuvrirVisite, onOuvrirHistorique, onOuvrirImport
         Saisir une visite
       </button>
 
-      <button
-        type="button"
-        onClick={onOuvrirImport}
-        className="text-sm text-blue-700 underline self-start"
-      >
-        Importer l'historique CSV
-      </button>
+      <div className="flex flex-col gap-1">
+        <button
+          type="button"
+          onClick={onOuvrirImport}
+          className="text-sm text-blue-700 underline self-start"
+        >
+          Importer l'historique CSV
+        </button>
+        <button
+          type="button"
+          onClick={sauvegarder}
+          className="text-sm text-blue-700 underline self-start"
+        >
+          Sauvegarder (export JSON)
+        </button>
+        <button
+          type="button"
+          onClick={onOuvrirRestauration}
+          className="text-sm text-blue-700 underline self-start"
+        >
+          Restaurer une sauvegarde
+        </button>
+        {messageSauvegarde && <p className="text-[11px] text-gray-600">{messageSauvegarde}</p>}
+      </div>
 
       <section>
         <p className="text-sm text-gray-600 mb-2">Ordre de tournée</p>
