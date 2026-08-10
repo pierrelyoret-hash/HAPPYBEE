@@ -12,3 +12,9 @@ db.version(1).stores({
   visite: 'id, colonie_id, date, deleted_at',
   tache: 'id, colonie_id, rucher_id, statut, date_echeance, deleted_at',
 });
+
+// v2 : index composé pour retrouver rapidement la dernière visite d'une
+// colonie (pré-remplissage différentiel de l'écran B).
+db.version(2).stores({
+  visite: 'id, colonie_id, date, [colonie_id+date], deleted_at',
+});
