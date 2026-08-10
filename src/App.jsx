@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { VueEnsemble } from './features/vue-ensemble';
 import { SaisieVisite } from './features/saisie-visite';
+import { Historique } from './features/historique';
 
 export function App() {
   const [ecran, setEcran] = useState('vue_ensemble');
@@ -9,6 +10,11 @@ export function App() {
   function ouvrirSaisie(colonieId) {
     setColonieSelectionnee(colonieId);
     setEcran('saisie_visite');
+  }
+
+  function ouvrirHistorique(colonieId) {
+    setColonieSelectionnee(colonieId);
+    setEcran('historique');
   }
 
   function retourVueEnsemble() {
@@ -21,5 +27,9 @@ export function App() {
     );
   }
 
-  return <VueEnsemble onOuvrirVisite={ouvrirSaisie} />;
+  if (ecran === 'historique') {
+    return <Historique colonieId={colonieSelectionnee} onRetour={retourVueEnsemble} />;
+  }
+
+  return <VueEnsemble onOuvrirVisite={ouvrirSaisie} onOuvrirHistorique={ouvrirHistorique} />;
 }

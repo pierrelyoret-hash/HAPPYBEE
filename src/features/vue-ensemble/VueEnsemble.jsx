@@ -38,7 +38,7 @@ function sommeCadresObserves(visite) {
   return valeurs.reduce((a, b) => a + b, 0);
 }
 
-export function VueEnsemble({ onOuvrirVisite }) {
+export function VueEnsemble({ onOuvrirVisite, onOuvrirHistorique }) {
   const [rucher, setRucher] = useState(null);
   const [lignes, setLignes] = useState([]);
   const [chargement, setChargement] = useState(true);
@@ -192,27 +192,36 @@ export function VueEnsemble({ onOuvrirVisite }) {
                 </button>
               </div>
 
-              <button
-                type="button"
-                onClick={() => onOuvrirVisite(ligne.colonie.id)}
-                className="flex-1 text-left"
-              >
-                <p className="text-base font-medium">
-                  Ruche {ligne.ruche.numero}
-                  <span className="text-sm font-normal text-gray-600">
-                    {' · '}
-                    {ligne.reine ? `reine ${ligne.reine.annee_naissance}` : 'reine non confirmée'}
-                    {ligne.cadresObserves != null && ` · ${ligne.cadresObserves} cadres`}
-                  </span>
-                </p>
-                <p className="text-[11px] text-gray-500">
-                  {ligne.joursDepuisVisite == null
-                    ? 'Jamais visitée'
-                    : ligne.joursDepuisVisite === 0
-                      ? "Visitée aujourd'hui"
-                      : `Visitée il y a ${ligne.joursDepuisVisite} j`}
-                </p>
-              </button>
+              <div className="flex-1">
+                <button
+                  type="button"
+                  onClick={() => onOuvrirVisite(ligne.colonie.id)}
+                  className="text-left w-full"
+                >
+                  <p className="text-base font-medium">
+                    Ruche {ligne.ruche.numero}
+                    <span className="text-sm font-normal text-gray-600">
+                      {' · '}
+                      {ligne.reine ? `reine ${ligne.reine.annee_naissance}` : 'reine non confirmée'}
+                      {ligne.cadresObserves != null && ` · ${ligne.cadresObserves} cadres`}
+                    </span>
+                  </p>
+                  <p className="text-[11px] text-gray-500">
+                    {ligne.joursDepuisVisite == null
+                      ? 'Jamais visitée'
+                      : ligne.joursDepuisVisite === 0
+                        ? "Visitée aujourd'hui"
+                        : `Visitée il y a ${ligne.joursDepuisVisite} j`}
+                  </p>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onOuvrirHistorique(ligne.colonie.id)}
+                  className="text-[11px] text-blue-700 underline mt-1"
+                >
+                  Historique
+                </button>
+              </div>
 
               <PastilleEtat etat={ligne.etat} />
             </li>
