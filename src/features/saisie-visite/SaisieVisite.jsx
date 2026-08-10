@@ -59,7 +59,7 @@ function dateLisible(iso) {
   return new Date(iso).toLocaleDateString('fr-FR');
 }
 
-export function SaisieVisite() {
+export function SaisieVisite({ colonieInitialeId, onRetour }) {
   const [contextes, setContextes] = useState([]);
   const [colonieId, setColonieId] = useState(null);
   const [derniereVisite, setDerniereVisite] = useState(null);
@@ -72,9 +72,14 @@ export function SaisieVisite() {
   useEffect(() => {
     listerColoniesActives().then((liste) => {
       setContextes(liste);
-      if (liste.length > 0) setColonieId(liste[0].colonie.id);
+      const initialeValide = liste.some((c) => c.colonie.id === colonieInitialeId);
+      if (initialeValide) {
+        setColonieId(colonieInitialeId);
+      } else if (liste.length > 0) {
+        setColonieId(liste[0].colonie.id);
+      }
     });
-  }, []);
+  }, [colonieInitialeId]);
 
   useEffect(() => {
     if (!colonieId) return;
@@ -304,6 +309,16 @@ export function SaisieVisite() {
       >
         Enregistrer
       </button>
+
+      {onRetour && (
+        <button
+          type="button"
+          onClick={onRetour}
+          className="h-12 w-full text-sm text-gray-600 underline"
+        >
+          Retour à la vue d'ensemble
+        </button>
+      )}
     </div>
   );
 }
