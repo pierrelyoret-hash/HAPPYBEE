@@ -39,8 +39,6 @@ Cinq principes non négociables :
 | M9 | Assistant IA contextuel |
 | M10 | Export, sauvegarde, restauration |
 | M11 | Import de l'existant (`archives_apicoles.csv`) |
-| M12 | Moteur de recommandations — cf. addendum dédié |
-| M13 | Observation cadre par cadre — cf. addendum observation cadre |
 
 > **Écart avec le séquencement d'origine.** M10 et M11 étaient prévus en L6 (§8) mais ont été livrés dès L1 : protéger les données réelles de l'exploitant ne pouvait pas attendre cinq lots, et l'historique CSV existant devait être repris avant toute saisie de production. Le reste de M10/M11 (export CSV par table, rappel mensuel) reste ouvert pour L6.
 
@@ -48,7 +46,7 @@ Cinq principes non négociables :
 
 - Module verger mellifère (plantations, floraisons, corrélation aux miellées) → **V2**
 - Exports fiscaux : livre de recettes micro-BA, distinction production propre / négoce → **activés à la création de la structure**
-- Analyse d'image par IA du couvain → **V2** *(les photos indexées par cadre sont désormais intégrées à M13, lot L2)*
+- Photos indexées par cadre et analyse d'image par IA → **V2**
 - Élevage de reines, greffages, généalogie, sélection statistique → **hors trajectoire** (sans objet en dessous d'une vingtaine de colonies)
 - Capteurs connectés → **hors trajectoire**
 
@@ -145,21 +143,11 @@ Champs communs à toutes les tables : `id` (uuid), `created_at`, `updated_at`, `
 **`visite`**
 `colonie_id`, `date`, `heure`, `duree_min`, `meteo_temp`, `meteo_conditions`, `meteo_vent`, `type` (contrôle de routine, visite de printemps, visite d'automne, urgence, récolte, traitement),
 observations : `nb_cadres_couvain_operculé`, `nb_cadres_couvain_ouvert`, `nb_cadres_provisions`, `nb_cadres_batis`, `population` (échelle 1–5), `reine_vue` (bool), `oeufs_vus` (bool), `ponte_qualite` (compacte / lacunaire / absente / mâles), `cellules_royales` (nombre, type : essaimage / supersédure / sauveté), `tempérament` (1–5), `bâtisse` (1–5), `provisions_kg_estime`, `hausses_posees`,
-`score_ponte` (1–5), `anomalies` (multi-choix : bourdonneuse, orpheline, pillage, fausse teigne, mortalité anormale, diarrhée, abeilles noires tremblantes, autre),
-`signes_sanitaires` (multi-choix, liste fermée — cf. addendum observation cadre §A.5),
-`source_agregats` (saisie_directe | calcule_depuis_cadres),
+`anomalies` (multi-choix : bourdonneuse, orpheline, pillage, fausse teigne, mortalité anormale, diarrhée, abeilles noires tremblantes, autre),
 `observation_libre` (texte, alimenté par dictée), `action_entreprise`, `priorite` (urgente / moyenne / faible), `suivi_prevu_le`
 
-**`observation_cadre`** — une ligne par face de cadre
-`visite_id`, `position`, `face` (A/B), `type_cadre`,
-occupation en huitièmes (0–8) : `couvain_opercule`, `couvain_ouvert`, `oeufs`, `miel_opercule`, `nectar_frais`, `pollen`, `cellules_vides`, `non_bati`, `couvain_male`,
-`score_ponte` (1–5), `homogeneite_stades`, `miel_qualite`, `pollen_diversite`,
-`annee_cire`, `etat_bati`, `a_reformer`, `motif_reforme`,
-`cellules_royales_nb`, `cellules_royales_type`, `cellules_royales_pos`, `cellules_operculees`,
-`signes` (tableau), `test_allumette` (non réalisé / négatif / positif)
-
 **`photo`**
-`visite_id`, `observation_cadre_id` (nullable), `fichier_local`, `fichier_distant`, `legende`, `prise_le`, `latitude`, `longitude`, `statut_sync`
+`visite_id`, `fichier_local`, `fichier_distant`, `legende`, `prise_le`, `latitude`, `longitude`, `statut_sync`
 
 **`traitement`**
 `colonie_id`, `date_debut`, `date_fin`, `produit`, `numero_amm`, `numero_lot`, `dosage`, `voie` (lanière, sublimation, dégouttement, autre), `motif`, `delai_attente_jours`, `date_fin_delai_attente` (calculée), `ordonnance_document_id`, `conforme_bio` (bool), `notes`
@@ -238,7 +226,6 @@ Priorités : **M** (must, indispensable à la V1) · **S** (should) · **C** (co
 | F2.5 | Afficher l'historique des trois dernières visites pendant la saisie | M |
 | F2.6 | Mode « tournée » : enchaîner les colonies d'un rucher sans revenir au menu | S |
 | F2.7 | Consulter l'évolution d'une colonie sous forme de graphique (cadres de couvain, population, provisions) | S |
-| F2.8 | Saisir un score de ponte 1–5 au niveau colonie, en un appui | M |
 
 ### M3 — Sanitaire
 
@@ -250,8 +237,6 @@ Priorités : **M** (must, indispensable à la V1) · **S** (should) · **C** (co
 | F3.4 | Afficher un niveau d'alerte selon des **seuils saisonniers paramétrables** — valeurs par défaut : avril-mai (faible < 1, modéré 1–5, fort > 5) ; juin-juillet (faible < 2, modéré 2–8, fort > 8) | M |
 | F3.5 | Marquer un traitement comme conforme au cahier des charges bio et le signaler dans le registre | M |
 | F3.6 | Rattacher une ordonnance ou un compte rendu de visite sanitaire | M |
-| F3.7 | Saisir des signes sanitaires depuis une liste fermée | M |
-| F3.8 | **Parcours danger sanitaire de catégorie 1** : conduite à tenir statique, obligation de déclaration, prélèvement attendu, tâche urgente créée. Aucun diagnostic, aucun traitement proposé | M |
 
 ### M4 — Récoltes
 
@@ -334,26 +319,6 @@ Priorités : **M** (must, indispensable à la V1) · **S** (should) · **C** (co
 
 ---
 
-### M13 — Observation cadre par cadre
-
-| Réf | Exigence | Prio |
-|---|---|---|
-| F13.1 | Saisir l'occupation des surfaces en huitièmes de face, réglette de neuf boutons | M |
-| F13.2 | Trois modes : cadre remarquable / zone de couvain / cadre par cadre complet | M |
-| F13.3 | Score de ponte par cadre | M |
-| F13.4 | Cellules royales : nombre, type, position sur le cadre | M |
-| F13.5 | Signes sanitaires par cadre, même taxonomie qu'en F3.7 | M |
-| F13.6 | Agrégation automatique vers les compteurs de la colonie | M |
-| F13.7 | Report de la face A vers la face B comme valeur de départ | S |
-| F13.8 | État du cadre : année de cire, réforme, motif | S |
-| F13.9 | Représentation graphique du cadre, remplie en direct | S |
-| F13.10 | Photos indexées par cadre | S |
-| F13.11 | Test de l'allumette, saisie du résultat | S |
-| F13.12 | Conversion huitièmes → cm² → cellules, paramétrable par type de ruche | C |
-| F13.13 | Comparaison d'un même cadre entre deux visites | C |
-
----
-
 ## 6. Règles de gestion
 
 ### 6.1 Calcul du poids net récolté
@@ -393,19 +358,7 @@ Règles paramétrables, valeurs par défaut :
 | Hausse posée | J+14 : contrôler le remplissage |
 | Aucune visite depuis 21 jours en saison (avril–septembre) | contrôle de routine |
 
-### 6.4 Agrégation cadre → colonie
-
-Lorsqu'au moins une `observation_cadre` existe pour une visite, `source_agregats` bascule sur `calcule_depuis_cadres` et les compteurs de la colonie deviennent non modifiables :
-
-```
-nb_cadres_couvain_opercule = Σ(huitièmes couvain operculé, toutes faces) / 8
-nb_cadres_provisions       = Σ(miel operculé + nectar + pollen) / 8
-score_ponte (colonie)      = moyenne pondérée par la surface de couvain
-```
-
-**Règle cardinale : jamais de double saisie.** Une même information est soit saisie au niveau colonie, soit calculée depuis les cadres, jamais les deux.
-
-### 6.5 Coût de revient
+### 6.4 Coût de revient
 
 ```
 coût_de_revient_kg(ruche, exercice) =
@@ -438,16 +391,14 @@ Affichage systématiquement accompagné de la série pluriannuelle. **Un ratio i
 | Lot | Contenu | Critère de sortie | Statut |
 |---|---|---|---|
 | **L1** | M1 + M2 hors photos, en local uniquement, **plus M10 et M11 anticipés** (voir note §1) | Une visite complète saisie au rucher en moins d'une minute, sans réseau | **Livré 10/08/2026** |
-| **L1+** | Complément à L1 : score de ponte, taxonomie sanitaire, parcours danger catégorie 1, table `observation_cadre` au schéma sans interface | Cocher un signe de catégorie 1 affiche la conduite à tenir | **À ouvrir maintenant** |
-| **Revue ergo** | Révision de l'ergonomie après 3 visites réelles avec L1+ | Corrections identifiées et arbitrées | À faire avant L2 |
-| **L2** | Synchronisation + photos + dictée + revue de tournée + **M13 observation cadre par cadre** | Une visite saisie sur le téléphone apparaît sur l'ordinateur ; un cadre remarquable se saisit en 15 s | À ouvrir après la revue ergo |
+| **L2** | Synchronisation deux appareils + photos | Une visite saisie sur le téléphone apparaît sur l'ordinateur après retour du réseau | À ouvrir après 3 visites réelles |
 | **L3** | M3 + M4 + M7 | Les tâches se génèrent seules après une intervention | Planifié |
 | **L3bis** | Ingestion météo quotidienne + moteur de règles (3 règles pilotes) — cf. addendum M12 | — | Planifié |
 | **L4** | M5 | Un PDF de registre conforme est produit et imprimé | Planifié |
 | **L5** | M6 | Le coût de revient au kg d'une ruche est calculé sur une saison réelle | Planifié |
 | **L6** | M9 + reste de M10/M11 (export CSV par table, rappel mensuel) | L'historique CSV est importé, l'export intégral fonctionne hors-ligne | Planifié |
 
-**Recommandation de séquencement.** Ne pas engager L3 avant d'avoir utilisé L1 et L2 sur au moins trois visites réelles au rucher. La cause la plus fréquente d'abandon d'un outil personnel est une V1 trop ambitieuse livrée d'un bloc. **L1 est livré. L1+ s'ouvre maintenant** — il complète le socle sans rien reconstruire. **L2 est devenu le lot le plus lourd de la trajectoire** du fait de l'intégration de M13 : le séquencer en interne (synchronisation → photos → dictée → revue → cadre par cadre → agrégation), avec passage au rucher entre chaque étape.
+**Recommandation de séquencement.** Ne pas engager L3 avant d'avoir utilisé L1 et L2 sur au moins trois visites réelles au rucher. La cause la plus fréquente d'abandon d'un outil personnel est une V1 trop ambitieuse livrée d'un bloc. **L1 est livré : L2 n'est pas encore ouvert, en attente de ces visites réelles.**
 
 ---
 
@@ -479,6 +430,7 @@ Pierre a retravaillé un cahier des charges fonctionnel et rédigé un cahier de
 
 ### Saisie
 - Dictée vocale généralisée à tous les écrans de saisie (au-delà du champ libre déjà prévu en F2.2)
+- Description détaillée par cadre individuel (jour de ponte, operculation, réserves miel/pollen cadre par cadre) — recoupe la piste « photos indexées par cadre » déjà notée hors V1 (§1)
 - Identification d'une ruche par scan QR code ou NFC (prolonge F1.4/F1.5)
 
 ### Analyse et restitution
@@ -509,23 +461,3 @@ Pierre a retravaillé un cahier des charges fonctionnel et rédigé un cahier de
 | Champs obligatoires (astérisque) | Contredit le principe « aucun champ obligatoire » — une visite partielle vaut mieux qu'une visite abandonnée |
 | Authentification forte (2FA) | L'application reste mono-utilisateur, sans gestion de comptes (§2 « Utilisateurs ») |
 | Applications natives iOS/Android/desktop séparées | La PWA unique (React/Vite) est confirmée comme architecture cible, y compris pour L2 |
-
-
----
-
-## 13. Arbitrages actés — 11 août 2026
-
-| Question | Décision |
-|---|---|
-| Placement de l'observation cadre par cadre | Module **M13**, intégré au **lot L2** — pas de lot séparé |
-| Table `observation_cadre` | **Au schéma dès L1+**, sans aucune interface |
-| Score de ponte au niveau colonie | **En L1+**, enregistré sans automatisme |
-| Parcours danger sanitaire de catégorie 1 | **En L1+**, contenu réglementaire statique |
-
-### Frontière posée pour le socle L1/L1+
-
-Le socle peut contenir du **contenu réglementaire statique** — le parcours danger sanitaire en est l'unique cas, justifié par une obligation de déclaration qui ne se discute pas. Il ne contient **aucune heuristique de conduite** : le score de ponte est enregistré et ne déclenche rien, la règle qui le relie au comptage varroa appartient au moteur M12 du lot L3bis.
-
-### Dépendances différées du parcours sanitaire
-
-L'entrée automatique au registre d'élevage (L4) et la génération automatisée de tâches (L3bis) n'existent pas dans le socle. Le parcours y crée une tâche d'origine manuelle et marque la visite. Les données saisies alimenteront rétroactivement les deux modules — aucune ressaisie.

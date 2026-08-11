@@ -167,39 +167,6 @@ Liste des colonies de la session avec leur statut de traitement : validée, en c
 
 ---
 
-## 10. Répartition par lot
-
-L'ergonomie n'est pas un lot. Elle se répartit ainsi :
-
-| Section | Lot |
-|---|---|
-| §1 Contrainte gants, deux modes de saisie | Structure L1+ et L2 |
-| §2 Les huit principes d'interface | **L1 / L1+** |
-| §3 Provenance des champs | L1+ — valeur `dicte` activée en L2 |
-| §4 Système à quatre niveaux d'état | **L1+** |
-| §5 Écran A — vue d'ensemble | **L1** |
-| §6 Écran B — saisie manuelle | **L1 / L1+** |
-| §7 Écran C — revue de tournée | L2 |
-| §8 Composants transverses | **L1** |
-| §9 Typographie et couleur | **L1** |
-| Annexe — glossaire de dictée | L2 |
-| Interface ordinateur | L4 et L5 |
-| ⚑ WCAG 2.1, tableaux de bord personnalisables | L6 |
-
-### Pourquoi l'essentiel est dans le socle
-
-L'ergonomie définie ici n'est pas une couche de finition : elle détermine le modèle de données. « Aucun clavier » impose des échelles bornées plutôt que des champs libres. « Saisie différentielle » impose de connaître la visite précédente au moment du rendu. « Provenance des champs » ajoute une colonne à chaque valeur. Construire un formulaire générique en pensant l'ergonomiser ensuite revient à le réécrire.
-
-Ce qui peut légitimement attendre : transitions, états vides soignés, micro-textes, animations, accessibilité fine. C'est du polissage, il se rattrape. La structure, non.
-
-### Deux règles de trajectoire
-
-**Aucune interface ordinateur avant L4.** Jusqu'à L3 inclus, tout se passe sur le téléphone. La mise en page bureau ne devient nécessaire qu'avec le registre et le module économique. Une application responsive dès le départ, c'est deux fois le travail pour un écran qui ne servira pas avant plusieurs mois.
-
-**Revue ergonomique après trois visites réelles avec L1+.** Ce document reste une hypothèse tant qu'il n'a pas rencontré les gants, le soleil et le rucher. C'est le seul moment où les corrections coûtent peu : après L2, chaque changement d'écran se propage dans la dictée, la revue de tournée et la saisie par cadre.
-
----
-
 ## Annexe — Glossaire de correction pour la dictée
 
 À transmettre au modèle comme lexique de correction phonétique lors de la structuration.
