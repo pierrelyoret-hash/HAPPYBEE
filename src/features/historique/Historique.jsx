@@ -28,10 +28,14 @@ function dateHeureLisible(visite) {
   return visite.heure ? `${date} à ${visite.heure}` : date;
 }
 
-// Un champ non renseigné reste distinct d'un champ renseigné à zéro
-// (addendum ergonomie §3) — jamais de "0" silencieux à la place de "non observé".
-function champLisible(valeur) {
-  return valeur == null ? 'non observé' : String(valeur);
+// "Un chiffre absolu n'informe pas ; un écart, si." (addendum §7). Affiche la
+// variation par rapport à la visite précédente quand les deux valeurs sont
+// connues et différentes — jamais de calcul si l'une des deux est "non observé".
+function champAvecEcart(valeur, valeurPrecedente) {
+  if (valeur == null) return 'non observé';
+  if (valeurPrecedente == null || valeurPrecedente === valeur) return String(valeur);
+  const ecart = valeur - valeurPrecedente;
+  return `${valeur} (${ecart > 0 ? '+' : '−'}${Math.abs(ecart)})`;
 }
 
 export function Historique({ colonieId, onRetour }) {
@@ -88,13 +92,25 @@ export function Historique({ colonieId, onRetour }) {
 
               <dl className="grid grid-cols-2 gap-x-3 gap-y-1 text-sm">
                 <dt className="text-gray-500">Couvain operculé</dt>
-                <dd>{champLisible(visite.nb_cadres_couvain_opercule)}</dd>
+                <dd>
+                  {champAvecEcart(
+                    visite.nb_cadres_couvain_opercule,
+                    precedente?.nb_cadres_couvain_opercule
+                  )}
+                </dd>
                 <dt className="text-gray-500">Couvain ouvert</dt>
-                <dd>{champLisible(visite.nb_cadres_couvain_ouvert)}</dd>
+                <dd>
+                  {champAvecEcart(
+                    visite.nb_cadres_couvain_ouvert,
+                    precedente?.nb_cadres_couvain_ouvert
+                  )}
+                </dd>
                 <dt className="text-gray-500">Provisions</dt>
-                <dd>{champLisible(visite.nb_cadres_provisions)}</dd>
+                <dd>
+                  {champAvecEcart(visite.nb_cadres_provisions, precedente?.nb_cadres_provisions)}
+                </dd>
                 <dt className="text-gray-500">Population</dt>
-                <dd>{champLisible(visite.population)}</dd>
+                <dd>{champAvecEcart(visite.population, precedente?.population)}</dd>
                 <dt className="text-gray-500">Ponte</dt>
                 <dd>{visite.ponte_qualite ? PONTE_LIBELLES[visite.ponte_qualite] : 'non observé'}</dd>
                 <dt className="text-gray-500">Reine vue</dt>
