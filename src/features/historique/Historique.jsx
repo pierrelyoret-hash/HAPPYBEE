@@ -20,6 +20,30 @@ const ANOMALIE_LIBELLES = {
   autre: 'Autre',
 };
 
+// Brief L1+ §4 — mêmes libellés courts qu'à la saisie.
+const SCORE_PONTE_LIBELLES = {
+  5: 'très compact',
+  4: 'compact',
+  3: 'correct',
+  2: 'lacunaire',
+  1: 'très dispersé',
+};
+
+const SIGNES_SANITAIRES_LIBELLES = {
+  couvain_mosaique: 'Couvain en mosaïque',
+  opercules_affaisses: 'Opercules affaissés ou percés',
+  larves_brunes_visqueuses: 'Larves brunes visqueuses adhérentes ⚠',
+  larves_flasques_jaune: 'Larves flasques jaune clair',
+  larves_sac_ecailles_noires: 'Larves en sac, écailles noires',
+  momies_blanches_grises: 'Momies blanches ou grises',
+  odeur_colle_putride: 'Odeur de colle ou putride ⚠',
+  odeur_aigre: 'Odeur aigre',
+  ailes_deformees: 'Ailes déformées',
+  varroas_visibles: 'Varroas visibles',
+  toiles_fausse_teigne: 'Toiles ou galeries de fausse teigne',
+  coleoptere_noir: 'Coléoptère noir dans les rayons ⚠',
+};
+
 // L'heure exacte n'est fiable que dans le champ texte "heure" (brief §6 :
 // conservé tel quel, ex. "16h00") — la partie horaire de "date" vaut minuit
 // par défaut dès que l'heure d'origine était absente ou non structurée.
@@ -113,6 +137,12 @@ export function Historique({ colonieId, onRetour }) {
                 <dd>{champAvecEcart(visite.population, precedente?.population)}</dd>
                 <dt className="text-gray-500">Ponte</dt>
                 <dd>{visite.ponte_qualite ? PONTE_LIBELLES[visite.ponte_qualite] : 'non observé'}</dd>
+                <dt className="text-gray-500">Score de ponte</dt>
+                <dd>
+                  {visite.score_ponte
+                    ? `${champAvecEcart(visite.score_ponte, precedente?.score_ponte)} — ${SCORE_PONTE_LIBELLES[visite.score_ponte]}`
+                    : 'non observé'}
+                </dd>
                 <dt className="text-gray-500">Reine vue</dt>
                 <dd>{visite.reine_vue == null ? 'non observé' : visite.reine_vue ? 'Oui' : 'Non'}</dd>
                 <dt className="text-gray-500">Œufs vus</dt>
@@ -122,6 +152,21 @@ export function Historique({ colonieId, onRetour }) {
               {visite.anomalies?.length > 0 && (
                 <p className="text-sm text-amber-700 mt-2">
                   Anomalies : {visite.anomalies.map((a) => ANOMALIE_LIBELLES[a] ?? a).join(', ')}
+                </p>
+              )}
+
+              {visite.signes_sanitaires?.length > 0 && (
+                <p className="text-sm text-amber-700 mt-2">
+                  Signes observés :{' '}
+                  {visite.signes_sanitaires
+                    .map((s) => SIGNES_SANITAIRES_LIBELLES[s] ?? s)
+                    .join(', ')}
+                </p>
+              )}
+
+              {visite.suspicion_reglementee && (
+                <p className="text-sm text-red-700 font-medium mt-2">
+                  Suspicion réglementée signalée lors de cette visite
                 </p>
               )}
 

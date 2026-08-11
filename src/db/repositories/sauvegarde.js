@@ -1,6 +1,6 @@
 import { db } from '../db.js';
 
-const TABLES = ['rucher', 'ruche', 'colonie', 'reine', 'visite', 'tache'];
+const TABLES = ['rucher', 'ruche', 'colonie', 'reine', 'visite', 'tache', 'observation_cadre', 'photo'];
 
 export async function exporterDonnees() {
   const tables = {};

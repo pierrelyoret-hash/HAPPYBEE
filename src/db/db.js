@@ -18,3 +18,15 @@ db.version(1).stores({
 db.version(2).stores({
   visite: 'id, colonie_id, date, [colonie_id+date], deleted_at',
 });
+
+// v3 (lot L1+) : ajout de observation_cadre (schéma seul, aucune interface
+// avant L2) et de photo (schéma seul, aucune interface avant L2). Additive
+// uniquement — aucune table ni index existant n'est modifié, les données
+// déjà saisies ne sont pas affectées par cette migration. Les nouveaux
+// champs de visite (score_ponte, signes_sanitaires, source_agregats,
+// suspicion_reglementee) ne sont pas indexés : ils n'ont pas besoin de
+// figurer dans stores().
+db.version(3).stores({
+  observation_cadre: 'id, visite_id, deleted_at',
+  photo: 'id, visite_id, observation_cadre_id, deleted_at',
+});

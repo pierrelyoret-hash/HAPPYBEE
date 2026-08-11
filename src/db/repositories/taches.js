@@ -8,3 +8,7 @@ export async function listerTachesOuvertesRucher(rucherId) {
   const taches = await db.tache.where('rucher_id').equals(rucherId).toArray();
   return taches.filter((t) => !t.deleted_at && !STATUTS_FERMES.includes(t.statut));
 }
+
+export async function creerTache(tache) {
+  return db.tache.add(tache);
+}

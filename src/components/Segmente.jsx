@@ -1,4 +1,4 @@
-export function Segmente({ options, value, provenance, referenceDate, onChange }) {
+export function Segmente({ options, value, provenance, referenceDate, libelles, onChange }) {
   const estReporte = provenance === 'reporte';
 
   return (
@@ -25,7 +25,9 @@ export function Segmente({ options, value, provenance, referenceDate, onChange }
         })}
       </div>
       <span className="text-[11px] text-gray-500 h-3">
-        {estReporte && referenceDate && `visite du ${referenceDate}`}
+        {estReporte && referenceDate
+          ? `visite du ${referenceDate}`
+          : libelles && value != null && libelles[value]}
       </span>
     </div>
   );
