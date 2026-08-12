@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { db } from '../../db/db.js';
 import { listerVisitesColonie } from '../../db/repositories/visites.js';
 import { surSync } from '../../lib/sync.js';
+import { BoutonRetour } from '../../components/BoutonRetour.jsx';
 
 const ANOMALIE_LIBELLES = {
   bourdonneuse: 'Bourdonneuse',
@@ -88,7 +89,8 @@ export function Historique({ colonieId, onRetour }) {
 
   return (
     <div className="min-h-screen bg-ground text-ink p-4 flex flex-col gap-4 max-w-md mx-auto">
-      <header>
+      <header className="flex flex-col gap-1">
+        <BoutonRetour onRetour={onRetour} />
         <h1 className="text-20 font-bold">
           {ruche ? `Ruche ${ruche.numero}` : 'Colonie'} — Historique
         </h1>
