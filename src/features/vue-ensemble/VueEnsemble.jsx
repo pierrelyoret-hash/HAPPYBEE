@@ -36,6 +36,7 @@ export function VueEnsemble({
   onOuvrirVisite,
   onOuvrirImport,
   onOuvrirRestauration,
+  onOuvrirExportSanitairePdf,
 }) {
   const [rucher, setRucher] = useState(null);
   const [lignes, setLignes] = useState([]);
@@ -251,6 +252,13 @@ export function VueEnsemble({
           </button>
           <button type="button" onClick={onOuvrirRestauration} className="text-12 text-ink-secondary self-start">
             Restaurer une sauvegarde
+          </button>
+          <button
+            type="button"
+            onClick={onOuvrirExportSanitairePdf}
+            className="text-12 text-ink-secondary self-start"
+          >
+            Exporter le PDF sanitaire
           </button>
           {messageSauvegarde && <p className="text-11 text-ink-muted">{messageSauvegarde}</p>}
         </div>

@@ -440,10 +440,11 @@ Affichage systématiquement accompagné de la série pluriannuelle. **Un ratio i
 | **L1** | M1 + M2 hors photos, en local uniquement, **plus M10 et M11 anticipés** (voir note §1) | Une visite complète saisie au rucher en moins d'une minute, sans réseau | **Livré 10/08/2026** |
 | **L1+** | Complément à L1 : score de ponte, taxonomie sanitaire, parcours danger catégorie 1, table `observation_cadre` au schéma sans interface | Cocher un signe de catégorie 1 affiche la conduite à tenir | **À ouvrir maintenant** |
 | **Revue ergo** | Révision de l'ergonomie après 3 visites réelles avec L1+ | Corrections identifiées et arbitrées | À faire avant L2 |
-| **L2** | Synchronisation + photos + dictée + revue de tournée + **M13 observation cadre par cadre** | Une visite saisie sur le téléphone apparaît sur l'ordinateur ; un cadre remarquable se saisit en 15 s | À ouvrir après la revue ergo |
-| **L3** | M3 + M4 + M7 | Les tâches se génèrent seules après une intervention | Planifié |
+| **L2** | Synchronisation + photos + dictée + revue de tournée + **M13 observation cadre par cadre** | Une visite saisie sur le téléphone apparaît sur l'ordinateur ; un cadre remarquable se saisit en 15 s | Synchronisation livrée (jumelage + sync bidirectionnelle) 12/08/2026 — reste (photos/dictée/revue/M13) en pause, repris après L2.2 |
+| **L2.2** | M3 sanitaire : traitements, comptages varroa, nourrissement, rappels fixes (§6.3), export PDF ciblé aux deux blocs sanitaires du registre (F5.1) — cf. `brief_L2.2_sanitaire.md` | Un traitement et un comptage varroa se saisissent, génèrent automatiquement les trois rappels prévus, et s'exportent en PDF sur une période choisie | Brief rédigé 12/08/2026 — en attente de validation avant développement |
+| **L3** | M4 + M7 + reste de M3 (mouvements, récoltes, rendement, tâches manuelles) | Les tâches se génèrent seules après une intervention | Planifié |
 | **L3bis** | Ingestion météo quotidienne + moteur de règles (3 règles pilotes) — cf. addendum M12 | — | Planifié |
-| **L4** | M5 | Un PDF de registre conforme est produit et imprimé | Planifié |
+| **L4** | M5 (registre complet, 5 blocs — réutilise la génération PDF de L2.2 pour 2 des 5 blocs) | Un PDF de registre conforme est produit et imprimé | Planifié |
 | **L5** | M6 | Le coût de revient au kg d'une ruche est calculé sur une saison réelle | Planifié |
 | **L6** | M9 + reste de M10/M11 (export CSV par table, rappel mensuel) | L'historique CSV est importé, l'export intégral fonctionne hors-ligne | Planifié |
 
@@ -530,3 +531,17 @@ Le socle peut contenir du **contenu réglementaire statique** — le parcours da
 ### Dépendances différées du parcours sanitaire
 
 L'entrée automatique au registre d'élevage (L4) et la génération automatisée de tâches (L3bis) n'existent pas dans le socle. Le parcours y crée une tâche d'origine manuelle et marque la visite. Les données saisies alimenteront rétroactivement les deux modules — aucune ressaisie.
+
+---
+
+## 14. Arbitrages actés — 12 août 2026
+
+| Question | Décision |
+|---|---|
+| Création d'un lot sanitaire dédié | **Nouveau lot L2.2**, inséré entre L2 (synchronisation, livrée) et L3. Le reste de L2 (photos, dictée, revue de tournée, M13) reste en pause, repris après L2.2 |
+| Contenu transposé vers L2.2 | Traitements, comptages varroa, nourrissement et conformité bio (ex-L3.1/L3.3-L3.5) ; les trois rappels fixes déjà écrits en §6.3 (traitement → délai, varroa fort, varroa modéré), auparavant ambigus entre L3 et L3bis (cf. ancien §3 du brief, devenu sans objet) ; documents rattachés à un traitement (ex-L3.10, périmètre traitement uniquement) |
+| Export PDF sanitaire | **Transposé en L2.2** : les deux blocs « encadrement sanitaire » et « interventions vétérinaires » de F5.1 (arrêté du 5 juin 2000), sur une période sélectionnable. Le registre complet (5 blocs, pagination continue, annexe documentaire — F5.1-F5.4 intégralement) **reste en L4**, qui réutilisera cette génération PDF plutôt que de la reconstruire |
+| Moteur de règles météo (addendum M12) | **Reste exclu de L2.2**, sans exception — confirmé explicitement malgré la transposition : R-COUV-01 et toute règle météo-dépendante ne sont pas des rappels fixes mais une heuristique de conduite, hors du carnet de bord à tout lot |
+| Reste de L3 après transposition | Mouvements de ruches/colonies, récoltes (M4), rendement, tâches manuelles/vue consolidée (M7 générique) |
+
+Détail complet du lot : `brief_L2.2_sanitaire.md`.

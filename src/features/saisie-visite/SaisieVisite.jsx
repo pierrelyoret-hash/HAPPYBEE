@@ -107,7 +107,7 @@ function dateLisible(iso) {
   return new Date(iso).toLocaleDateString('fr-FR');
 }
 
-export function SaisieVisite({ colonieInitialeId, onRetour, onOuvrirHistorique }) {
+export function SaisieVisite({ colonieInitialeId, onRetour, onOuvrirHistorique, onOuvrirSanitaire }) {
   const [contextes, setContextes] = useState([]);
   const [colonieId, setColonieId] = useState(null);
   const [derniereVisite, setDerniereVisite] = useState(null);
@@ -563,6 +563,16 @@ export function SaisieVisite({ colonieInitialeId, onRetour, onOuvrirHistorique }
           className="h-12 w-full text-13 text-ink-secondary underline"
         >
           Voir l'historique
+        </button>
+      )}
+
+      {onOuvrirSanitaire && colonieId && (
+        <button
+          type="button"
+          onClick={() => onOuvrirSanitaire(colonieId)}
+          className="h-12 w-full text-13 text-ink-secondary underline"
+        >
+          Voir le sanitaire
         </button>
       )}
 

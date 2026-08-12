@@ -269,20 +269,36 @@ Priorités : **M** must · **S** should · **C** could. Le symbole ⚑ signale l
 
 **L2 est devenu le lot le plus lourd de la trajectoire.** Séquencement interne recommandé, avec validation après chaque étape : synchronisation → photos → dictée et transcription → écran de revue → écran cadre par cadre → agrégation. Ne pas ouvrir l'étape suivante avant que la précédente ait servi au rucher.
 
-## L3 — Sanitaire, récoltes, tâches
+**Synchronisation livrée le 12/08/2026** (jumelage par appareil, file d'attente locale, résolution dernière écriture gagnante). Le reste de L2 (photos, dictée, revue de tournée, cadre par cadre) est mis en pause, repris après L2.2.
+
+## L2.2 — Sanitaire *(brief rédigé, en attente de validation)*
+
+Lot inséré le 12/08/2026 entre L2 et L3 — voir `brief_L2.2_sanitaire.md` pour le détail complet. Contenu transposé depuis L3/L3bis/L4 (numérotation d'origine indiquée entre parenthèses) :
 
 | Réf | Fonctionnalité | Prio |
 |---|---|---|
-| L3.1 | Traitements : produit, AMM, lot, dosage, délai d'attente | M |
-| L3.2 | Blocage de récolte pendant le délai d'attente | M |
-| L3.3 | Comptages varroa, varroas/jour, seuils saisonniers paramétrables | M |
-| L3.4 | Marquage de conformité au cahier des charges bio | M |
-| L3.5 | Nourrissement : type, quantité, composition, origine | M |
+| L2.2.1 | Traitements : produit, AMM, lot, dosage, délai d'attente (ex-L3.1) | M |
+| L2.2.2 | `date_fin_delai_attente` calculée et stockée — le blocage de récolte lui-même reste hors lot, M4 n'existe pas encore (ex-L3.2, partiel) | M |
+| L2.2.3 | Comptages varroa, varroas/jour, seuils saisonniers paramétrables (ex-L3.3) | M |
+| L2.2.4 | Marquage de conformité au cahier des charges bio (ex-L3.4) | M |
+| L2.2.5 | Nourrissement : type, quantité, composition, origine (ex-L3.5) | M |
+| L2.2.6 | Documents rattachés à un traitement : ordonnances, comptes rendus (ex-L3.10, périmètre traitement uniquement) | M |
+| L2.2.7 | Rappels automatiques, trois règles fixes déjà écrites en §6.3 (traitement → délai, varroa fort, varroa modéré) — ex-L3b.6, partiel : seules les règles à seuil fixe, pas les règles météo-dépendantes | M |
+| L2.2.8 | Export PDF ciblé aux deux blocs sanitaires du registre — « encadrement sanitaire » et « interventions vétérinaires » (ex-L4.1, partiel : 2 des 5 blocs, pas de pagination continue multi-blocs ni d'annexe documentaire) | M |
+
+**Explicitement exclu, y compris sous l'instruction de transposition :** le moteur de règles météo (L3b.4-L3b.5, R-COUV-01 et le reste du catalogue) reste intégralement en L3bis — ce n'est pas un rappel fixe mais une heuristique de conduite, hors du carnet de bord à tout lot.
+
+## L3 — Récoltes, mouvements, tâches (sanitaire transposé en L2.2)
+
+| Réf | Fonctionnalité | Prio |
+|---|---|---|
+| L3.2 | Blocage de récolte pendant le délai d'attente (utilise `date_fin_delai_attente`, calculée dès L2.2) | M |
 | L3.6 | Mouvements de ruches et de colonies | M |
 | L3.7 | Récoltes, six modes de saisie, poids net calculé | M |
 | L3.8 | Rendement par colonie, par ruche, par saison | M |
 | L3.9 | Tâches manuelles, vue consolidée | M |
-| L3.10 | Documents rattachés : ordonnances, comptes rendus, analyses | M |
+
+L3.1, L3.3, L3.4, L3.5 et L3.10 sont passés en L2.2 (arbitrage du 12/08/2026, voir ci-dessus) — numérotation d'origine conservée à titre d'historique, non réutilisée.
 
 ## L3bis — Météo et moteur de recommandations
 
@@ -293,7 +309,7 @@ Priorités : **M** must · **S** should · **C** could. Le symbole ⚑ signale l
 | L3b.3 | Agrégats : canicule, sécheresse, pluie prolongée, gel tardif | M |
 | L3b.4 | Moteur de règles déterministe, versionné | M |
 | L3b.5 | Catalogue initial de quinze règles | M |
-| L3b.6 | Génération automatique de tâches | M |
+| L3b.6 | Génération automatique de tâches — règles météo-dépendantes uniquement ; les trois règles à seuil fixe (traitement, varroa) sont livrées en L2.2 | M |
 | L3b.7 | Cycle de vie : proposée / validée / différée / rejetée | M |
 | L3b.8 | Traçabilité complète du déclenchement | M |
 | L3b.9 | Paramétrage des seuils par règle | M |
@@ -305,7 +321,7 @@ Priorités : **M** must · **S** should · **C** could. Le symbole ⚑ signale l
 
 | Réf | Fonctionnalité | Prio |
 |---|---|---|
-| L4.1 | Export PDF paginé, cinq blocs réglementaires | M |
+| L4.1 | Export PDF paginé, cinq blocs réglementaires — réutilise la génération PDF de L2.2 pour les blocs « encadrement sanitaire » et « interventions vétérinaires », construit les trois blocs restants (fiche synthétique, mouvements des animaux, entretien et soins) et l'assemblage paginé complet | M |
 | L4.2 | Classement chronologique par type de données | M |
 | L4.3 | Sélection de période | M |
 | L4.4 | Annexe des documents rattachés | M |
@@ -365,3 +381,15 @@ L1 peut contenir du **contenu réglementaire statique** — le parcours danger s
 ### Dépendances différées du parcours sanitaire
 
 L'entrée automatique au registre d'élevage (L4) et la génération automatisée de tâches (L3bis) n'existent pas en L1. Le parcours y crée une tâche d'origine manuelle et marque la visite. Les données saisies alimenteront rétroactivement les deux modules — aucune ressaisie.
+
+---
+
+## Arbitrages actés — 12 août 2026
+
+| Question | Décision |
+|---|---|
+| Création d'un lot sanitaire dédié | **Nouveau lot L2.2**, inséré entre L2 (synchronisation, livrée) et L3 |
+| Contenu transposé vers L2.2 | Ex-L3.1, L3.3, L3.4, L3.5, L3.10 (traitements, comptages varroa, nourrissement, conformité bio, documents rattachés) ; ex-L3b.6 partiel (les trois règles de rappel à seuil fixe) ; ex-L4.1 partiel (export PDF des deux blocs sanitaires) |
+| Moteur de règles météo (L3b.4-L3b.5) | **Reste exclu de L2.2**, sans exception — confirmé explicitement malgré l'instruction de transposition : ce n'est pas un rappel fixe mais une heuristique de conduite |
+
+Détail complet du lot : `brief_L2.2_sanitaire.md`.

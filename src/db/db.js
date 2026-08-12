@@ -63,3 +63,15 @@ db.version(4)
         delete visite.ponte_qualite;
       });
   });
+
+// v5 (lot L2.2, brief_L2.2_sanitaire.md §3) : quatre nouvelles tables,
+// additive uniquement — aucune table ni index existant n'est modifié. Les
+// champs calculés (date_fin_delai_attente, varroas_par_jour, niveau_alerte)
+// ne sont pas indexés : ils se recalculent à l'écriture, jamais interrogés
+// directement.
+db.version(5).stores({
+  traitement: 'id, colonie_id, deleted_at',
+  comptage_varroa: 'id, colonie_id, date, deleted_at',
+  nourrissement: 'id, colonie_id, date, deleted_at',
+  document: 'id, entite_liee_type, entite_liee_id, deleted_at',
+});

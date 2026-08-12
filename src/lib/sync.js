@@ -6,7 +6,20 @@ import { supabase } from './supabase.js';
 // existent au schéma mais aucune interface n'écrit dedans avant les étapes
 // suivantes du lot. Les inclure ici ne coûte rien (elles restent vides) et
 // évite d'y revenir spécifiquement à l'étape "photos".
-const TABLES = ['rucher', 'ruche', 'colonie', 'reine', 'visite', 'tache', 'observation_cadre', 'photo'];
+const TABLES = [
+  'rucher',
+  'ruche',
+  'colonie',
+  'reine',
+  'visite',
+  'tache',
+  'observation_cadre',
+  'photo',
+  'traitement',
+  'comptage_varroa',
+  'nourrissement',
+  'document',
+];
 
 const CLE_CURSEURS = 'happybee_sync_curseurs';
 const EPOQUE = '1970-01-01T00:00:00.000Z';

@@ -4,6 +4,13 @@ import { SaisieVisite } from './features/saisie-visite';
 import { Historique } from './features/historique';
 import { ImportCsv } from './features/import-csv';
 import { Restauration } from './features/restauration';
+import {
+  HistoriqueSanitaire,
+  SaisieTraitement,
+  SaisieComptageVarroa,
+  SaisieNourrissement,
+  ExportSanitairePdf,
+} from './features/sanitaire';
 
 export function App() {
   const [ecran, setEcran] = useState('vue_ensemble');
@@ -17,6 +24,30 @@ export function App() {
   function ouvrirHistorique(colonieId) {
     setColonieSelectionnee(colonieId);
     setEcran('historique');
+  }
+
+  function ouvrirSanitaire(colonieId) {
+    setColonieSelectionnee(colonieId);
+    setEcran('sanitaire');
+  }
+
+  function ouvrirSaisieTraitement(colonieId) {
+    setColonieSelectionnee(colonieId);
+    setEcran('saisie_traitement');
+  }
+
+  function ouvrirSaisieComptageVarroa(colonieId) {
+    setColonieSelectionnee(colonieId);
+    setEcran('saisie_comptage_varroa');
+  }
+
+  function ouvrirSaisieNourrissement(colonieId) {
+    setColonieSelectionnee(colonieId);
+    setEcran('saisie_nourrissement');
+  }
+
+  function ouvrirExportSanitairePdf() {
+    setEcran('export_sanitaire_pdf');
   }
 
   function ouvrirImport() {
@@ -37,12 +68,59 @@ export function App() {
         colonieInitialeId={colonieSelectionnee}
         onRetour={retourVueEnsemble}
         onOuvrirHistorique={ouvrirHistorique}
+        onOuvrirSanitaire={ouvrirSanitaire}
       />
     );
   }
 
   if (ecran === 'historique') {
     return <Historique colonieId={colonieSelectionnee} onRetour={retourVueEnsemble} />;
+  }
+
+  if (ecran === 'sanitaire') {
+    return (
+      <HistoriqueSanitaire
+        colonieId={colonieSelectionnee}
+        onRetour={retourVueEnsemble}
+        onOuvrirSaisieTraitement={ouvrirSaisieTraitement}
+        onOuvrirSaisieComptageVarroa={ouvrirSaisieComptageVarroa}
+        onOuvrirSaisieNourrissement={ouvrirSaisieNourrissement}
+      />
+    );
+  }
+
+  if (ecran === 'saisie_traitement') {
+    return (
+      <SaisieTraitement
+        colonieId={colonieSelectionnee}
+        onRetour={() => ouvrirSanitaire(colonieSelectionnee)}
+        onEnregistre={ouvrirSanitaire}
+      />
+    );
+  }
+
+  if (ecran === 'saisie_comptage_varroa') {
+    return (
+      <SaisieComptageVarroa
+        colonieId={colonieSelectionnee}
+        onRetour={() => ouvrirSanitaire(colonieSelectionnee)}
+        onEnregistre={ouvrirSanitaire}
+      />
+    );
+  }
+
+  if (ecran === 'saisie_nourrissement') {
+    return (
+      <SaisieNourrissement
+        colonieId={colonieSelectionnee}
+        onRetour={() => ouvrirSanitaire(colonieSelectionnee)}
+        onEnregistre={ouvrirSanitaire}
+      />
+    );
+  }
+
+  if (ecran === 'export_sanitaire_pdf') {
+    return <ExportSanitairePdf onRetour={retourVueEnsemble} />;
   }
 
   if (ecran === 'import_csv') {
@@ -58,6 +136,7 @@ export function App() {
       onOuvrirVisite={ouvrirSaisie}
       onOuvrirImport={ouvrirImport}
       onOuvrirRestauration={ouvrirRestauration}
+      onOuvrirExportSanitairePdf={ouvrirExportSanitairePdf}
     />
   );
 }
