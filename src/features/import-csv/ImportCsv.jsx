@@ -71,24 +71,24 @@ export function ImportCsv({ onRetour }) {
   const contientToutes = analyse?.lignesValides.some((l) => l.ruche === 'Toutes');
 
   return (
-    <div className="min-h-screen bg-white text-gray-900 p-4 flex flex-col gap-4 max-w-md mx-auto">
+    <div className="min-h-screen bg-ground text-ink p-4 flex flex-col gap-4 max-w-md mx-auto">
       <header>
-        <h1 className="text-xl font-medium">Importer l'historique</h1>
-        <p className="text-sm text-gray-600">Fichier archives_apicoles.csv</p>
+        <h1 className="text-20 font-bold">Importer l'historique</h1>
+        <p className="text-13 text-ink-secondary">Fichier archives_apicoles.csv</p>
       </header>
 
       {!analyse && (
-        <label className="border border-dashed border-gray-300 rounded p-4 text-center text-sm text-gray-600 block">
+        <label className="border border-dashed border-rule-strong rounded p-4 text-center text-13 text-ink-secondary block">
           <input type="file" accept=".csv" className="hidden" onChange={surChangementFichier} />
           Choisir le fichier CSV
         </label>
       )}
 
-      {erreur && <p className="text-sm text-red-700">{erreur}</p>}
+      {erreur && <p className="text-13 text-urgent-ink">{erreur}</p>}
 
       {analyse && !resume && (
         <>
-          <section className="text-sm">
+          <section className="text-13">
             <p>
               {analyse.lignesValides.length} ligne(s) lue(s), {analyse.lignesErreur.length} en
               erreur.
@@ -97,8 +97,8 @@ export function ImportCsv({ onRetour }) {
 
           {analyse.lignesErreur.length > 0 && (
             <section>
-              <p className="text-sm text-gray-600 mb-1">Lignes en erreur</p>
-              <ul className="text-[11px] text-red-700 flex flex-col gap-1">
+              <p className="text-13 text-ink-secondary mb-1">Lignes en erreur</p>
+              <ul className="text-11 text-urgent-ink flex flex-col gap-1">
                 {analyse.lignesErreur.map((e) => (
                   <li key={e.numeroLigne}>
                     Ligne {e.numeroLigne} : {e.motif}
@@ -109,8 +109,8 @@ export function ImportCsv({ onRetour }) {
           )}
 
           <section>
-            <p className="text-sm text-gray-600 mb-1">Correspondance des colonnes</p>
-            <ul className="text-[11px] text-gray-600 flex flex-col gap-0.5">
+            <p className="text-13 text-ink-secondary mb-1">Correspondance des colonnes</p>
+            <ul className="text-11 text-ink-secondary flex flex-col gap-0.5">
               {CORRESPONDANCE_COLONNES.map(([source, cible]) => (
                 <li key={source}>
                   {source} → {cible}
@@ -121,10 +121,10 @@ export function ImportCsv({ onRetour }) {
 
           {contientToutes && (
             <section>
-              <p className="text-sm text-gray-600 mb-1">
+              <p className="text-13 text-ink-secondary mb-1">
                 Certaines lignes concernent « Toutes » les ruches. Comment les traiter ?
               </p>
-              <label className="flex items-start gap-2 text-sm mb-2">
+              <label className="flex items-start gap-2 text-13 mb-2">
                 <input
                   type="radio"
                   name="mode-toutes"
@@ -137,7 +137,7 @@ export function ImportCsv({ onRetour }) {
                   chaque colonie)
                 </span>
               </label>
-              <label className="flex items-start gap-2 text-sm">
+              <label className="flex items-start gap-2 text-13">
                 <input
                   type="radio"
                   name="mode-toutes"
@@ -157,7 +157,7 @@ export function ImportCsv({ onRetour }) {
             type="button"
             onClick={validerImport}
             disabled={enCours}
-            className="h-[46px] w-full rounded bg-blue-600 text-white text-base font-medium disabled:opacity-50"
+            className="h-[46px] w-full rounded bg-ink text-surface text-15 font-bold disabled:opacity-50"
           >
             {enCours ? 'Import en cours…' : "Valider l'import"}
           </button>
@@ -165,14 +165,14 @@ export function ImportCsv({ onRetour }) {
       )}
 
       {resume && (
-        <section className="text-sm">
+        <section className="text-13">
           <p>
             {resume.nbVisites} visite(s) et {resume.nbTaches} tâche(s) importée(s).
           </p>
           {resume.erreursResolution.length > 0 && (
             <>
-              <p className="text-gray-600 mt-2 mb-1">Lignes ignorées</p>
-              <ul className="text-[11px] text-red-700 flex flex-col gap-1">
+              <p className="text-ink-secondary mt-2 mb-1">Lignes ignorées</p>
+              <ul className="text-11 text-urgent-ink flex flex-col gap-1">
                 {resume.erreursResolution.map((e, i) => (
                   <li key={i}>
                     Ligne {e.numeroLigne} : {e.motif}
@@ -188,7 +188,7 @@ export function ImportCsv({ onRetour }) {
         <button
           type="button"
           onClick={onRetour}
-          className="h-12 w-full text-sm text-gray-600 underline"
+          className="h-12 w-full text-13 text-ink-secondary underline"
         >
           Retour à la vue d'ensemble
         </button>

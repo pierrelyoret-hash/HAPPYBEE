@@ -33,7 +33,11 @@ export function App() {
 
   if (ecran === 'saisie_visite') {
     return (
-      <SaisieVisite colonieInitialeId={colonieSelectionnee} onRetour={retourVueEnsemble} />
+      <SaisieVisite
+        colonieInitialeId={colonieSelectionnee}
+        onRetour={retourVueEnsemble}
+        onOuvrirHistorique={ouvrirHistorique}
+      />
     );
   }
 
@@ -52,7 +56,6 @@ export function App() {
   return (
     <VueEnsemble
       onOuvrirVisite={ouvrirSaisie}
-      onOuvrirHistorique={ouvrirHistorique}
       onOuvrirImport={ouvrirImport}
       onOuvrirRestauration={ouvrirRestauration}
     />

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { PastilleEtat } from '../../components/PastilleEtat.jsx';
+import { LigneColonie } from './LigneColonie.jsx';
 import { db } from '../../db/db.js';
 import {
   obtenirPremierRucher,
@@ -29,20 +30,9 @@ function dateLisible(iso) {
   return new Date(iso).toLocaleDateString('fr-FR');
 }
 
-function sommeCadresObserves(visite) {
-  if (!visite) return null;
-  const valeurs = [
-    visite.nb_cadres_couvain_opercule,
-    visite.nb_cadres_couvain_ouvert,
-    visite.nb_cadres_provisions,
-  ].filter((v) => v != null);
-  if (valeurs.length === 0) return null;
-  return valeurs.reduce((a, b) => a + b, 0);
-}
 
 export function VueEnsemble({
   onOuvrirVisite,
-  onOuvrirHistorique,
   onOuvrirImport,
   onOuvrirRestauration,
 }) {
@@ -50,6 +40,7 @@ export function VueEnsemble({
   const [lignes, setLignes] = useState([]);
   const [chargement, setChargement] = useState(true);
   const [messageSauvegarde, setMessageSauvegarde] = useState(null);
+  const [modeEdition, setModeEdition] = useState(false);
   const horsLigne = useHorsLigne();
 
   // Sauvegarde manuelle en un geste, directement depuis l'écran d'accueil
@@ -115,7 +106,9 @@ export function VueEnsemble({
           reine,
           etat,
           joursDepuisVisite,
-          cadresObserves: sommeCadresObserves(derniereVisite),
+          derniereVisite,
+          couvain: derniereVisite?.nb_cadres_couvain_opercule ?? null,
+          provisions: derniereVisite?.nb_cadres_provisions ?? null,
           tachesUrgentes: tachesColonie.filter(
             (t) => t.date_echeance && new Date(t.date_echeance).getTime() <= Date.now()
           ),
@@ -143,17 +136,17 @@ export function VueEnsemble({
   if (chargement) return null;
 
   if (!rucher) {
-    return <p className="p-4 text-base text-gray-600">Aucun rucher trouvé.</p>;
+    return <p className="p-4 text-13 text-ink-secondary">Aucun rucher trouvé.</p>;
   }
 
   const urgences = lignes.filter((l) => l.etat === 'urgent');
 
   return (
-    <div className="min-h-screen bg-white text-gray-900 p-4 flex flex-col gap-4 max-w-md mx-auto">
+    <div className="min-h-screen bg-ground text-ink p-4 flex flex-col gap-4 max-w-md mx-auto">
       <header className="flex items-center justify-between">
-        <h1 className="text-xl font-medium">{rucher.nom}</h1>
+        <h1 className="text-20 font-bold">{rucher.nom}</h1>
         {horsLigne && (
-          <span className="text-[11px] text-gray-500 border border-gray-300 rounded px-2 py-1">
+          <span className="text-11 text-ink-muted border border-rule-strong rounded px-2 py-1">
             Hors ligne
           </span>
         )}
@@ -166,12 +159,12 @@ export function VueEnsemble({
               key={ligne.colonie.id}
               type="button"
               onClick={() => onOuvrirVisite(ligne.colonie.id)}
-              className="text-left border border-red-300 bg-red-50 rounded p-3"
+              className="text-left border border-rule-strong bg-urgent-bg rounded p-3"
             >
-              <p className="text-sm font-medium text-red-700">
+              <p className="text-13 font-bold text-urgent-ink">
                 ! Ruche {ligne.ruche.numero} — {ligne.tachesUrgentes[0]?.libelle ?? 'échéance dépassée'}
               </p>
-              <p className="text-[11px] text-red-600">
+              <p className="text-11 text-urgent-ink">
                 Échéance : {dateLisible(ligne.tachesUrgentes[0]?.date_echeance)}
               </p>
             </button>
@@ -182,109 +175,62 @@ export function VueEnsemble({
       <button
         type="button"
         onClick={() => onOuvrirVisite(null)}
-        className="h-[46px] w-full rounded bg-blue-600 text-white text-base font-medium"
+        className="h-[46px] w-full rounded bg-ink text-surface text-15 font-bold"
       >
         Saisir une visite
       </button>
 
-      <div className="flex flex-col gap-1">
-        <button
-          type="button"
-          onClick={onOuvrirImport}
-          className="text-sm text-blue-700 underline self-start"
-        >
-          Importer l'historique CSV
-        </button>
-        <button
-          type="button"
-          onClick={sauvegarder}
-          className="text-sm text-blue-700 underline self-start"
-        >
-          Sauvegarder (export JSON)
-        </button>
-        <button
-          type="button"
-          onClick={onOuvrirRestauration}
-          className="text-sm text-blue-700 underline self-start"
-        >
-          Restaurer une sauvegarde
-        </button>
-        {messageSauvegarde && <p className="text-[11px] text-gray-600">{messageSauvegarde}</p>}
-      </div>
-
       <section>
-        <p className="text-sm text-gray-600 mb-2">Ordre de tournée</p>
-        <ul className="flex flex-col gap-2">
-          {lignes.map((ligne, index) => (
-            <li
-              key={ligne.colonie.id}
-              className="border border-gray-200 rounded p-3 flex items-center gap-3"
+        <div className="flex items-center justify-between mb-2">
+          <p className="text-13 text-ink-secondary">Ordre de tournée</p>
+          {modeEdition && (
+            <button
+              type="button"
+              onClick={() => setModeEdition(false)}
+              className="text-12 text-ink-secondary underline"
             >
-              <div className="flex flex-col gap-1">
-                <button
-                  type="button"
-                  onClick={() => deplacer(index, -1)}
-                  disabled={index === 0}
-                  className="w-8 h-8 rounded bg-gray-100 disabled:opacity-30"
-                  aria-label="monter dans la tournée"
-                >
-                  ↑
-                </button>
-                <button
-                  type="button"
-                  onClick={() => deplacer(index, 1)}
-                  disabled={index === lignes.length - 1}
-                  className="w-8 h-8 rounded bg-gray-100 disabled:opacity-30"
-                  aria-label="descendre dans la tournée"
-                >
-                  ↓
-                </button>
-              </div>
-
-              <div className="flex-1">
-                <button
-                  type="button"
-                  onClick={() => onOuvrirVisite(ligne.colonie.id)}
-                  className="text-left w-full"
-                >
-                  <p className="text-base font-medium">
-                    Ruche {ligne.ruche.numero}
-                    <span className="text-sm font-normal text-gray-600">
-                      {' · '}
-                      {ligne.reine ? `reine ${ligne.reine.annee_naissance}` : 'reine non confirmée'}
-                      {ligne.cadresObserves != null && ` · ${ligne.cadresObserves} cadres`}
-                    </span>
-                  </p>
-                  <p className="text-[11px] text-gray-500">
-                    {ligne.joursDepuisVisite == null
-                      ? 'Jamais visitée'
-                      : ligne.joursDepuisVisite === 0
-                        ? "Visitée aujourd'hui"
-                        : `Visitée il y a ${ligne.joursDepuisVisite} j`}
-                  </p>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => onOuvrirHistorique(ligne.colonie.id)}
-                  className="text-[11px] text-blue-700 underline mt-1"
-                >
-                  Historique
-                </button>
-              </div>
-
-              <PastilleEtat etat={ligne.etat} />
-            </li>
+              Terminé
+            </button>
+          )}
+        </div>
+        <ul className="bg-surface rounded border border-rule divide-y divide-rule">
+          {lignes.map((ligne, index) => (
+            <LigneColonie
+              key={ligne.colonie.id}
+              ligne={ligne}
+              modeEdition={modeEdition}
+              premiere={index === 0}
+              derniere={index === lignes.length - 1}
+              onOuvrirVisite={onOuvrirVisite}
+              onEntrerModeEdition={() => setModeEdition(true)}
+              onDeplacer={(direction) => deplacer(index, direction)}
+            />
           ))}
         </ul>
       </section>
 
-      <footer>
-        <p className="text-sm text-gray-600 mb-1">Légende</p>
-        <div className="flex flex-wrap gap-2">
-          <PastilleEtat etat="urgent" />
-          <PastilleEtat etat="action" />
-          <PastilleEtat etat="a_visiter" />
-          <PastilleEtat etat="normale" />
+      <footer className="flex flex-col gap-3 mt-2">
+        <div>
+          <p className="text-12 text-ink-secondary mb-1">Légende</p>
+          <div className="flex flex-wrap gap-2">
+            <PastilleEtat etat="urgent" />
+            <PastilleEtat etat="action" />
+            <PastilleEtat etat="a_visiter" />
+            <PastilleEtat etat="normale" />
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-1 pt-2 border-t border-rule">
+          <button type="button" onClick={onOuvrirImport} className="text-12 text-ink-secondary self-start">
+            Importer l'historique CSV
+          </button>
+          <button type="button" onClick={sauvegarder} className="text-12 text-ink-secondary self-start">
+            Sauvegarder (export JSON)
+          </button>
+          <button type="button" onClick={onOuvrirRestauration} className="text-12 text-ink-secondary self-start">
+            Restaurer une sauvegarde
+          </button>
+          {messageSauvegarde && <p className="text-11 text-ink-muted">{messageSauvegarde}</p>}
         </div>
       </footer>
     </div>

@@ -18,10 +18,8 @@ export function Chips({ options, value, onChange }) {
             key={option.value}
             type="button"
             onClick={() => basculer(option.value)}
-            className={`rounded-full border text-sm py-[7px] px-[11px] ${
-              selectionne
-                ? 'bg-amber-100 border-amber-400 text-amber-800'
-                : 'bg-white border-gray-300 text-gray-700'
+            className={`rounded border text-13 h-[34px] px-3 ${
+              selectionne ? 'bg-ink border-ink text-surface' : 'bg-surface border-rule-strong text-ink'
             }`}
           >
             {option.label}

@@ -1,3 +1,43 @@
+/* Polices chargées en local (brief refonte visuelle §4) — jamais de CDN,
+   l'application doit fonctionner hors réseau. */
+@import '@fontsource/atkinson-hyperlegible/400.css';
+@import '@fontsource/atkinson-hyperlegible/400-italic.css';
+@import '@fontsource/atkinson-hyperlegible/700.css';
+@import '@fontsource/ibm-plex-mono/400.css';
+@import '@fontsource/ibm-plex-mono/700.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  /* Fonds — papier, jamais crème */
+  --ground: #FAFAF8;
+  --surface: #FFFFFF;
+  --surface-sunk: #F3F3EF;
+
+  /* Encre */
+  --ink: #1A1A17;
+  --ink-secondary: #5C5C55;
+  --ink-muted: #8A8A80;
+
+  /* Traits */
+  --rule: #E3E2DC;
+  --rule-strong: #C9C8C0;
+
+  /* États — seule couleur de l'interface */
+  --urgent-bg: #FBEAE8;
+  --urgent-ink: #8C1D18;
+  --action-bg: #FCF0DC;
+  --action-ink: #6B4106;
+  --attente-bg: #F0EFEA;
+  --attente-ink: #44443E;
+  --normale-bg: #E4F2EA;
+  --normale-ink: #12543C;
+}
+
+body {
+  background: var(--ground);
+  color: var(--ink);
+  font-family: 'Atkinson Hyperlegible', sans-serif;
+}

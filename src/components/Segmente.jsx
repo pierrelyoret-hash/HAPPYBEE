@@ -1,4 +1,10 @@
-export function Segmente({ options, value, provenance, referenceDate, libelles, onChange }) {
+// Correction écrans L1 rang 2 (bloquant) : une valeur reportée ne doit
+// jamais se rendre comme une sélection active. Conforme à l'addendum
+// ergonomie §3 : "reporté" = grisé jusqu'à confirmation, jamais coloré
+// comme "saisi". Sélecteur segmenté (brief refonte §5) : pas de teinte,
+// état actif en encre pleine — seul un appui de l'utilisateur obtient
+// cette couleur.
+export function Segmente({ options, value, provenance, referenceDate, libelles, legende, onChange }) {
   const estReporte = provenance === 'reporte';
 
   return (
@@ -11,12 +17,12 @@ export function Segmente({ options, value, provenance, referenceDate, libelles, 
               key={String(option.value)}
               type="button"
               onClick={() => onChange(option.value)}
-              className={`flex-1 h-10 rounded text-sm font-medium border ${
+              className={`flex-1 h-10 rounded text-13 font-bold border ${
                 selectionne
                   ? estReporte
-                    ? 'bg-green-100 border-green-400 text-green-700'
-                    : 'bg-green-600 border-green-600 text-white'
-                  : 'bg-white border-gray-300 text-gray-700'
+                    ? 'bg-surface-sunk border-rule-strong text-ink-muted'
+                    : 'bg-ink border-ink text-surface'
+                  : 'bg-surface border-rule-strong text-ink'
               }`}
             >
               {option.label}
@@ -24,10 +30,12 @@ export function Segmente({ options, value, provenance, referenceDate, libelles, 
           );
         })}
       </div>
-      <span className="text-[11px] text-gray-500 h-3">
+      <span className="text-11 text-ink-muted h-3">
         {estReporte && referenceDate
           ? `visite du ${referenceDate}`
-          : libelles && value != null && libelles[value]}
+          : value != null && libelles
+            ? libelles[value]
+            : legende}
       </span>
     </div>
   );

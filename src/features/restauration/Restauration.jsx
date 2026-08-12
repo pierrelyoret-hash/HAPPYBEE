@@ -45,28 +45,28 @@ export function Restauration({ onRetour }) {
   }
 
   return (
-    <div className="min-h-screen bg-white text-gray-900 p-4 flex flex-col gap-4 max-w-md mx-auto">
+    <div className="min-h-screen bg-ground text-ink p-4 flex flex-col gap-4 max-w-md mx-auto">
       <header>
-        <h1 className="text-xl font-medium">Restaurer une sauvegarde</h1>
-        <p className="text-sm text-gray-600">Remplace toutes les données actuelles</p>
+        <h1 className="text-20 font-bold">Restaurer une sauvegarde</h1>
+        <p className="text-13 text-ink-secondary">Remplace toutes les données actuelles</p>
       </header>
 
       {!fichierChoisi && !message && (
-        <label className="border border-dashed border-gray-300 rounded p-4 text-center text-sm text-gray-600 block">
+        <label className="border border-dashed border-rule-strong rounded p-4 text-center text-13 text-ink-secondary block">
           <input type="file" accept=".json" className="hidden" onChange={surChoixFichier} />
           Choisir un fichier de sauvegarde
         </label>
       )}
 
-      {erreur && <p className="text-sm text-red-700">{erreur}</p>}
+      {erreur && <p className="text-13 text-urgent-ink">{erreur}</p>}
 
       {fichierChoisi && (
-        <div className="border border-red-300 bg-red-50 rounded p-3">
-          <p className="text-sm text-red-700 font-medium">
+        <div className="border border-rule-strong bg-urgent-bg rounded p-3">
+          <p className="text-13 text-urgent-ink font-bold">
             Cette restauration va remplacer toutes les données actuelles de l'application. Cette
             action est irréversible.
           </p>
-          <p className="text-[11px] text-red-600 mt-1">
+          <p className="text-11 text-urgent-ink mt-1">
             {compterEnregistrements(fichierChoisi)} enregistrement(s) dans ce fichier
             {fichierChoisi.exporte_le &&
               `, exporté le ${new Date(fichierChoisi.exporte_le).toLocaleString('fr-FR')}`}
@@ -77,7 +77,7 @@ export function Restauration({ onRetour }) {
               type="button"
               onClick={confirmerRestauration}
               disabled={enCours}
-              className="h-12 flex-1 rounded bg-red-600 text-white text-sm font-medium disabled:opacity-50"
+              className="h-12 flex-1 rounded bg-urgent-ink text-surface text-13 font-bold disabled:opacity-50"
             >
               {enCours ? 'Restauration…' : 'Confirmer le remplacement'}
             </button>
@@ -85,7 +85,7 @@ export function Restauration({ onRetour }) {
               type="button"
               onClick={annuler}
               disabled={enCours}
-              className="h-12 flex-1 rounded bg-gray-200 text-gray-700 text-sm font-medium"
+              className="h-12 flex-1 rounded bg-surface border border-rule-strong text-ink text-13 font-bold"
             >
               Annuler
             </button>
@@ -93,13 +93,13 @@ export function Restauration({ onRetour }) {
         </div>
       )}
 
-      {message && <p className="text-sm text-green-700">{message}</p>}
+      {message && <p className="text-13 text-normale-ink">{message}</p>}
 
       {onRetour && (
         <button
           type="button"
           onClick={onRetour}
-          className="h-12 w-full text-sm text-gray-600 underline"
+          className="h-12 w-full text-13 text-ink-secondary underline"
         >
           Retour à la vue d'ensemble
         </button>

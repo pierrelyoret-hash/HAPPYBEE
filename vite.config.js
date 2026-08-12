@@ -16,8 +16,8 @@ export default defineConfig({
         start_url: '/',
         display: 'standalone',
         orientation: 'portrait-primary',
-        background_color: '#ffffff',
-        theme_color: '#b45309',
+        background_color: '#FAFAF8',
+        theme_color: '#1A1A17',
         icons: [
           { src: 'icons/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
           { src: 'icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
@@ -30,7 +30,10 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,png,svg,ico,webmanifest}'],
+        // woff/woff2 ajoutés avec les polices locales (brief refonte §4) —
+        // sans précache, la typographie casserait hors-ligne après un
+        // vidage du cache HTTP normal du navigateur.
+        globPatterns: ['**/*.{js,css,html,png,svg,ico,webmanifest,woff,woff2}'],
       },
     }),
   ],

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Compteur } from '../../components/Compteur.jsx';
 import { Segmente } from '../../components/Segmente.jsx';
+import { Interrupteur } from '../../components/Interrupteur.jsx';
 import { Chips } from '../../components/Chips.jsx';
 import { ParcoursCategorie1 } from './ParcoursCategorie1.jsx';
 import { listerColoniesActives } from '../../db/repositories/colonies.js';
@@ -10,29 +11,23 @@ import {
 } from '../../db/repositories/visites.js';
 import { creerTache } from '../../db/repositories/taches.js';
 
-const PONTE_OPTIONS = [
-  { value: 'compacte', label: 'Compacte' },
-  { value: 'lacunaire', label: 'Lacunaire' },
-  { value: 'absente', label: 'Absente' },
-  { value: 'males', label: 'Mâles' },
-];
+// Correction écrans L1 §7/§9.2 : un seul contrôle pour la ponte, sur 0-5.
+// "Mâles" n'est pas un degré de compacité — il est sorti de cette échelle
+// et rejoint les anomalies (voir ANOMALIE_OPTIONS). Champ facultatif,
+// jamais reporté d'une visite à l'autre : c'est une observation, pas un
+// état persistant.
+const PONTE_ECHELLE_OPTIONS = [0, 1, 2, 3, 4, 5].map((n) => ({ value: n, label: String(n) }));
 
-const SCORE_PONTE_OPTIONS = [1, 2, 3, 4, 5].map((n) => ({ value: n, label: String(n) }));
-
-// Libellés courts — brief L1+ §4. Champ facultatif, jamais reporté d'une
-// visite à l'autre : c'est une observation, pas un état persistant.
-const SCORE_PONTE_LIBELLES = {
-  5: 'très compact',
-  4: 'compact',
-  3: 'correct',
-  2: 'lacunaire',
-  1: 'très dispersé',
+const PONTE_ECHELLE_LIBELLES = {
+  0: 'aucune ponte',
+  1: 'très dispersée, mosaïque',
+  2: 'lacunaire, nombreux trous',
+  3: 'correcte, cellules vides dispersées',
+  4: 'compacte, quelques cellules vides',
+  5: 'très compacte, ≥ 90 % des cellules operculées',
 };
 
-const OUI_NON = [
-  { value: true, label: 'Oui' },
-  { value: false, label: 'Non' },
-];
+const PONTE_ECHELLE_LEGENDE = '0 aucune ponte · 5 très compacte';
 
 // Liste fermée conforme au brief L1+ §4 — trois signes marqués ⚠ déclenchent
 // le parcours danger sanitaire de catégorie 1 (§5).
@@ -67,19 +62,34 @@ const ANOMALIE_OPTIONS = [
   { value: 'mortalite_anormale', label: 'Mortalité anormale' },
   { value: 'diarrhee', label: 'Diarrhée' },
   { value: 'abeilles_tremblantes', label: 'Abeilles noires tremblantes' },
+  { value: 'ponte_males', label: 'Ponte de mâles' },
   { value: 'autre', label: 'Autre' },
 ];
 
 // Champs pouvant être reportés d'une visite à l'autre (les anomalies en
-// sont explicitement exclues — §3 addendum ergonomie).
+// sont explicitement exclues — §3 addendum ergonomie). ponte_qualite a été
+// retiré du schéma (correction écrans L1 §7) ; score_ponte, qui le
+// remplace, reste hors de cette liste — il n'est jamais reporté.
 const CHAMPS_REPORTABLES = [
   'nb_cadres_couvain_opercule',
   'nb_cadres_couvain_ouvert',
   'nb_cadres_provisions',
   'population',
-  'ponte_qualite',
   'reine_vue',
   'oeufs_vus',
+  // Assignés à L1 le 11/08/2026 (cahier des charges §4.2, jamais construits
+  // avant cette date) : traits de colonie relativement stables d'une visite
+  // à l'autre, contrairement aux cellules royales — reportables comme population.
+  'temperament',
+  'batisse',
+];
+
+const ECHELLE_1_A_5 = [1, 2, 3, 4, 5].map((n) => ({ value: n, label: String(n) }));
+
+const CELLULES_ROYALES_TYPE_OPTIONS = [
+  { value: 'essaimage', label: 'Essaimage' },
+  { value: 'supersedure', label: 'Supersédure' },
+  { value: 'sauvete', label: 'Sauveté' },
 ];
 
 function etatInitial() {
@@ -96,7 +106,7 @@ function dateLisible(iso) {
   return new Date(iso).toLocaleDateString('fr-FR');
 }
 
-export function SaisieVisite({ colonieInitialeId, onRetour }) {
+export function SaisieVisite({ colonieInitialeId, onRetour, onOuvrirHistorique }) {
   const [contextes, setContextes] = useState([]);
   const [colonieId, setColonieId] = useState(null);
   const [derniereVisite, setDerniereVisite] = useState(null);
@@ -106,6 +116,10 @@ export function SaisieVisite({ colonieInitialeId, onRetour }) {
   const [scorePonte, setScorePonte] = useState(null);
   const [signesSanitaires, setSignesSanitaires] = useState([]);
   const [signesOuverts, setSignesOuverts] = useState(false);
+  const [cellulesRoyalesNb, setCellulesRoyalesNb] = useState(0);
+  const [cellulesRoyalesType, setCellulesRoyalesType] = useState(null);
+  const [detailCouvainOuvert, setDetailCouvainOuvert] = useState(false);
+  const [anomaliesOuvertes, setAnomaliesOuvertes] = useState(false);
   const [suspicionReglementee, setSuspicionReglementee] = useState(false);
   const [parcoursVisible, setParcoursVisible] = useState(false);
   const [observationLibre, setObservationLibre] = useState('');
@@ -142,7 +156,11 @@ export function SaisieVisite({ colonieInitialeId, onRetour }) {
       setAnomalies([]); // jamais reportées
       setScorePonte(null); // jamais reporté (brief L1+ §4)
       setSignesSanitaires([]); // jamais pré-cochés (brief L1+ §4)
+      setCellulesRoyalesNb(0); // jamais reporté — signal ponctuel, pas un état persistant
+      setCellulesRoyalesType(null);
       setSignesOuverts(false);
+      setDetailCouvainOuvert(false);
+      setAnomaliesOuvertes(false);
       setSuspicionReglementee(false);
       setParcoursVisible(false);
       setObservationLibre('');
@@ -196,7 +214,10 @@ export function SaisieVisite({ colonieInitialeId, onRetour }) {
       population: valeurs.population ?? null,
       reine_vue: valeurs.reine_vue ?? null,
       oeufs_vus: valeurs.oeufs_vus ?? null,
-      ponte_qualite: valeurs.ponte_qualite ?? null,
+      temperament: valeurs.temperament ?? null,
+      batisse: valeurs.batisse ?? null,
+      cellules_royales_nb: cellulesRoyalesNb,
+      cellules_royales_type: cellulesRoyalesNb > 0 ? cellulesRoyalesType : null,
       anomalies,
       score_ponte: scorePonte ?? null,
       signes_sanitaires: signesSanitaires,
@@ -206,7 +227,10 @@ export function SaisieVisite({ colonieInitialeId, onRetour }) {
       provenance_champs: {
         ...provenance,
         observation_libre: observationLibre ? 'saisi' : 'vide',
-        score_ponte: scorePonte ? 'saisi' : 'vide',
+        // scorePonte peut valoir 0 ("aucune ponte", une observation réelle,
+        // distincte de "non observé") — comparaison explicite à null/undefined,
+        // jamais de test de vérité JS qui traiterait 0 comme vide.
+        score_ponte: scorePonte != null ? 'saisi' : 'vide',
       },
       created_at: maintenant.toISOString(),
       updated_at: maintenant.toISOString(),
@@ -269,7 +293,7 @@ export function SaisieVisite({ colonieInitialeId, onRetour }) {
 
   if (contextes.length === 0) {
     return (
-      <p className="p-4 text-base text-gray-600">
+      <p className="p-4 text-15 text-ink-secondary">
         Aucune colonie active trouvée. Vérifie que le jeu de données de démo
         de l'étape 1 a bien été inséré.
       </p>
@@ -290,10 +314,10 @@ export function SaisieVisite({ colonieInitialeId, onRetour }) {
   }
 
   return (
-    <div className="min-h-screen bg-white text-gray-900 p-4 flex flex-col gap-4 max-w-md mx-auto">
+    <div className="min-h-screen bg-ground text-ink p-4 flex flex-col gap-4 max-w-md mx-auto">
       <header className="flex flex-col gap-1">
         <select
-          className="text-base h-12 border border-gray-300 rounded px-2"
+          className="text-15 h-12 border border-rule-strong rounded px-2 bg-surface text-ink"
           value={colonieId ?? ''}
           onChange={(e) => setColonieId(e.target.value)}
         >
@@ -303,7 +327,7 @@ export function SaisieVisite({ colonieInitialeId, onRetour }) {
             </option>
           ))}
         </select>
-        <p className="text-sm text-gray-600">
+        <p className="text-13 text-ink-secondary">
           {positionTournee && `Position ${positionTournee} de la tournée · `}
           {dateReference
             ? `Dernière visite : ${dateReference}`
@@ -311,31 +335,69 @@ export function SaisieVisite({ colonieInitialeId, onRetour }) {
         </p>
       </header>
 
+      {/* Bouton secondaire (brief refonte §5/§6.1 : un seul bouton principal
+          par écran — c'est "Enregistrer" plus bas). "Rien à signaler" reste
+          entièrement fonctionnel, juste visuellement au second plan. */}
       <button
         type="button"
         onClick={rienASignaler}
-        className="h-[46px] w-full rounded bg-green-600 text-white text-base font-medium"
+        className="h-10 w-full rounded bg-surface border border-rule-strong text-ink text-15 font-bold"
       >
         Rien à signaler
-        <span className="block text-[11px] font-normal opacity-90">
+        <span className="block text-11 font-normal text-ink-secondary">
           enregistre la visite avec les valeurs ci-dessous
         </span>
       </button>
 
-      <section className="flex justify-around">
+      <section className="flex flex-col gap-3">
+        {detailCouvainOuvert ? (
+          <>
+            <Compteur
+              label="Couvain operculé"
+              value={valeurs.nb_cadres_couvain_opercule}
+              provenance={provenance.nb_cadres_couvain_opercule}
+              referenceDate={dateReference}
+              onChange={(v) => modifierChamp('nb_cadres_couvain_opercule', v)}
+            />
+            <Compteur
+              label="Couvain ouvert"
+              value={valeurs.nb_cadres_couvain_ouvert}
+              provenance={provenance.nb_cadres_couvain_ouvert}
+              referenceDate={dateReference}
+              onChange={(v) => modifierChamp('nb_cadres_couvain_ouvert', v)}
+            />
+            <button
+              type="button"
+              onClick={() => setDetailCouvainOuvert(false)}
+              className="text-12 text-ink-secondary underline self-start"
+            >
+              Revenir au compteur unique
+            </button>
+          </>
+        ) : (
+          <>
+            {/* Vue par défaut (correction écrans L1 §9.1) : un ordre de
+                grandeur suffit en visite de routine. Compte-t-on encore les
+                deux séparément, les champs du schéma restent intacts — seul
+                cet affichage édite nb_cadres_couvain_opercule. */}
+            <Compteur
+              label="Cadres de couvain"
+              value={valeurs.nb_cadres_couvain_opercule}
+              provenance={provenance.nb_cadres_couvain_opercule}
+              referenceDate={dateReference}
+              onChange={(v) => modifierChamp('nb_cadres_couvain_opercule', v)}
+            />
+            <button
+              type="button"
+              onClick={() => setDetailCouvainOuvert(true)}
+              className="text-12 text-ink-secondary underline self-start"
+            >
+              Détailler operculé / ouvert
+            </button>
+          </>
+        )}
         <Compteur
-          value={valeurs.nb_cadres_couvain_opercule}
-          provenance={provenance.nb_cadres_couvain_opercule}
-          referenceDate={dateReference}
-          onChange={(v) => modifierChamp('nb_cadres_couvain_opercule', v)}
-        />
-        <Compteur
-          value={valeurs.nb_cadres_couvain_ouvert}
-          provenance={provenance.nb_cadres_couvain_ouvert}
-          referenceDate={dateReference}
-          onChange={(v) => modifierChamp('nb_cadres_couvain_ouvert', v)}
-        />
-        <Compteur
+          label="Provisions"
           value={valeurs.nb_cadres_provisions}
           provenance={provenance.nb_cadres_provisions}
           referenceDate={dateReference}
@@ -343,71 +405,117 @@ export function SaisieVisite({ colonieInitialeId, onRetour }) {
         />
       </section>
 
-      <section>
-        <p className="text-sm text-gray-600 mb-1">Population</p>
-        <Segmente
-          options={[1, 2, 3, 4, 5].map((n) => ({ value: n, label: String(n) }))}
-          value={valeurs.population}
-          provenance={provenance.population}
-          referenceDate={dateReference}
-          onChange={(v) => modifierChamp('population', v)}
-        />
-      </section>
-
-      <section>
-        <p className="text-sm text-gray-600 mb-1">Ponte</p>
-        <Segmente
-          options={PONTE_OPTIONS}
-          value={valeurs.ponte_qualite}
-          provenance={provenance.ponte_qualite}
-          referenceDate={dateReference}
-          onChange={(v) => modifierChamp('ponte_qualite', v)}
-        />
-      </section>
-
-      <section>
-        <p className="text-sm text-gray-600 mb-1">Score de ponte</p>
-        <Segmente
-          options={SCORE_PONTE_OPTIONS}
-          value={scorePonte}
-          libelles={SCORE_PONTE_LIBELLES}
-          onChange={setScorePonte}
-        />
-      </section>
-
-      <section className="flex gap-4">
-        <div className="flex-1">
-          <p className="text-sm text-gray-600 mb-1">Reine vue</p>
+      {/* Regroupe trois échelles 1-5 de même nature (correction écrans L1
+          §9, esprit "cinq blocs, pas sept" — tempérament et bâtisse ont été
+          assignés à L1 le 11/08/2026 mais n'ont pas leur propre bloc pour
+          ne pas recréer l'éparpillement qu'on vient de corriger). */}
+      <section className="border border-rule rounded p-3 flex flex-col gap-3">
+        <p className="text-13 font-bold text-ink-secondary">Colonie</p>
+        <div>
+          <p className="text-13 text-ink-secondary mb-1">Population</p>
           <Segmente
-            options={OUI_NON}
-            value={valeurs.reine_vue}
-            provenance={provenance.reine_vue}
+            options={ECHELLE_1_A_5}
+            value={valeurs.population}
+            provenance={provenance.population}
             referenceDate={dateReference}
-            onChange={(v) => modifierChamp('reine_vue', v)}
+            onChange={(v) => modifierChamp('population', v)}
           />
         </div>
-        <div className="flex-1">
-          <p className="text-sm text-gray-600 mb-1">Œufs vus</p>
+        <div>
+          <p className="text-13 text-ink-secondary mb-1">Tempérament</p>
           <Segmente
-            options={OUI_NON}
-            value={valeurs.oeufs_vus}
-            provenance={provenance.oeufs_vus}
+            options={ECHELLE_1_A_5}
+            value={valeurs.temperament}
+            provenance={provenance.temperament}
             referenceDate={dateReference}
-            onChange={(v) => modifierChamp('oeufs_vus', v)}
+            onChange={(v) => modifierChamp('temperament', v)}
+          />
+        </div>
+        <div>
+          <p className="text-13 text-ink-secondary mb-1">Bâtisse</p>
+          <Segmente
+            options={ECHELLE_1_A_5}
+            value={valeurs.batisse}
+            provenance={provenance.batisse}
+            referenceDate={dateReference}
+            onChange={(v) => modifierChamp('batisse', v)}
           />
         </div>
       </section>
 
+      <section className="border border-rule rounded p-3 flex flex-col gap-3">
+        <p className="text-13 font-bold text-ink-secondary">Reine et ponte</p>
+        <div className="flex gap-4">
+          <div className="flex-1">
+            <Interrupteur
+              label="Reine vue"
+              value={valeurs.reine_vue}
+              provenance={provenance.reine_vue}
+              referenceDate={dateReference}
+              onChange={(v) => modifierChamp('reine_vue', v)}
+            />
+          </div>
+          <div className="flex-1">
+            <Interrupteur
+              label="Œufs vus"
+              value={valeurs.oeufs_vus}
+              provenance={provenance.oeufs_vus}
+              referenceDate={dateReference}
+              onChange={(v) => modifierChamp('oeufs_vus', v)}
+            />
+          </div>
+        </div>
+        <div>
+          <p className="text-13 text-ink-secondary mb-1">Ponte</p>
+          <Segmente
+            options={PONTE_ECHELLE_OPTIONS}
+            value={scorePonte}
+            libelles={PONTE_ECHELLE_LIBELLES}
+            legende={PONTE_ECHELLE_LEGENDE}
+            onChange={setScorePonte}
+          />
+        </div>
+        {/* Assigné à L1 le 11/08/2026 — jamais reporté : la présence de
+            cellules royales est un signal ponctuel, pas un état persistant. */}
+        <Compteur
+          label="Cellules royales"
+          value={cellulesRoyalesNb}
+          max={30}
+          onChange={setCellulesRoyalesNb}
+        />
+        {cellulesRoyalesNb > 0 && (
+          <div>
+            <p className="text-13 text-ink-secondary mb-1">Type</p>
+            <Segmente
+              options={CELLULES_ROYALES_TYPE_OPTIONS}
+              value={cellulesRoyalesType}
+              onChange={setCellulesRoyalesType}
+            />
+          </div>
+        )}
+      </section>
+
       <section>
-        <p className="text-sm text-gray-600 mb-1">Anomalies</p>
-        <Chips options={ANOMALIE_OPTIONS} value={anomalies} onChange={setAnomalies} />
+        <button
+          type="button"
+          onClick={() => setAnomaliesOuvertes((v) => !v)}
+          className="text-13 text-ink-secondary underline"
+        >
+          {anomaliesOuvertes ? '▾' : '▸'} Signaler une anomalie
+          {anomalies.length > 0 && ` (${anomalies.length})`}
+        </button>
+        {anomaliesOuvertes && (
+          <div className="mt-2">
+            <Chips options={ANOMALIE_OPTIONS} value={anomalies} onChange={setAnomalies} />
+          </div>
+        )}
       </section>
 
       <section>
         <button
           type="button"
           onClick={() => setSignesOuverts((v) => !v)}
-          className="text-sm text-gray-600 underline"
+          className="text-13 text-ink-secondary underline"
         >
           {signesOuverts ? '▾' : '▸'} Signes observés
           {signesSanitaires.length > 0 && ` (${signesSanitaires.length})`}
@@ -424,33 +532,43 @@ export function SaisieVisite({ colonieInitialeId, onRetour }) {
       </section>
 
       <section>
-        <label className="text-sm text-gray-600 mb-1 block" htmlFor="observation_libre">
+        <label className="text-13 text-ink-secondary mb-1 block" htmlFor="observation_libre">
           Note libre
         </label>
         <textarea
           id="observation_libre"
-          className="w-full border border-gray-300 rounded p-2 text-base"
+          className="w-full border border-rule-strong rounded p-2 text-15 bg-surface text-ink"
           rows={3}
           value={observationLibre}
           onChange={(e) => setObservationLibre(e.target.value)}
         />
       </section>
 
-      {message && <p className="text-sm text-center">{message}</p>}
+      {message && <p className="text-13 text-center text-ink-secondary">{message}</p>}
 
       <button
         type="button"
         onClick={enregistrer}
-        className="h-[46px] w-full rounded bg-blue-600 text-white text-base font-medium"
+        className="h-[46px] w-full rounded bg-ink text-surface text-15 font-bold"
       >
         Enregistrer
       </button>
+
+      {onOuvrirHistorique && colonieId && (
+        <button
+          type="button"
+          onClick={() => onOuvrirHistorique(colonieId)}
+          className="h-12 w-full text-13 text-ink-secondary underline"
+        >
+          Voir l'historique
+        </button>
+      )}
 
       {onRetour && (
         <button
           type="button"
           onClick={onRetour}
-          className="h-12 w-full text-sm text-gray-600 underline"
+          className="h-12 w-full text-13 text-ink-secondary underline"
         >
           Retour à la vue d'ensemble
         </button>
