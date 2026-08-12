@@ -230,6 +230,9 @@ Priorités : **M** must · **S** should · **C** could. Le symbole ⚑ signale l
 | L1.17 | **Parcours danger sanitaire de catégorie 1** (contenu réglementaire statique) | M |
 | L1.18 | **Table `observation_cadre` au schéma, sans interface** | M |
 | L1.19 | Champ `source_agregats` sur la visite, valeur unique en L1 | M |
+| L1.20 | **Cellules royales au niveau visite** (nombre, type : essaimage / supersédure / sauveté) — déjà dans le modèle V1 §4.2, jamais construit ni assigné avant le 11/08/2026 | M |
+| L1.21 | **Tempérament (1–5)** au niveau visite — idem | M |
+| L1.22 | **Bâtisse (1–5)** au niveau visite — idem | M |
 
 ## L2 — Synchronisation, dictée, photos et observation cadre par cadre
 

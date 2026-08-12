@@ -521,6 +521,7 @@ Pierre a retravaillé un cahier des charges fonctionnel et rédigé un cahier de
 | Table `observation_cadre` | **Au schéma dès L1+**, sans aucune interface |
 | Score de ponte au niveau colonie | **En L1+**, enregistré sans automatisme |
 | Parcours danger sanitaire de catégorie 1 | **En L1+**, contenu réglementaire statique |
+| Cellules royales / tempérament / bâtisse au niveau visite | **Assignés à L1** le 11/08/2026 — déjà dans le modèle §4.2, jamais construits ni assignés à un lot avant cette date |
 
 ### Frontière posée pour le socle L1/L1+
 
