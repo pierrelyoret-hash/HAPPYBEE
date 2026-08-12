@@ -7,7 +7,7 @@ import {
   mettreAJourOrdreTournee,
 } from '../../db/repositories/ruchers.js';
 import { obtenirDerniereVisite } from '../../db/repositories/visites.js';
-import { listerTachesOuvertesRucher } from '../../db/repositories/taches.js';
+import { listerTachesOuvertesRucher, marquerTacheFaite } from '../../db/repositories/taches.js';
 import { exporterDonnees, compterEnregistrements } from '../../db/repositories/sauvegarde.js';
 import { declencherTelechargementJson } from '../../lib/telechargement.js';
 import { calculerEtat, joursDepuis } from '../../lib/etats.js';
@@ -128,6 +128,11 @@ export function VueEnsemble({
     return surSync(() => charger());
   }, []);
 
+  async function terminerTache(tacheId) {
+    await marquerTacheFaite(tacheId);
+    await charger();
+  }
+
   async function deplacer(index, direction) {
     const nouvelOrdre = [...rucher.ordre_tournee];
     const cible = index + direction;
@@ -159,19 +164,32 @@ export function VueEnsemble({
       {urgences.length > 0 && (
         <section className="flex flex-col gap-2">
           {urgences.map((ligne) => (
-            <button
+            <div
               key={ligne.colonie.id}
-              type="button"
-              onClick={() => onOuvrirVisite(ligne.colonie.id)}
-              className="text-left border border-rule-strong bg-urgent-bg rounded p-3"
+              className="flex items-start gap-2 border border-rule-strong bg-urgent-bg rounded p-3"
             >
-              <p className="text-13 font-bold text-urgent-ink">
-                ! Ruche {ligne.ruche.numero} — {ligne.tachesUrgentes[0]?.libelle ?? 'échéance dépassée'}
-              </p>
-              <p className="text-11 text-urgent-ink">
-                Échéance : {dateLisible(ligne.tachesUrgentes[0]?.date_echeance)}
-              </p>
-            </button>
+              <button
+                type="button"
+                onClick={() => onOuvrirVisite(ligne.colonie.id)}
+                className="text-left flex-1 min-w-0"
+              >
+                <p className="text-13 font-bold text-urgent-ink">
+                  ! Ruche {ligne.ruche.numero} — {ligne.tachesUrgentes[0]?.libelle ?? 'échéance dépassée'}
+                </p>
+                <p className="text-11 text-urgent-ink">
+                  Échéance : {dateLisible(ligne.tachesUrgentes[0]?.date_echeance)}
+                </p>
+              </button>
+              {ligne.tachesUrgentes[0] && (
+                <button
+                  type="button"
+                  onClick={() => terminerTache(ligne.tachesUrgentes[0].id)}
+                  className="text-11 text-urgent-ink underline shrink-0 mt-0.5"
+                >
+                  ✓ Fait
+                </button>
+              )}
+            </div>
           ))}
         </section>
       )}

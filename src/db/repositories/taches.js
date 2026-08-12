@@ -12,3 +12,14 @@ export async function listerTachesOuvertesRucher(rucherId) {
 export async function creerTache(tache) {
   return db.tache.add(tache);
 }
+
+// Action minimale pour pouvoir éteindre une alerte "urgent" (état calculé
+// sur les tâches ouvertes, lib/etats.js). La gestion complète des tâches
+// (créer, filtrer, vue consolidée) reste prévue pour le lot L3 — ceci ne
+// fait que fermer une tâche déjà créée.
+export async function marquerTacheFaite(tacheId) {
+  return db.tache.update(tacheId, {
+    statut: 'faite',
+    updated_at: new Date().toISOString(),
+  });
+}
