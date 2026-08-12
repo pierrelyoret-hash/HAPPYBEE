@@ -110,7 +110,7 @@ export function LigneColonie({
         <button type="button" onClick={gererClicLigne} className="flex-1 text-left flex flex-col justify-center gap-0.5 min-w-0">
           <span className="flex items-baseline justify-between gap-2">
             <span className={`text-13 font-bold truncate ${estUrgent ? 'text-urgent-ink' : 'text-ink'}`}>
-              {ligne.reine ? `Reine ${ligne.reine.annee_naissance}` : 'Reine non confirmée'}
+              Ruche {ligne.ruche.numero}
             </span>
             <PastilleEtat etat={ligne.etat} />
           </span>

@@ -316,6 +316,15 @@ export function SaisieVisite({ colonieInitialeId, onRetour, onOuvrirHistorique }
   return (
     <div className="min-h-screen bg-ground text-ink p-4 flex flex-col gap-4 max-w-md mx-auto">
       <header className="flex flex-col gap-1">
+        {onRetour && (
+          <button
+            type="button"
+            onClick={onRetour}
+            className="text-13 text-ink-secondary underline self-start mb-1"
+          >
+            ← Retour
+          </button>
+        )}
         <select
           className="text-15 h-12 border border-rule-strong rounded px-2 bg-surface text-ink"
           value={colonieId ?? ''}
