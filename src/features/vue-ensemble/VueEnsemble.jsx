@@ -11,6 +11,7 @@ import { listerTachesOuvertesRucher } from '../../db/repositories/taches.js';
 import { exporterDonnees, compterEnregistrements } from '../../db/repositories/sauvegarde.js';
 import { declencherTelechargementJson } from '../../lib/telechargement.js';
 import { calculerEtat, joursDepuis } from '../../lib/etats.js';
+import { surSync } from '../../lib/sync.js';
 
 function useHorsLigne() {
   const [horsLigne, setHorsLigne] = useState(!navigator.onLine);
@@ -122,6 +123,9 @@ export function VueEnsemble({
 
   useEffect(() => {
     charger();
+    // Se recharge tout seul quand une synchronisation en arrière-plan a pu
+    // apporter de nouvelles données depuis un autre appareil.
+    return surSync(() => charger());
   }, []);
 
   async function deplacer(index, direction) {

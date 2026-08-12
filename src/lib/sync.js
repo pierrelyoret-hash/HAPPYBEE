@@ -67,6 +67,13 @@ async function tirerTable(table, curseurs) {
 
 let synchronisationEnCours = false;
 
+// Événement écouté par les écrans en lecture (VueEnsemble, Historique) pour
+// se recharger tout seuls quand une synchronisation en arrière-plan a pu
+// changer leurs données. Sans ça, il fallait recharger la page à la main
+// pour voir apparaître une visite arrivée d'un autre appareil — constaté
+// le 12/08/2026 en testant téléphone + ordinateur en parallèle.
+const EVENEMENT_SYNC = 'happybee-sync';
+
 export async function synchroniser() {
   if (synchronisationEnCours) return;
   const { data } = await supabase.auth.getSession();
@@ -80,9 +87,15 @@ export async function synchroniser() {
       await tirerTable(table, curseurs);
     }
     sauvegarderCurseurs(curseurs);
+    window.dispatchEvent(new Event(EVENEMENT_SYNC));
   } finally {
     synchronisationEnCours = false;
   }
+}
+
+export function surSync(gestionnaire) {
+  window.addEventListener(EVENEMENT_SYNC, gestionnaire);
+  return () => window.removeEventListener(EVENEMENT_SYNC, gestionnaire);
 }
 
 let demarre = false;

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { db } from '../../db/db.js';
 import { listerVisitesColonie } from '../../db/repositories/visites.js';
+import { surSync } from '../../lib/sync.js';
 
 const ANOMALIE_LIBELLES = {
   bourdonneuse: 'Bourdonneuse',
@@ -70,13 +71,17 @@ export function Historique({ colonieId, onRetour }) {
 
   useEffect(() => {
     if (!colonieId) return;
-    (async () => {
+    async function charger() {
       const colonie = await db.colonie.get(colonieId);
       const r = colonie ? await db.ruche.get(colonie.ruche_id) : null;
       setRuche(r ?? null);
       const liste = await listerVisitesColonie(colonieId);
       setVisites(liste.slice().reverse()); // la plus récente en premier
-    })();
+    }
+    charger();
+    // Se recharge tout seul quand une synchronisation en arrière-plan a pu
+    // apporter de nouvelles visites depuis un autre appareil.
+    return surSync(charger);
   }, [colonieId]);
 
   if (visites === null) return null;
