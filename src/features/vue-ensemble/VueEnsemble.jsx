@@ -37,6 +37,7 @@ export function VueEnsemble({
   onOuvrirImport,
   onOuvrirRestauration,
   onOuvrirExportSanitairePdf,
+  onOuvrirTourneeVocale,
 }) {
   const [rucher, setRucher] = useState(null);
   const [lignes, setLignes] = useState([]);
@@ -201,6 +202,17 @@ export function VueEnsemble({
         className="h-[46px] w-full rounded bg-ink text-surface text-15 font-bold"
       >
         Saisir une visite
+      </button>
+
+      <button
+        type="button"
+        onClick={onOuvrirTourneeVocale}
+        className="h-10 w-full rounded bg-surface border border-rule-strong text-ink text-15 font-bold"
+      >
+        Tournée vocale
+        <span className="block text-11 font-normal text-ink-secondary">
+          dicter la tournée, colonie par colonie
+        </span>
       </button>
 
       <section>

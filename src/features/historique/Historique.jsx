@@ -3,6 +3,7 @@ import { db } from '../../db/db.js';
 import { listerVisitesColonie } from '../../db/repositories/visites.js';
 import { surSync } from '../../lib/sync.js';
 import { BoutonRetour } from '../../components/BoutonRetour.jsx';
+import { PhotosVisite } from '../../components/PhotosVisite.jsx';
 
 const ANOMALIE_LIBELLES = {
   bourdonneuse: 'Bourdonneuse',
@@ -204,6 +205,8 @@ export function Historique({ colonieId, onRetour }) {
               {visite.observation_libre && (
                 <p className="text-13 text-ink-secondary mt-2 italic">« {visite.observation_libre} »</p>
               )}
+
+              <PhotosVisite visiteId={visite.id} />
             </li>
           );
         })}

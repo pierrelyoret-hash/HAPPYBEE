@@ -75,3 +75,23 @@ db.version(5).stores({
   nourrissement: 'id, colonie_id, date, deleted_at',
   document: 'id, entite_liee_type, entite_liee_id, deleted_at',
 });
+
+// v6 (reste de L2, F2.3/L2.9 — photos) : table locale uniquement, jamais
+// listée dans lib/sync.js. Un Blob ne se sérialise pas en JSON : la ligne
+// `photo` (métadonnées) passe par la synchronisation générique de table,
+// l'octet lui-même transite à part, vers Supabase Storage, via un chemin
+// dédié dans lib/sync.js. photo_id est la clé primaire — un seul blob par
+// photo, jamais recréé après upload (voir purgerBlobSynchronise).
+db.version(6).stores({
+  photo_blob: 'photo_id',
+});
+
+// v7 (reste de L2, L2.3/L2.4/L2.8 — dictée vocale) : même schéma que
+// photo/photo_blob (métadonnées synchronisées, octet local uniquement).
+// Un clip par colonie visitée pendant une tournée vocale (L2.4 "découpage
+// par colonie"), rattaché à la visite une fois celle-ci validée sur l'écran
+// de revue (colonie_id sert de rattachement provisoire avant cette étape).
+db.version(7).stores({
+  audio: 'id, colonie_id, visite_id, deleted_at',
+  audio_blob: 'audio_id',
+});

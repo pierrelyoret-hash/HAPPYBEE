@@ -1,11 +1,10 @@
 import { db } from '../db/db.js';
 import { supabase } from './supabase.js';
 
-// Lot L2, première étape ("synchronisation" — cahier des charges §8).
-// Photos et cadre par cadre ne sont pas encore synchronisés : ces tables
-// existent au schéma mais aucune interface n'écrit dedans avant les étapes
-// suivantes du lot. Les inclure ici ne coûte rien (elles restent vides) et
-// évite d'y revenir spécifiquement à l'étape "photos".
+// Lot L2. `photo` et `audio` ne transportent que des métadonnées via la
+// synchronisation générique de table (comme les autres) — l'octet lui-même
+// (Blob, non sérialisable en JSON) transite à part, voir pousserBlobs
+// ci-dessous.
 const TABLES = [
   'rucher',
   'ruche',
@@ -19,6 +18,7 @@ const TABLES = [
   'comptage_varroa',
   'nourrissement',
   'document',
+  'audio',
 ];
 
 const CLE_CURSEURS = 'happybee_sync_curseurs';
@@ -78,6 +78,73 @@ async function tirerTable(table, curseurs) {
   curseurs[table] = { ...curseurs[table], pull: maxUpdatedAt(data, depuis) };
 }
 
+// Description de chaque table à blob : table Dexie des métadonnées, table
+// Dexie du blob local (clé = `${champId}`), bucket Storage, extension et
+// type MIME du fichier envoyé. photo et audio partagent exactement la même
+// mécanique de transfert (lib/sync.js §L2.9/§L2.3-L2.8) — seule cette
+// description change.
+const TABLES_BLOB = [
+  { table: 'photo', blobTable: 'photo_blob', champId: 'photo_id', bucket: 'photos', extension: 'jpg', type: 'image/jpeg' },
+  { table: 'audio', blobTable: 'audio_blob', champId: 'audio_id', bucket: 'audio', extension: 'webm', type: 'audio/webm' },
+];
+
+// Envoie vers Supabase Storage les lignes dont le blob local n'est pas
+// encore synchronisé. `.filter()` plutôt que `.where()` : statut_sync n'est
+// pas indexé (peu de lignes concernées, un scan complet suffit).
+async function pousserBlobs({ table, blobTable, champId, bucket, extension, type }) {
+  const enAttente = await db[table]
+    .filter((l) => !l.deleted_at && l.statut_sync !== 'synchronise')
+    .toArray();
+
+  for (const ligne of enAttente) {
+    const ligneBlob = await db[blobTable].get(ligne.id);
+    if (!ligneBlob) continue; // pas de blob local (créé sur un autre appareil) : rien à envoyer d'ici
+
+    const chemin = `${ligne.id}.${extension}`;
+    const { error } = await supabase.storage
+      .from(bucket)
+      .upload(chemin, ligneBlob.blob, { upsert: true, contentType: type });
+    if (error) {
+      console.error(`[sync] échec envoi ${table}`, ligne.id, error);
+      continue;
+    }
+
+    const maintenant = new Date().toISOString();
+    await db[table].update(ligne.id, {
+      fichier_distant: chemin,
+      statut_sync: 'synchronise',
+      updated_at: maintenant,
+    });
+    // La ligne mise à jour part au cycle de synchronisation suivant via
+    // pousserTable(table, ...), comme toute autre modification locale.
+  }
+}
+
+// Résout une URL affichable : le blob local s'il existe (aucun réseau
+// nécessaire), sinon une URL signée à la demande depuis Supabase Storage
+// (bucket privé) — jamais mise en cache localement ici, c'est à l'appelant
+// de décider s'il veut conserver le blob téléchargé.
+async function obtenirUrlAffichageBlob(ligne, { blobTable, bucket }) {
+  const ligneBlob = await db[blobTable].get(ligne.id);
+  if (ligneBlob) return URL.createObjectURL(ligneBlob.blob);
+  if (!ligne.fichier_distant || !navigator.onLine) return null;
+
+  const { data, error } = await supabase.storage.from(bucket).createSignedUrl(ligne.fichier_distant, 3600);
+  if (error) {
+    console.error('[sync] échec URL signée', bucket, ligne.id, error);
+    return null;
+  }
+  return data.signedUrl;
+}
+
+export async function obtenirUrlAffichagePhoto(photo) {
+  return obtenirUrlAffichageBlob(photo, TABLES_BLOB[0]);
+}
+
+export async function obtenirUrlAffichageAudio(audio) {
+  return obtenirUrlAffichageBlob(audio, TABLES_BLOB[1]);
+}
+
 let synchronisationEnCours = false;
 
 // Événement écouté par les écrans en lecture (VueEnsemble, Historique) pour
@@ -98,6 +165,9 @@ export async function synchroniser() {
     for (const table of TABLES) {
       await pousserTable(table, curseurs);
       await tirerTable(table, curseurs);
+    }
+    for (const description of TABLES_BLOB) {
+      await pousserBlobs(description);
     }
     sauvegarderCurseurs(curseurs);
     window.dispatchEvent(new Event(EVENEMENT_SYNC));

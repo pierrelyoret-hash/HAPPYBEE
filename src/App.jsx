@@ -11,6 +11,7 @@ import {
   SaisieNourrissement,
   ExportSanitairePdf,
 } from './features/sanitaire';
+import { TourneeVocale } from './features/tournee-vocale';
 
 export function App() {
   const [ecran, setEcran] = useState('vue_ensemble');
@@ -48,6 +49,10 @@ export function App() {
 
   function ouvrirExportSanitairePdf() {
     setEcran('export_sanitaire_pdf');
+  }
+
+  function ouvrirTourneeVocale() {
+    setEcran('tournee_vocale');
   }
 
   function ouvrirImport() {
@@ -123,6 +128,10 @@ export function App() {
     return <ExportSanitairePdf onRetour={retourVueEnsemble} />;
   }
 
+  if (ecran === 'tournee_vocale') {
+    return <TourneeVocale onRetour={retourVueEnsemble} />;
+  }
+
   if (ecran === 'import_csv') {
     return <ImportCsv onRetour={retourVueEnsemble} />;
   }
@@ -137,6 +146,7 @@ export function App() {
       onOuvrirImport={ouvrirImport}
       onOuvrirRestauration={ouvrirRestauration}
       onOuvrirExportSanitairePdf={ouvrirExportSanitairePdf}
+      onOuvrirTourneeVocale={ouvrirTourneeVocale}
     />
   );
 }

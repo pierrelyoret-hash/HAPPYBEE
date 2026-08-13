@@ -13,6 +13,7 @@ const TABLES = [
   'comptage_varroa',
   'nourrissement',
   'document',
+  'audio',
 ];
 
 export async function exporterDonnees() {

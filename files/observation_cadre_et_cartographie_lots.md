@@ -271,7 +271,7 @@ Priorités : **M** must · **S** should · **C** could. Le symbole ⚑ signale l
 
 **Synchronisation livrée le 12/08/2026** (jumelage par appareil, file d'attente locale, résolution dernière écriture gagnante). Le reste de L2 (photos, dictée, revue de tournée, cadre par cadre) est mis en pause, repris après L2.2.
 
-## L2.2 — Sanitaire *(brief rédigé, en attente de validation)*
+## L2.2 — Sanitaire *(livré 12/08/2026)*
 
 Lot inséré le 12/08/2026 entre L2 et L3 — voir `brief_L2.2_sanitaire.md` pour le détail complet. Contenu transposé depuis L3/L3bis/L4 (numérotation d'origine indiquée entre parenthèses) :
 

@@ -11,6 +11,8 @@ import {
   enregistrerVisite,
 } from '../../db/repositories/visites.js';
 import { creerTache } from '../../db/repositories/taches.js';
+import { enregistrerPhoto } from '../../db/repositories/photos.js';
+import { comprimerImage } from '../../lib/compressionImage.js';
 
 // Correction écrans L1 §7/§9.2 : un seul contrôle pour la ponte, sur 0-5.
 // "Mâles" n'est pas un degré de compacité — il est sorti de cette échelle
@@ -124,6 +126,8 @@ export function SaisieVisite({ colonieInitialeId, onRetour, onOuvrirHistorique, 
   const [suspicionReglementee, setSuspicionReglementee] = useState(false);
   const [parcoursVisible, setParcoursVisible] = useState(false);
   const [observationLibre, setObservationLibre] = useState('');
+  const [photosEnAttente, setPhotosEnAttente] = useState([]);
+  const [compressionEnCours, setCompressionEnCours] = useState(false);
   const [message, setMessage] = useState(null);
 
   useEffect(() => {
@@ -165,6 +169,12 @@ export function SaisieVisite({ colonieInitialeId, onRetour, onOuvrirHistorique, 
       setSuspicionReglementee(false);
       setParcoursVisible(false);
       setObservationLibre('');
+      // Photos jamais reportées — même logique que les cellules royales :
+      // un signal ponctuel de cette visite précise, pas un état persistant.
+      setPhotosEnAttente((precedentes) => {
+        precedentes.forEach((p) => URL.revokeObjectURL(p.url));
+        return [];
+      });
       setMessage(null);
     });
   }, [colonieId]);
@@ -264,12 +274,48 @@ export function SaisieVisite({ colonieInitialeId, onRetour, onOuvrirHistorique, 
     });
   }
 
+  // Comprimées dès l'ajout (pas à l'enregistrement) : l'aperçu affiché est
+  // déjà la version qui sera stockée, pas de surprise de taille après coup.
+  async function ajouterPhotos(fichiers) {
+    setCompressionEnCours(true);
+    try {
+      const nouvelles = [];
+      for (const fichier of Array.from(fichiers)) {
+        const blob = await comprimerImage(fichier);
+        nouvelles.push({ blob, url: URL.createObjectURL(blob) });
+      }
+      setPhotosEnAttente((p) => [...p, ...nouvelles]);
+    } finally {
+      setCompressionEnCours(false);
+    }
+  }
+
+  function retirerPhoto(index) {
+    setPhotosEnAttente((p) => {
+      URL.revokeObjectURL(p[index].url);
+      return p.filter((_, i) => i !== index);
+    });
+  }
+
+  // Rien n'est persisté avant l'enregistrement effectif de la visite (brief
+  // §4, F2.3) : les photos restent en mémoire (Blob + URL locale) jusqu'ici,
+  // évitant toute ligne `photo` orpheline si l'utilisateur quitte l'écran
+  // sans enregistrer.
+  async function enregistrerPhotosEnAttente(visiteId) {
+    for (const photo of photosEnAttente) {
+      await enregistrerPhoto({ visiteId, blob: photo.blob });
+      URL.revokeObjectURL(photo.url);
+    }
+    setPhotosEnAttente([]);
+  }
+
   async function enregistrer() {
     if (!colonieId) return;
     try {
       const visite = await construireVisite();
       await enregistrerVisite(visite);
       await creerTacheSuspicionSiNecessaire(visite);
+      await enregistrerPhotosEnAttente(visite.id);
       setDerniereVisite(visite);
       setMessage('Visite enregistrée.');
     } catch (err) {
@@ -284,6 +330,7 @@ export function SaisieVisite({ colonieInitialeId, onRetour, onOuvrirHistorique, 
       const visite = await construireVisite();
       await enregistrerVisite(visite);
       await creerTacheSuspicionSiNecessaire(visite);
+      await enregistrerPhotosEnAttente(visite.id);
       setDerniereVisite(visite);
       setMessage('Visite enregistrée — rien à signaler.');
     } catch (err) {
@@ -531,6 +578,48 @@ export function SaisieVisite({ colonieInitialeId, onRetour, onOuvrirHistorique, 
             />
           </div>
         )}
+      </section>
+
+      <section>
+        <p className="text-13 text-ink-secondary mb-1">
+          Photos{photosEnAttente.length > 0 && ` (${photosEnAttente.length})`}
+        </p>
+        {photosEnAttente.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-2">
+            {photosEnAttente.map((photo, index) => (
+              <div key={photo.url} className="relative w-16 h-16">
+                <img
+                  src={photo.url}
+                  alt=""
+                  className="w-16 h-16 object-cover rounded border border-rule-strong"
+                />
+                <button
+                  type="button"
+                  onClick={() => retirerPhoto(index)}
+                  aria-label="retirer la photo"
+                  className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-ink text-surface text-11 leading-none"
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+        <label className="inline-block h-10 px-3 rounded bg-surface border border-rule-strong text-ink text-13 font-bold leading-10 cursor-pointer">
+          {compressionEnCours ? 'Compression…' : '+ Ajouter une photo'}
+          <input
+            type="file"
+            accept="image/*"
+            capture="environment"
+            multiple
+            className="hidden"
+            disabled={compressionEnCours}
+            onChange={(e) => {
+              if (e.target.files.length > 0) ajouterPhotos(e.target.files);
+              e.target.value = '';
+            }}
+          />
+        </label>
       </section>
 
       <section>
