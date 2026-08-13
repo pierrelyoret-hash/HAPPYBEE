@@ -4,6 +4,7 @@ import { listerVisitesColonie } from '../../db/repositories/visites.js';
 import { surSync } from '../../lib/sync.js';
 import { BoutonRetour } from '../../components/BoutonRetour.jsx';
 import { PhotosVisite } from '../../components/PhotosVisite.jsx';
+import { SIGNES_SANITAIRES_LIBELLES } from '../../lib/taxonomieSanitaire.js';
 
 const ANOMALIE_LIBELLES = {
   bourdonneuse: 'Bourdonneuse',
@@ -32,21 +33,6 @@ const CELLULES_ROYALES_TYPE_LIBELLES = {
   essaimage: 'essaimage',
   supersedure: 'supersédure',
   sauvete: 'sauveté',
-};
-
-const SIGNES_SANITAIRES_LIBELLES = {
-  couvain_mosaique: 'Couvain en mosaïque',
-  opercules_affaisses: 'Opercules affaissés ou percés',
-  larves_brunes_visqueuses: 'Larves brunes visqueuses adhérentes ⚠',
-  larves_flasques_jaune: 'Larves flasques jaune clair',
-  larves_sac_ecailles_noires: 'Larves en sac, écailles noires',
-  momies_blanches_grises: 'Momies blanches ou grises',
-  odeur_colle_putride: 'Odeur de colle ou putride ⚠',
-  odeur_aigre: 'Odeur aigre',
-  ailes_deformees: 'Ailes déformées',
-  varroas_visibles: 'Varroas visibles',
-  toiles_fausse_teigne: 'Toiles ou galeries de fausse teigne',
-  coleoptere_noir: 'Coléoptère noir dans les rayons ⚠',
 };
 
 // L'heure exacte n'est fiable que dans le champ texte "heure" (brief §6 :
@@ -122,6 +108,8 @@ export function Historique({ colonieId, onRetour }) {
                   : ecartJours === 0
                     ? 'Le même jour que la précédente'
                     : `${ecartJours} j après la précédente`}
+                {visite.source_agregats === 'calcule_depuis_cadres' &&
+                  ' · couvain/provisions/ponte calculés depuis les cadres'}
               </p>
 
               <dl className="grid grid-cols-2 gap-x-3 gap-y-1 text-13 font-mono">

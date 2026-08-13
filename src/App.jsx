@@ -12,10 +12,12 @@ import {
   ExportSanitairePdf,
 } from './features/sanitaire';
 import { TourneeVocale } from './features/tournee-vocale';
+import { ObservationCadre } from './features/cadre-par-cadre';
 
 export function App() {
   const [ecran, setEcran] = useState('vue_ensemble');
   const [colonieSelectionnee, setColonieSelectionnee] = useState(null);
+  const [visiteSelectionnee, setVisiteSelectionnee] = useState(null);
 
   function ouvrirSaisie(colonieId) {
     setColonieSelectionnee(colonieId);
@@ -55,6 +57,12 @@ export function App() {
     setEcran('tournee_vocale');
   }
 
+  function ouvrirObservationCadre(visiteId, colonieId) {
+    setVisiteSelectionnee(visiteId);
+    setColonieSelectionnee(colonieId);
+    setEcran('observation_cadre');
+  }
+
   function ouvrirImport() {
     setEcran('import_csv');
   }
@@ -74,6 +82,7 @@ export function App() {
         onRetour={retourVueEnsemble}
         onOuvrirHistorique={ouvrirHistorique}
         onOuvrirSanitaire={ouvrirSanitaire}
+        onOuvrirObservationCadre={ouvrirObservationCadre}
       />
     );
   }
@@ -130,6 +139,16 @@ export function App() {
 
   if (ecran === 'tournee_vocale') {
     return <TourneeVocale onRetour={retourVueEnsemble} />;
+  }
+
+  if (ecran === 'observation_cadre') {
+    return (
+      <ObservationCadre
+        visiteId={visiteSelectionnee}
+        colonieId={colonieSelectionnee}
+        onTerminer={() => ouvrirSaisie(colonieSelectionnee)}
+      />
+    );
   }
 
   if (ecran === 'import_csv') {

@@ -13,6 +13,7 @@ import {
 import { creerTache } from '../../db/repositories/taches.js';
 import { enregistrerPhoto } from '../../db/repositories/photos.js';
 import { comprimerImage } from '../../lib/compressionImage.js';
+import { SIGNES_SANITAIRES_OPTIONS, SIGNES_CATEGORIE1 } from '../../lib/taxonomieSanitaire.js';
 
 // Correction écrans L1 §7/§9.2 : un seul contrôle pour la ponte, sur 0-5.
 // "Mâles" n'est pas un degré de compacité — il est sorti de cette échelle
@@ -31,29 +32,6 @@ const PONTE_ECHELLE_LIBELLES = {
 };
 
 const PONTE_ECHELLE_LEGENDE = '0 aucune ponte · 5 très compacte';
-
-// Liste fermée conforme au brief L1+ §4 — trois signes marqués ⚠ déclenchent
-// le parcours danger sanitaire de catégorie 1 (§5).
-const SIGNES_SANITAIRES_OPTIONS = [
-  { value: 'couvain_mosaique', label: 'Couvain en mosaïque' },
-  { value: 'opercules_affaisses', label: 'Opercules affaissés ou percés' },
-  { value: 'larves_brunes_visqueuses', label: 'Larves brunes visqueuses adhérentes ⚠' },
-  { value: 'larves_flasques_jaune', label: 'Larves flasques jaune clair' },
-  { value: 'larves_sac_ecailles_noires', label: 'Larves en sac, écailles noires' },
-  { value: 'momies_blanches_grises', label: 'Momies blanches ou grises' },
-  { value: 'odeur_colle_putride', label: 'Odeur de colle ou putride ⚠' },
-  { value: 'odeur_aigre', label: 'Odeur aigre' },
-  { value: 'ailes_deformees', label: 'Ailes déformées' },
-  { value: 'varroas_visibles', label: 'Varroas visibles' },
-  { value: 'toiles_fausse_teigne', label: 'Toiles ou galeries de fausse teigne' },
-  { value: 'coleoptere_noir', label: 'Coléoptère noir dans les rayons ⚠' },
-];
-
-const SIGNES_CATEGORIE1 = new Set([
-  'larves_brunes_visqueuses',
-  'odeur_colle_putride',
-  'coleoptere_noir',
-]);
 
 // Liste conforme au cahier des charges (visite.anomalies) — le varroa se
 // suit via un comptage dédié, il n'apparaît pas ici.
@@ -109,7 +87,13 @@ function dateLisible(iso) {
   return new Date(iso).toLocaleDateString('fr-FR');
 }
 
-export function SaisieVisite({ colonieInitialeId, onRetour, onOuvrirHistorique, onOuvrirSanitaire }) {
+export function SaisieVisite({
+  colonieInitialeId,
+  onRetour,
+  onOuvrirHistorique,
+  onOuvrirSanitaire,
+  onOuvrirObservationCadre,
+}) {
   const [contextes, setContextes] = useState([]);
   const [colonieId, setColonieId] = useState(null);
   const [derniereVisite, setDerniereVisite] = useState(null);
@@ -662,6 +646,19 @@ export function SaisieVisite({ colonieInitialeId, onRetour, onOuvrirHistorique, 
           className="h-12 w-full text-13 text-ink-secondary underline"
         >
           Voir le sanitaire
+        </button>
+      )}
+
+      {/* Une observation cadre par cadre se rattache à une visite déjà
+          enregistrée (visite_id requis) — n'apparaît qu'une fois qu'il y en
+          a une pour cette colonie, la dernière en date. */}
+      {onOuvrirObservationCadre && derniereVisite && (
+        <button
+          type="button"
+          onClick={() => onOuvrirObservationCadre(derniereVisite.id, colonieId)}
+          className="h-12 w-full text-13 text-ink-secondary underline"
+        >
+          Observation cadre par cadre
         </button>
       )}
 
