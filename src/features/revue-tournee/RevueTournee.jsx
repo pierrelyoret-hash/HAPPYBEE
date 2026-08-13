@@ -8,7 +8,9 @@ import { db } from '../../db/db.js';
 import { obtenirPremierRucher } from '../../db/repositories/ruchers.js';
 import { listerAudioColonie, rattacherVisite } from '../../db/repositories/audio.js';
 import { enregistrerVisite } from '../../db/repositories/visites.js';
+import { enregistrerTraitement, enregistrerNourrissement } from '../../db/repositories/sanitaire.js';
 import { structurerDictee } from '../../lib/structurationIA.js';
+import { VOIE_LIBELLES, TYPE_NOURRISSEMENT_LIBELLES } from '../../lib/libellesSanitaire.js';
 
 const ANOMALIE_OPTIONS = [
   { value: 'bourdonneuse', label: 'Bourdonneuse' },
@@ -25,15 +27,17 @@ const ANOMALIE_OPTIONS = [
 const PONTE_ECHELLE_OPTIONS = [0, 1, 2, 3, 4, 5].map((n) => ({ value: n, label: String(n) }));
 const ECHELLE_1_A_5 = [1, 2, 3, 4, 5].map((n) => ({ value: n, label: String(n) }));
 
-// Périmètre volontairement limité aux champs que l'IA peut proposer
-// (lib/structurationIA.js) — cellules royales, signes sanitaires et photos
-// n'entrent pas dans la dictée de cette passe : à saisir manuellement
-// (écran B) si besoin, cet écran ne prétend pas tout couvrir.
+// Périmètre volontairement limité aux champs que l'IA peut proposer (visite
+// + traitements + nourrissements, cf. la fonction Edge structurer-dictee) —
+// cellules royales, signes sanitaires et photos n'entrent pas dans la
+// dictée de cette passe : à saisir manuellement (écran B) si besoin.
 function CarteColonieRevue({ ruche, colonie, audio, onEnregistre }) {
   const [statut, setStatut] = useState('a_structurer');
   const [valeurs, setValeurs] = useState({});
   const [anomalies, setAnomalies] = useState([]);
   const [observationLibre, setObservationLibre] = useState('');
+  const [traitements, setTraitements] = useState([]);
+  const [nourrissements, setNourrissements] = useState([]);
   const [message, setMessage] = useState(null);
 
   async function structurer() {
@@ -53,6 +57,8 @@ function CarteColonieRevue({ ruche, colonie, audio, onEnregistre }) {
       });
       setAnomalies(champs.anomalies ?? []);
       setObservationLibre(champs.observation_libre ?? '');
+      setTraitements(champs.traitements ?? []);
+      setNourrissements(champs.nourrissements ?? []);
       setStatut('a_revoir');
     } catch (err) {
       console.error('[revue tournée] échec structuration', err);
@@ -63,6 +69,14 @@ function CarteColonieRevue({ ruche, colonie, audio, onEnregistre }) {
 
   function modifierChamp(champ, valeur) {
     setValeurs((v) => ({ ...v, [champ]: valeur }));
+  }
+
+  function retirerTraitement(index) {
+    setTraitements((liste) => liste.filter((_, i) => i !== index));
+  }
+
+  function retirerNourrissement(index) {
+    setNourrissements((liste) => liste.filter((_, i) => i !== index));
   }
 
   async function enregistrer() {
@@ -97,6 +111,53 @@ function CarteColonieRevue({ ruche, colonie, audio, onEnregistre }) {
       };
       await enregistrerVisite(visite);
       await rattacherVisite(audio.id, visite.id);
+
+      // Pas de délai d'attente extrait de la dictée (jamais demandé au
+      // modèle) : aucun rappel automatique généré ici — cohérent avec
+      // SaisieTraitement.jsx, qui ne déclenche un rappel que si un délai
+      // réel est renseigné.
+      for (const t of traitements) {
+        const maintenantTraitement = new Date().toISOString();
+        await enregistrerTraitement({
+          id: crypto.randomUUID(),
+          colonie_id: colonie.id,
+          date_debut: maintenant.toISOString().slice(0, 10),
+          date_fin: maintenant.toISOString().slice(0, 10),
+          produit: t.produit || null,
+          numero_amm: null,
+          numero_lot: null,
+          dosage: t.dosage || null,
+          voie: t.voie || null,
+          motif: t.motif || null,
+          delai_attente_jours: null,
+          date_fin_delai_attente: null,
+          ordonnance_document_id: null,
+          conforme_bio: null,
+          notes: null,
+          created_at: maintenantTraitement,
+          updated_at: maintenantTraitement,
+          deleted_at: null,
+        });
+      }
+
+      for (const n of nourrissements) {
+        const maintenantNourrissement = new Date().toISOString();
+        await enregistrerNourrissement({
+          id: crypto.randomUUID(),
+          colonie_id: colonie.id,
+          date: maintenant.toISOString().slice(0, 10),
+          type: n.type || null,
+          quantite: n.quantite ?? null,
+          unite: n.unite || null,
+          composition: n.composition || null,
+          origine_produit: null,
+          notes: null,
+          created_at: maintenantNourrissement,
+          updated_at: maintenantNourrissement,
+          deleted_at: null,
+        });
+      }
+
       setStatut('enregistre');
       setMessage('Visite enregistrée.');
       onEnregistre?.();
@@ -200,6 +261,55 @@ function CarteColonieRevue({ ruche, colonie, audio, onEnregistre }) {
               onChange={(e) => setObservationLibre(e.target.value)}
             />
           </div>
+
+          {traitements.length > 0 && (
+            <div className="border border-rule rounded p-3 flex flex-col gap-2">
+              <p className="text-13 font-bold text-ink-secondary">
+                Traitement(s) détecté(s) dans la dictée
+              </p>
+              {traitements.map((t, index) => (
+                <div key={index} className="flex items-start justify-between gap-2 text-13">
+                  <span>
+                    {t.produit || 'Produit non précisé'}
+                    {t.voie && ` — ${VOIE_LIBELLES[t.voie] ?? t.voie}`}
+                    {t.dosage && ` — ${t.dosage}`}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => retirerTraitement(index)}
+                    className="text-12 text-ink-secondary underline shrink-0"
+                  >
+                    Retirer
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {nourrissements.length > 0 && (
+            <div className="border border-rule rounded p-3 flex flex-col gap-2">
+              <p className="text-13 font-bold text-ink-secondary">
+                Nourrissement(s) détecté(s) dans la dictée
+              </p>
+              {nourrissements.map((n, index) => (
+                <div key={index} className="flex items-start justify-between gap-2 text-13">
+                  <span>
+                    {n.type ? TYPE_NOURRISSEMENT_LIBELLES[n.type] ?? n.type : 'Type non précisé'}
+                    {n.quantite != null && ` — ${n.quantite}${n.unite ? ` ${n.unite}` : ''}`}
+                    {n.composition && ` (${n.composition})`}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => retirerNourrissement(index)}
+                    className="text-12 text-ink-secondary underline shrink-0"
+                  >
+                    Retirer
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
           <button
             type="button"
             onClick={enregistrer}

@@ -32,13 +32,20 @@ const ANOMALIES_VALIDES = [
   'autre',
 ];
 
-// Schéma de l'outil = schéma exact des champs `visite` concernés (cahier
-// des charges §4.2). Le modèle est forcé à cet appel d'outil : sortie
-// toujours structurée, jamais de texte libre à re-parser.
+const VOIES_VALIDES = ['laniere', 'sublimation', 'degouttement', 'autre'];
+const TYPES_NOURRISSEMENT_VALIDES = ['sirop_leger', 'sirop_lourd', 'candi', 'pate_proteique'];
+
+// Schéma de l'outil = champs `visite` (cahier des charges §4.2) + entrées
+// sanitaires ponctuelles (traitement/nourrissement, L2.2) que la dictée
+// mentionne naturellement dans le même souffle qu'une visite ("je traite,
+// je nourris..."). Constaté le 13/08/2026 : une dictée réelle contenant un
+// traitement varroa n'était captée nulle part avant cet ajout — ni dans les
+// champs de visite ni ailleurs. Le modèle est forcé à cet appel d'outil :
+// sortie toujours structurée, jamais de texte libre à re-parser.
 const OUTIL_STRUCTURATION = {
   name: 'proposer_champs_visite',
   description:
-    "Propose les champs d'une visite extraits d'une dictée apicole, pour validation par l'exploitant.",
+    "Propose les champs d'une visite, ainsi que les traitements et nourrissements mentionnés, extraits d'une dictée apicole — pour validation par l'exploitant.",
   input_schema: {
     type: 'object',
     properties: {
@@ -55,6 +62,35 @@ const OUTIL_STRUCTURATION = {
         type: ['string', 'null'],
         description: "Ce qui n'a pas pu être rattaché à un champ ci-dessus, texte tel quel.",
       },
+      traitements: {
+        type: 'array',
+        description: 'Un élément par traitement sanitaire mentionné (varroa ou autre).',
+        items: {
+          type: 'object',
+          properties: {
+            produit: { type: ['string', 'null'], description: 'Nom du produit, tel que dit.' },
+            voie: { type: ['string', 'null'], enum: [...VOIES_VALIDES, null] },
+            dosage: { type: ['string', 'null'] },
+            motif: { type: ['string', 'null'] },
+          },
+        },
+      },
+      nourrissements: {
+        type: 'array',
+        description: 'Un élément par nourrissement mentionné.',
+        items: {
+          type: 'object',
+          properties: {
+            type: { type: ['string', 'null'], enum: [...TYPES_NOURRISSEMENT_VALIDES, null] },
+            quantite: { type: ['number', 'null'] },
+            unite: { type: ['string', 'null'] },
+            composition: {
+              type: ['string', 'null'],
+              description: 'Ex. "50-50", tel que dit — même si déjà couvert par le type.',
+            },
+          },
+        },
+      },
     },
     required: [],
   },
@@ -63,9 +99,10 @@ const OUTIL_STRUCTURATION = {
 const INSTRUCTIONS_SYSTEME = `Tu extrais des champs structurés depuis la dictée d'un apiculteur en tournée de rucher, en français.
 
 Règles impératives :
-- N'invente jamais une valeur non dite. Un champ non mentionné reste null (ou absent du tableau pour anomalies) — ne jamais déduire ou estimer.
-- Aucun diagnostic, aucune suggestion, aucune recommandation de conduite. Tu extrais ce qui a été dit, tu ne conseilles rien.
+- N'invente jamais une valeur non dite. Un champ non mentionné reste null (ou absent des tableaux) — ne jamais déduire ou estimer, même à partir de ta connaissance générale du produit ou de la pratique (ex. si un traitement est cité sans préciser la voie d'administration, voie reste null — ne complète pas avec la voie habituelle de ce produit).
+- Aucun diagnostic, aucune suggestion, aucune recommandation de conduite. Tu extrais ce qui a été dit et décidé, tu ne conseilles rien.
 - Les huitièmes/fractions orales ("un quart de cadre", "la moitié") se convertissent en nombre de cadres si le nombre total de cadres concernés est explicite dans la phrase — sinon laisse le champ null plutôt que de deviner.
+- "Sirop 50-50" ou équivalent proportion égale sucre/eau = sirop_leger ; une proportion plus concentrée (ex. 70-30, "sirop épais") = sirop_lourd. En cas de doute, laisse le type null et garde la proportion dans composition.
 - Le texte qui ne correspond à aucun champ (observations qualitatives, contexte) va dans observation_libre, mot pour mot autant que possible.
 - Réponds uniquement via l'appel de l'outil proposer_champs_visite.`;
 

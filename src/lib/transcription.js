@@ -5,7 +5,11 @@ import { pipeline } from '@huggingface/transformers';
 // sort même de cette exception, elle ne coûte jamais rien). Le modèle se
 // télécharge une fois puis reste en cache navigateur (Cache Storage, géré
 // par la librairie elle-même) — fonctionne hors-ligne ensuite.
-const MODELE = 'Xenova/whisper-base';
+// whisper-small plutôt que whisper-base (arbitrage du 13/08/2026, après un
+// premier test réel au rucher jugé trop imprécis) — nettement meilleur sur
+// le français courant, au prix d'un téléchargement plus lourd (~1 Go en
+// fp32 contre ~300 Mo) — accepté explicitement.
+const MODELE = 'Xenova/whisper-small';
 
 let transcripteurPromesse = null;
 
