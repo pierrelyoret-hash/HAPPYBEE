@@ -269,7 +269,7 @@ Priorités : **M** must · **S** should · **C** could. Le symbole ⚑ signale l
 
 **L2 est devenu le lot le plus lourd de la trajectoire.** Séquencement interne recommandé, avec validation après chaque étape : synchronisation → photos → dictée et transcription → écran de revue → écran cadre par cadre → agrégation. Ne pas ouvrir l'étape suivante avant que la précédente ait servi au rucher.
 
-**Synchronisation livrée le 12/08/2026** (jumelage par appareil, file d'attente locale, résolution dernière écriture gagnante). Le reste de L2 (photos, dictée, revue de tournée, cadre par cadre) est mis en pause, repris après L2.2.
+**Synchronisation livrée le 12/08/2026** (jumelage par appareil, file d'attente locale, résolution dernière écriture gagnante). **Reste de L2 développé et vérifié techniquement le 13/08/2026** (photos, tournée vocale, transcription embarquée gratuite, structuration IA via fonction Edge Supabase, revue de tournée, cadre par cadre M13, agrégation §6.4) — passage réel au rucher restant avant de considérer le lot livré.
 
 ## L2.2 — Sanitaire *(livré 12/08/2026)*
 
