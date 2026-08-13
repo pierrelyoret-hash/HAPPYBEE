@@ -13,6 +13,7 @@ import {
 } from './features/sanitaire';
 import { TourneeVocale } from './features/tournee-vocale';
 import { ObservationCadre } from './features/cadre-par-cadre';
+import { RevueTournee } from './features/revue-tournee';
 
 export function App() {
   const [ecran, setEcran] = useState('vue_ensemble');
@@ -55,6 +56,10 @@ export function App() {
 
   function ouvrirTourneeVocale() {
     setEcran('tournee_vocale');
+  }
+
+  function ouvrirRevueTournee() {
+    setEcran('revue_tournee');
   }
 
   function ouvrirObservationCadre(visiteId, colonieId) {
@@ -138,7 +143,11 @@ export function App() {
   }
 
   if (ecran === 'tournee_vocale') {
-    return <TourneeVocale onRetour={retourVueEnsemble} />;
+    return <TourneeVocale onRetour={retourVueEnsemble} onOuvrirRevueTournee={ouvrirRevueTournee} />;
+  }
+
+  if (ecran === 'revue_tournee') {
+    return <RevueTournee onRetour={retourVueEnsemble} onOuvrirSaisieVisite={ouvrirSaisie} />;
   }
 
   if (ecran === 'observation_cadre') {

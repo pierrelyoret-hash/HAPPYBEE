@@ -105,7 +105,7 @@ function LigneColonieVocale({ ruche, colonieId, onProgresModele }) {
   );
 }
 
-export function TourneeVocale({ onRetour }) {
+export function TourneeVocale({ onRetour, onOuvrirRevueTournee }) {
   const [rucher, setRucher] = useState(null);
   const [lignes, setLignes] = useState([]);
   const [chargement, setChargement] = useState(true);
@@ -184,6 +184,16 @@ export function TourneeVocale({ onRetour }) {
           />
         ))}
       </ul>
+
+      {onOuvrirRevueTournee && (
+        <button
+          type="button"
+          onClick={onOuvrirRevueTournee}
+          className="h-10 w-full rounded bg-surface border border-rule-strong text-ink text-15 font-bold"
+        >
+          Passer à la revue de tournée
+        </button>
+      )}
 
       {onRetour && (
         <button
