@@ -22,6 +22,9 @@ export default {
         action: { bg: 'var(--action-bg)', ink: 'var(--action-ink)' },
         attente: { bg: 'var(--attente-bg)', ink: 'var(--attente-ink)' },
         normale: { bg: 'var(--normale-bg)', ink: 'var(--normale-ink)' },
+        miel: 'var(--miel)',
+        vert: 'var(--vert)',
+        bordeaux: 'var(--bordeaux)',
       },
       fontFamily: {
         sans: ['Atkinson Hyperlegible', 'sans-serif'],

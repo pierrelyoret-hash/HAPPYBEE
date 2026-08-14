@@ -116,6 +116,7 @@ export function SaisieVisite({
   const [haussesPosees, setHaussesPosees] = useState(false);
   const [cadreCouvainIntroduit, setCadreCouvainIntroduit] = useState(false);
   const [detailCouvainOuvert, setDetailCouvainOuvert] = useState(false);
+  const [colonieOuverte, setColonieOuverte] = useState(false);
   const [anomaliesOuvertes, setAnomaliesOuvertes] = useState(false);
   const [suspicionReglementee, setSuspicionReglementee] = useState(false);
   const [parcoursVisible, setParcoursVisible] = useState(false);
@@ -161,6 +162,7 @@ export function SaisieVisite({
       setCadreCouvainIntroduit(false);
       setSignesOuverts(false);
       setDetailCouvainOuvert(false);
+      setColonieOuverte(false);
       setAnomaliesOuvertes(false);
       setSuspicionReglementee(false);
       setParcoursVisible(false);
@@ -446,27 +448,59 @@ export function SaisieVisite({
             </option>
           ))}
         </select>
-        <div className="flex items-center justify-between gap-2">
-          <p className="text-13 text-ink-secondary">
-            {positionTournee && `Position ${positionTournee} de la tournée · `}
-            {dateReference
-              ? `Dernière visite : ${dateReference}`
-              : 'Aucune visite précédente'}
-          </p>
-          {/* Accès direct sans défiler tout le formulaire (retour d'usage
-              réel du 14/08/2026) : le lien existait déjà en pied d'écran,
-              mais devenait injoignable sans scroll sur un formulaire long. */}
-          {onOuvrirSanitaire && colonieId && (
-            <button
-              type="button"
-              onClick={() => onOuvrirSanitaire(colonieId)}
-              className="text-13 text-ink-secondary underline shrink-0"
-            >
-              Sanitaire
-            </button>
-          )}
-        </div>
+        <p className="text-13 text-ink-secondary">
+          {positionTournee && `Position ${positionTournee} de la tournée · `}
+          {dateReference
+            ? `Dernière visite : ${dateReference}`
+            : 'Aucune visite précédente'}
+        </p>
       </header>
+
+      {/* Mosaïque d'accès rapide (retour d'usage réel du 14/08/2026) : ces
+          quatre écrans étaient injoignables sans défiler tout le formulaire
+          — remontés ici, en tuiles colorées, plutôt qu'en liens perdus en
+          pied d'écran. */}
+      <section className="grid grid-cols-2 gap-2">
+        {onOuvrirSanitaire && colonieId && (
+          <button
+            type="button"
+            onClick={() => onOuvrirSanitaire(colonieId)}
+            className="h-16 rounded bg-bordeaux text-surface text-13 font-bold flex items-center justify-center text-center px-2"
+          >
+            Sanitaire
+          </button>
+        )}
+        {onOuvrirRecolte && colonieId && (
+          <button
+            type="button"
+            onClick={() => onOuvrirRecolte(colonieId)}
+            className="h-16 rounded bg-miel text-ink text-13 font-bold flex items-center justify-center text-center px-2"
+          >
+            Récoltes
+          </button>
+        )}
+        {onOuvrirMouvement && colonieId && (
+          <button
+            type="button"
+            onClick={() => onOuvrirMouvement(colonieId)}
+            className="h-16 rounded bg-vert text-surface text-13 font-bold flex items-center justify-center text-center px-2"
+          >
+            Mouvements
+          </button>
+        )}
+        {/* Une observation cadre par cadre se rattache à une visite déjà
+            enregistrée (visite_id requis) — n'apparaît qu'une fois qu'il y
+            en a une pour cette colonie, la dernière en date. */}
+        {onOuvrirObservationCadre && derniereVisite && (
+          <button
+            type="button"
+            onClick={() => onOuvrirObservationCadre(derniereVisite.id, colonieId)}
+            className="h-16 rounded bg-ink text-surface text-13 font-bold flex items-center justify-center text-center px-2"
+          >
+            Cadre par cadre
+          </button>
+        )}
+      </section>
 
       {/* Bouton secondaire (brief refonte §5/§6.1 : un seul bouton principal
           par écran — c'est "Enregistrer" plus bas). "Rien à signaler" reste
@@ -543,37 +577,47 @@ export function SaisieVisite({
           assignés à L1 le 11/08/2026 mais n'ont pas leur propre bloc pour
           ne pas recréer l'éparpillement qu'on vient de corriger). */}
       <section className="border border-rule rounded p-3 flex flex-col gap-3">
-        <p className="text-13 font-bold text-ink-secondary">Colonie</p>
-        <div>
-          <p className="text-13 text-ink-secondary mb-1">Population</p>
-          <Segmente
-            options={ECHELLE_1_A_5}
-            value={valeurs.population}
-            provenance={provenance.population}
-            referenceDate={dateReference}
-            onChange={(v) => modifierChamp('population', v)}
-          />
-        </div>
-        <div>
-          <p className="text-13 text-ink-secondary mb-1">Tempérament</p>
-          <Segmente
-            options={ECHELLE_1_A_5}
-            value={valeurs.temperament}
-            provenance={provenance.temperament}
-            referenceDate={dateReference}
-            onChange={(v) => modifierChamp('temperament', v)}
-          />
-        </div>
-        <div>
-          <p className="text-13 text-ink-secondary mb-1">Bâtisse</p>
-          <Segmente
-            options={ECHELLE_1_A_5}
-            value={valeurs.batisse}
-            provenance={provenance.batisse}
-            referenceDate={dateReference}
-            onChange={(v) => modifierChamp('batisse', v)}
-          />
-        </div>
+        <button
+          type="button"
+          onClick={() => setColonieOuverte((v) => !v)}
+          className="text-13 font-bold text-ink-secondary text-left"
+        >
+          {colonieOuverte ? '▾' : '▸'} Colonie
+        </button>
+        {colonieOuverte && (
+          <>
+            <div>
+              <p className="text-13 text-ink-secondary mb-1">Population</p>
+              <Segmente
+                options={ECHELLE_1_A_5}
+                value={valeurs.population}
+                provenance={provenance.population}
+                referenceDate={dateReference}
+                onChange={(v) => modifierChamp('population', v)}
+              />
+            </div>
+            <div>
+              <p className="text-13 text-ink-secondary mb-1">Tempérament</p>
+              <Segmente
+                options={ECHELLE_1_A_5}
+                value={valeurs.temperament}
+                provenance={provenance.temperament}
+                referenceDate={dateReference}
+                onChange={(v) => modifierChamp('temperament', v)}
+              />
+            </div>
+            <div>
+              <p className="text-13 text-ink-secondary mb-1">Bâtisse</p>
+              <Segmente
+                options={ECHELLE_1_A_5}
+                value={valeurs.batisse}
+                provenance={provenance.batisse}
+                referenceDate={dateReference}
+                onChange={(v) => modifierChamp('batisse', v)}
+              />
+            </div>
+          </>
+        )}
       </section>
 
       <section className="border border-rule rounded p-3 flex flex-col gap-3">
@@ -738,7 +782,7 @@ export function SaisieVisite({
       <button
         type="button"
         onClick={enregistrer}
-        className="h-[46px] w-full rounded bg-ink text-surface text-15 font-bold"
+        className="h-[46px] w-full rounded bg-miel text-ink text-15 font-bold"
       >
         Enregistrer
       </button>
@@ -750,49 +794,6 @@ export function SaisieVisite({
           className="h-12 w-full text-13 text-ink-secondary underline"
         >
           Voir l'historique
-        </button>
-      )}
-
-      {onOuvrirSanitaire && colonieId && (
-        <button
-          type="button"
-          onClick={() => onOuvrirSanitaire(colonieId)}
-          className="h-12 w-full text-13 text-ink-secondary underline"
-        >
-          Voir le sanitaire
-        </button>
-      )}
-
-      {onOuvrirRecolte && colonieId && (
-        <button
-          type="button"
-          onClick={() => onOuvrirRecolte(colonieId)}
-          className="h-12 w-full text-13 text-ink-secondary underline"
-        >
-          Voir les récoltes
-        </button>
-      )}
-
-      {onOuvrirMouvement && colonieId && (
-        <button
-          type="button"
-          onClick={() => onOuvrirMouvement(colonieId)}
-          className="h-12 w-full text-13 text-ink-secondary underline"
-        >
-          Voir les mouvements
-        </button>
-      )}
-
-      {/* Une observation cadre par cadre se rattache à une visite déjà
-          enregistrée (visite_id requis) — n'apparaît qu'une fois qu'il y en
-          a une pour cette colonie, la dernière en date. */}
-      {onOuvrirObservationCadre && derniereVisite && (
-        <button
-          type="button"
-          onClick={() => onOuvrirObservationCadre(derniereVisite.id, colonieId)}
-          className="h-12 w-full text-13 text-ink-secondary underline"
-        >
-          Observation cadre par cadre
         </button>
       )}
 

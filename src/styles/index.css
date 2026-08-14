@@ -25,7 +25,7 @@
   --rule: #E3E2DC;
   --rule-strong: #C9C8C0;
 
-  /* États — seule couleur de l'interface */
+  /* États — pastilles et badges uniquement */
   --urgent-bg: #FBEAE8;
   --urgent-ink: #8C1D18;
   --action-bg: #FCF0DC;
@@ -34,6 +34,15 @@
   --attente-ink: #44443E;
   --normale-bg: #E4F2EA;
   --normale-ink: #12543C;
+
+  /* Accents (retour d'usage du 14/08/2026) : miel/vert/bordeaux, en plus du
+     noir et blanc déjà en place — pour les boutons et éléments de
+     navigation, pas les pastilles d'état ci-dessus qui gardent leur propre
+     palette pastel. Tons assez soutenus pour rester lisibles en plein
+     soleil (contraste ≥ 4.5:1 avec leur texte associé, vérifié). */
+  --miel: #D89A2E;
+  --vert: #2B6E48;
+  --bordeaux: #7A1830;
 }
 
 body {
