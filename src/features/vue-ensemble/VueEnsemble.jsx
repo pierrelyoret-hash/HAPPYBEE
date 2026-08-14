@@ -13,7 +13,9 @@ import {
   creerTache,
 } from '../../db/repositories/taches.js';
 import { exporterDonnees, compterEnregistrements } from '../../db/repositories/sauvegarde.js';
-import { declencherTelechargementJson } from '../../lib/telechargement.js';
+import { listerEvenementsExportConsolide } from '../../db/repositories/historiqueConsolide.js';
+import { declencherTelechargementJson, declencherTelechargementCsv } from '../../lib/telechargement.js';
+import { genererCsvConsolide } from '../../lib/exportCsvConsolide.js';
 import { calculerEtat, joursDepuis, SEUIL_JOURS_A_VISITER } from '../../lib/etats.js';
 import { surSync } from '../../lib/sync.js';
 
@@ -64,6 +66,26 @@ export function VueEnsemble({
     } catch (err) {
       console.error('[sauvegarde] échec export', err);
       setMessageSauvegarde("Échec de l'export.");
+    }
+  }
+
+  // Export consolidé (retour d'usage réel du 14/08/2026) : visite,
+  // sanitaire, récolte et mouvement de toute l'exploitation, une ligne par
+  // événement — distinct de la sauvegarde JSON ci-dessus (celle-ci reste la
+  // seule à garantir une restauration fidèle ; le CSV est pour la lecture
+  // et le croisement, pas une source de vérité pour la restauration).
+  async function exporterHistoriqueConsolide() {
+    try {
+      const evenements = await listerEvenementsExportConsolide();
+      const csv = genererCsvConsolide(evenements);
+      declencherTelechargementCsv(
+        `happybee-historique-${new Date().toISOString().slice(0, 10)}.csv`,
+        csv
+      );
+      setMessageSauvegarde(`Historique exporté (${evenements.length} événement(s)).`);
+    } catch (err) {
+      console.error('[export consolidé] échec', err);
+      setMessageSauvegarde("Échec de l'export de l'historique.");
     }
   }
 
@@ -311,6 +333,13 @@ export function VueEnsemble({
             className="text-12 text-ink-secondary self-start"
           >
             Exporter le PDF sanitaire
+          </button>
+          <button
+            type="button"
+            onClick={exporterHistoriqueConsolide}
+            className="text-12 text-ink-secondary self-start"
+          >
+            Exporter l'historique consolidé (CSV)
           </button>
           {onOuvrirTaches && (
             <button type="button" onClick={onOuvrirTaches} className="text-12 text-ink-secondary self-start">

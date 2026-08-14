@@ -558,3 +558,18 @@ Détail complet du lot : `brief_L2.2_sanitaire.md`.
 | "Introduction d'un cadre de couvain frais" (§6.3, cascade J+9/J+16/J+28) | Aucun champ `visite` dédié dans le modèle de données — ajouté comme signal ponctuel de l'écran de saisie (jamais persisté en base), visible uniquement quand une anomalie orpheline/bourdonneuse est cochée, condition du déclencheur |
 | `hausses_posees` (§4.2, jamais construit avant cette date) | Exposé comme interrupteur dans l'écran de saisie visite, aux côtés de "Cellules royales" — déclenche le rappel "Contrôler le remplissage" (§6.3) |
 | "Aucune visite depuis 21 jours en saison" (§6.3) | Seule règle du moteur qui ne naît pas d'une saisie mais de l'écoulement du temps — vérifiée au chargement de l'écran d'accueil plutôt que dans un écran dédié ; réutilise le seuil déjà défini pour l'état visuel "à visiter" (`SEUIL_JOURS_A_VISITER`, 21 jours) |
+
+---
+
+## 16. Arbitrages actés — 14 août 2026 (retours d'usage réel)
+
+Quatre frictions remontées après un usage réel prolongé (fiche visite et sanitaire consultées séparément, pas d'historique consolidé, huitièmes jugés trop fins, historique cadre par cadre introuvable). Décisions prises avant correction :
+
+| Question | Décision |
+|---|---|
+| Définition d'une "saison" (historique consolidé, export) | **Campagne apicole avril-mars**, pas année civile — hivernage à hivernage, plus proche du cycle réel de la colonie que le calendrier |
+| Contenu de l'export consolidé | **Tout** : visite + sanitaire (traitement, comptage varroa, nourrissement) + récoltes + mouvements (L3), pas seulement visite + sanitaire comme demandé au premier abord — le lot L3 a été livré entre-temps |
+| Occupation des faces de cadre : huitièmes → pourcentages | Échelle fixe **0/10/25/50/80/99 %** (0 % ajouté implicitement aux cinq valeurs demandées, pour garder la possibilité de saisir explicitement "rien constaté" plutôt que de forcer un premier palier à 10 %) |
+| Export CSV consolidé vs. export CSV par table (F10.2, prévu en L6) | **Les deux coexisteront** : celui-ci est une vue humaine, une ligne par événement, colonnes communes + détail texte ; F10.2 restera une sauvegarde fidèle table par table, non construite dans ce lot |
+
+Détail technique : `couvain_opercule`, `couvain_ouvert`, `oeufs`, `miel_opercule`, `nectar_frais`, `pollen`, `cellules_vides`, `non_bati`, `couvain_male` (§4.2 `observation_cadre`) stockent désormais un pourcentage (0-100) au lieu d'un huitième (0-8) — migration Dexie des observations existantes (× 12,5, arrondi). La formule d'agrégation §6.4 est mise à jour en conséquence (division par 100 au lieu de 8).

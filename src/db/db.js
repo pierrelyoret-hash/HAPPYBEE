@@ -106,3 +106,33 @@ db.version(8).stores({
   recolte: 'id, colonie_id, date, deleted_at',
   mouvement: 'id, ruche_id, colonie_id, date, deleted_at',
 });
+
+// v9 (retour d'usage réel du 14/08/2026) : l'occupation des faces de cadre
+// passe de huitièmes (0-8) à des pourcentages (0-100) — plus lisible sur le
+// terrain qu'une réglette à neuf crans. Aucune table ni index modifié :
+// conversion des valeurs existantes uniquement (× 12,5, arrondi).
+const CHAMPS_OCCUPATION_V9 = [
+  'couvain_opercule',
+  'couvain_ouvert',
+  'oeufs',
+  'miel_opercule',
+  'nectar_frais',
+  'pollen',
+  'cellules_vides',
+  'non_bati',
+  'couvain_male',
+];
+db.version(9)
+  .stores({})
+  .upgrade(async (tx) => {
+    await tx
+      .table('observation_cadre')
+      .toCollection()
+      .modify((observation) => {
+        for (const champ of CHAMPS_OCCUPATION_V9) {
+          if (typeof observation[champ] === 'number') {
+            observation[champ] = Math.round(observation[champ] * 12.5);
+          }
+        }
+      });
+  });

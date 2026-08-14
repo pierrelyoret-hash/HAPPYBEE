@@ -446,12 +446,26 @@ export function SaisieVisite({
             </option>
           ))}
         </select>
-        <p className="text-13 text-ink-secondary">
-          {positionTournee && `Position ${positionTournee} de la tournée · `}
-          {dateReference
-            ? `Dernière visite : ${dateReference}`
-            : 'Aucune visite précédente'}
-        </p>
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-13 text-ink-secondary">
+            {positionTournee && `Position ${positionTournee} de la tournée · `}
+            {dateReference
+              ? `Dernière visite : ${dateReference}`
+              : 'Aucune visite précédente'}
+          </p>
+          {/* Accès direct sans défiler tout le formulaire (retour d'usage
+              réel du 14/08/2026) : le lien existait déjà en pied d'écran,
+              mais devenait injoignable sans scroll sur un formulaire long. */}
+          {onOuvrirSanitaire && colonieId && (
+            <button
+              type="button"
+              onClick={() => onOuvrirSanitaire(colonieId)}
+              className="text-13 text-ink-secondary underline shrink-0"
+            >
+              Sanitaire
+            </button>
+          )}
+        </div>
       </header>
 
       {/* Bouton secondaire (brief refonte §5/§6.1 : un seul bouton principal

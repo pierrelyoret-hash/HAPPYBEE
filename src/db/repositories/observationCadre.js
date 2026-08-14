@@ -61,10 +61,12 @@ export async function recalculerAgregatsVisite(visiteId) {
   }
 
   // nb_cadres_* reste un entier (schéma existant, cohérent avec le
-  // compteur de saisie directe) : huitièmes cumulés / 8, arrondi.
+  // compteur de saisie directe) : pourcentages cumulés / 100, arrondi
+  // (retour d'usage réel du 14/08/2026 — les faces sont désormais saisies
+  // en pourcentages, plus en huitièmes ; même logique, unité différente).
   await db.visite.update(visiteId, {
-    nb_cadres_couvain_opercule: Math.round(sommeCouvainOpercule / 8),
-    nb_cadres_provisions: Math.round(sommeProvisions / 8),
+    nb_cadres_couvain_opercule: Math.round(sommeCouvainOpercule / 100),
+    nb_cadres_provisions: Math.round(sommeProvisions / 100),
     score_ponte:
       sommeSurfaceCouvain > 0
         ? Math.round(sommePondereePonte / sommeSurfaceCouvain)

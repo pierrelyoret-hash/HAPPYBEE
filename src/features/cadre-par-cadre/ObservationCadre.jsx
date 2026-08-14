@@ -11,57 +11,49 @@ import {
   recalculerAgregatsVisite,
 } from '../../db/repositories/observationCadre.js';
 import { SIGNES_SANITAIRES_OPTIONS } from '../../lib/taxonomieSanitaire.js';
+import {
+  TYPE_CADRE_LIBELLES,
+  CHAMPS_OCCUPATION,
+  PONTE_ECHELLE_LIBELLES,
+  PONTE_ECHELLE_LEGENDE,
+  CELLULES_ROYALES_TYPE_LIBELLES,
+  CELLULES_ROYALES_POS_LIBELLES,
+} from '../../lib/libellesCadre.js';
 
 // Addendum §A.7 : "un seul écran par face". Pas d'écran séparé de choix de
 // mode (cadre remarquable / zone de couvain / complet, §A.7) — les trois
 // modes sont une conséquence du nombre de faces qu'on choisit de saisir
 // avant "Terminer", pas un état distinct à gérer : un seul écran rapide,
 // "Face suivante" pour continuer, "Terminer" pour sortir à tout moment.
-const TYPE_CADRE_OPTIONS = [
-  { value: 'bati', label: 'Bâti' },
-  { value: 'gaufre_neuf', label: 'Gaufré neuf' },
-  { value: 'amorce', label: 'Amorce' },
-  { value: 'naturel', label: 'Naturel' },
-  { value: 'partition', label: 'Partition' },
-  { value: 'nourrisseur', label: 'Nourrisseur' },
-];
+const TYPE_CADRE_OPTIONS = Object.entries(TYPE_CADRE_LIBELLES).map(([value, label]) => ({
+  value,
+  label,
+}));
 
 const FACE_OPTIONS = [
   { value: 'A', label: 'Face A' },
   { value: 'B', label: 'Face B' },
 ];
 
-const HUITIEMES_OPTIONS = [0, 1, 2, 3, 4, 5, 6, 7, 8].map((n) => ({ value: n, label: String(n) }));
+// Pourcentages plutôt que huitièmes (retour d'usage réel du 14/08/2026,
+// après un premier passage au rucher avec la réglette à neuf crans jugée
+// trop fine à estimer sur le terrain). 0 % reste sélectionnable
+// explicitement, distinct de "non observé" (case non touchée).
+const POURCENTAGE_OPTIONS = [0, 10, 25, 50, 80, 99].map((n) => ({ value: n, label: `${n}%` }));
 
+// Même échelle qu'au niveau visite (SaisieVisite.jsx) — absente ici jusqu'à
+// cette date, d'où la confusion remontée entre "Ponte" (qualité du couvain
+// operculé) et "Œufs" ci-dessus (simple surface occupée, sans jugement de
+// régularité).
 const PONTE_ECHELLE_OPTIONS = [1, 2, 3, 4, 5].map((n) => ({ value: n, label: String(n) }));
 
-const CELLULES_ROYALES_TYPE_OPTIONS = [
-  { value: 'essaimage', label: 'Essaimage' },
-  { value: 'supersedure', label: 'Supersédure' },
-  { value: 'sauvete', label: 'Sauveté' },
-];
+const CELLULES_ROYALES_TYPE_OPTIONS = Object.entries(CELLULES_ROYALES_TYPE_LIBELLES).map(
+  ([value, label]) => ({ value, label })
+);
 
-const CELLULES_ROYALES_POS_OPTIONS = [
-  { value: 'bord_inferieur', label: 'Bord inférieur' },
-  { value: 'bord_lateral', label: 'Bord latéral' },
-  { value: 'pleine_surface', label: 'Pleine surface' },
-];
-
-// Occupation des surfaces en huitièmes (§A.3) — réglette de neuf boutons
-// par champ. L'état du cadre, les réserves détaillées et le test de
-// l'allumette (§A.3, priorité S) restent hors de cette première passe :
-// repliés par défaut dans l'esprit du brief, pas encore construits.
-const CHAMPS_OCCUPATION = [
-  ['couvain_opercule', 'Couvain operculé'],
-  ['couvain_ouvert', 'Couvain ouvert'],
-  ['oeufs', 'Œufs'],
-  ['miel_opercule', 'Miel operculé'],
-  ['nectar_frais', 'Nectar frais'],
-  ['pollen', 'Pollen'],
-  ['cellules_vides', 'Cellules vides'],
-  ['non_bati', 'Non bâti'],
-  ['couvain_male', 'Couvain de mâles'],
-];
+const CELLULES_ROYALES_POS_OPTIONS = Object.entries(CELLULES_ROYALES_POS_LIBELLES).map(
+  ([value, label]) => ({ value, label })
+);
 
 function etatInitialOccupation() {
   return Object.fromEntries(CHAMPS_OCCUPATION.map(([champ]) => [champ, null]));
@@ -106,7 +98,8 @@ export function ObservationCadre({ visiteId, colonieId, onTerminer }) {
   const somme = valeursSaisies.reduce((total, v) => total + v, 0);
   // Contrôle de cohérence (§A.3) : signale sans bloquer, seulement si au
   // moins une valeur a été saisie — une face vide n'a rien à contrôler.
-  const ecartSignale = valeursSaisies.length > 0 && Math.abs(somme - 8) > 2;
+  // Tolérance ±25 points, proportionnelle à l'ancienne ±2/8.
+  const ecartSignale = valeursSaisies.length > 0 && Math.abs(somme - 100) > 25;
 
   function reinitialiserFormulaire(nouvellePosition, nouvelleFace) {
     setPosition(nouvellePosition);
@@ -209,12 +202,18 @@ export function ObservationCadre({ visiteId, colonieId, onTerminer }) {
       </div>
 
       <section className="border border-rule rounded p-3 flex flex-col gap-3">
-        <p className="text-13 font-bold text-ink-secondary">Occupation de la face (huitièmes)</p>
+        <p className="text-13 font-bold text-ink-secondary">Occupation de la face (pourcentages)</p>
         {CHAMPS_OCCUPATION.map(([champ, label]) => (
           <div key={champ}>
             <p className="text-13 text-ink-secondary mb-1">{label}</p>
+            {champ === 'oeufs' && (
+              <p className="text-11 text-ink-muted mb-1">
+                Part de la face couverte de cellules avec œufs — une surface, pas un jugement de
+                qualité (voir « Ponte » ci-dessous pour ça).
+              </p>
+            )}
             <Segmente
-              options={HUITIEMES_OPTIONS}
+              options={POURCENTAGE_OPTIONS}
               value={occupation[champ]}
               onChange={(v) => modifierOccupation(champ, v)}
             />
@@ -222,12 +221,22 @@ export function ObservationCadre({ visiteId, colonieId, onTerminer }) {
         ))}
         {ecartSignale && (
           <p className="text-12 text-action-ink">
-            Somme des huitièmes : {somme} — assez loin de 8, juste pour information.
+            Somme des pourcentages : {somme}% — assez loin de 100%, juste pour information.
           </p>
         )}
         <div>
           <p className="text-13 text-ink-secondary mb-1">Ponte</p>
-          <Segmente options={PONTE_ECHELLE_OPTIONS} value={scorePonte} onChange={setScorePonte} />
+          <p className="text-11 text-ink-muted mb-1">
+            Régularité du couvain operculé — une qualité, pas une surface (contrairement à
+            « Œufs » ci-dessus).
+          </p>
+          <Segmente
+            options={PONTE_ECHELLE_OPTIONS}
+            value={scorePonte}
+            libelles={PONTE_ECHELLE_LIBELLES}
+            legende={PONTE_ECHELLE_LEGENDE}
+            onChange={setScorePonte}
+          />
         </div>
       </section>
 
