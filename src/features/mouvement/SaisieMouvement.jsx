@@ -1,0 +1,177 @@
+import { useEffect, useState } from 'react';
+import { SelecteurUnique } from '../../components/SelecteurUnique.jsx';
+import { BoutonRetour } from '../../components/BoutonRetour.jsx';
+import { db } from '../../db/db.js';
+import { enregistrerMouvement } from '../../db/repositories/mouvement.js';
+import { creerTache } from '../../db/repositories/taches.js';
+import { TYPE_MOUVEMENT_LIBELLES } from '../../lib/libellesMouvement.js';
+
+function ajouterJours(dateIso, jours) {
+  const d = new Date(dateIso);
+  d.setDate(d.getDate() + jours);
+  return d.toISOString();
+}
+
+const TYPE_OPTIONS = Object.entries(TYPE_MOUVEMENT_LIBELLES).map(([value, label]) => ({
+  value,
+  label,
+}));
+
+const CHAMP_CLASSE =
+  'w-full h-11 text-15 border border-rule-strong rounded px-2 bg-surface text-ink';
+
+function dateDuJour() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+// Écran de saisie mouvement (lot L3, §4.2 `mouvement`). Pas de champ
+// obligatoire. rucher_origine_id/rucher_destination_id existent au schéma
+// mais ne sont pas exposés ici : l'exploitation ne compte qu'un seul
+// rucher à ce jour (repositories/ruchers.js) — un sélecteur à une seule
+// option n'apporterait rien.
+export function SaisieMouvement({ colonieId, onRetour, onEnregistre }) {
+  const [ruche, setRuche] = useState(null);
+  const [date, setDate] = useState(dateDuJour());
+  const [type, setType] = useState(null);
+  const [motif, setMotif] = useState('');
+  const [notes, setNotes] = useState('');
+  const [message, setMessage] = useState(null);
+
+  useEffect(() => {
+    if (!colonieId) return;
+    async function charger() {
+      const colonie = await db.colonie.get(colonieId);
+      const r = colonie ? await db.ruche.get(colonie.ruche_id) : null;
+      setRuche(r ?? null);
+    }
+    charger();
+  }, [colonieId]);
+
+  // Rappel fixe (cahier des charges §6.3) : une division ne montre si elle a
+  // réussi qu'à la ponte de la nouvelle reine — délai fixe faute de mieux à
+  // ce stade (pas de date de naissance suivie).
+  async function creerRappelSiNecessaire(mouvement) {
+    if (mouvement.type !== 'division' || !mouvement.date) return;
+    const maintenant = new Date().toISOString();
+    await creerTache({
+      id: crypto.randomUUID(),
+      colonie_id: mouvement.colonie_id,
+      rucher_id: ruche?.rucher_id ?? null,
+      libelle: 'Contrôler la ponte de la nouvelle reine',
+      date_echeance: ajouterJours(mouvement.date, 21),
+      priorite: 'moyenne',
+      origine: 'generee',
+      regle_origine: 'mouvement_division',
+      statut: 'a_faire',
+      visite_declencheuse_id: null,
+      created_at: maintenant,
+      updated_at: maintenant,
+      deleted_at: null,
+    });
+  }
+
+  async function enregistrer() {
+    if (!colonieId) return;
+    try {
+      const maintenant = new Date().toISOString();
+      const mouvement = {
+        id: crypto.randomUUID(),
+        ruche_id: ruche?.id ?? null,
+        colonie_id: colonieId,
+        date: date || null,
+        type,
+        rucher_origine_id: null,
+        rucher_destination_id: null,
+        motif: motif || null,
+        notes: notes || null,
+        created_at: maintenant,
+        updated_at: maintenant,
+        deleted_at: null,
+      };
+      await enregistrerMouvement(mouvement);
+      await creerRappelSiNecessaire(mouvement);
+      setMessage('Mouvement enregistré.');
+      onEnregistre?.(colonieId);
+    } catch (err) {
+      console.error('[mouvement] échec enregistrement', err);
+      setMessage("Erreur : le mouvement n'a pas pu être enregistré.");
+    }
+  }
+
+  return (
+    <div className="min-h-screen bg-ground text-ink p-4 flex flex-col gap-4 max-w-md mx-auto">
+      <header className="flex flex-col gap-1">
+        <BoutonRetour onRetour={onRetour} />
+        <h1 className="text-20 font-bold">
+          {ruche ? `Ruche ${ruche.numero}` : 'Colonie'} — Mouvement
+        </h1>
+      </header>
+
+      <section className="flex flex-col gap-3">
+        <div>
+          <label className="text-13 text-ink-secondary mb-1 block" htmlFor="date">
+            Date
+          </label>
+          <input
+            id="date"
+            type="date"
+            className={CHAMP_CLASSE}
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+          />
+        </div>
+
+        <div>
+          <p className="text-13 text-ink-secondary mb-1">Type</p>
+          <SelecteurUnique options={TYPE_OPTIONS} value={type} onChange={setType} />
+        </div>
+
+        <div>
+          <label className="text-13 text-ink-secondary mb-1 block" htmlFor="motif">
+            Motif
+          </label>
+          <input
+            id="motif"
+            type="text"
+            className={CHAMP_CLASSE}
+            value={motif}
+            onChange={(e) => setMotif(e.target.value)}
+          />
+        </div>
+
+        <div>
+          <label className="text-13 text-ink-secondary mb-1 block" htmlFor="notes">
+            Notes
+          </label>
+          <textarea
+            id="notes"
+            className="w-full border border-rule-strong rounded p-2 text-15 bg-surface text-ink"
+            rows={3}
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+          />
+        </div>
+      </section>
+
+      {message && <p className="text-13 text-center text-ink-secondary">{message}</p>}
+
+      <button
+        type="button"
+        onClick={enregistrer}
+        className="h-[46px] w-full rounded bg-ink text-surface text-15 font-bold"
+      >
+        Enregistrer
+      </button>
+
+      {onRetour && (
+        <button
+          type="button"
+          onClick={onRetour}
+          className="h-12 w-full text-13 text-ink-secondary underline"
+        >
+          Retour
+        </button>
+      )}
+    </div>
+  );
+}

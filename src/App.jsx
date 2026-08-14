@@ -14,6 +14,9 @@ import {
 import { TourneeVocale } from './features/tournee-vocale';
 import { ObservationCadre } from './features/cadre-par-cadre';
 import { RevueTournee } from './features/revue-tournee';
+import { SaisieRecolte, HistoriqueRecolte, RendementRecolte } from './features/recolte';
+import { SaisieMouvement, HistoriqueMouvement } from './features/mouvement';
+import { TachesAFaire } from './features/taches';
 
 export function App() {
   const [ecran, setEcran] = useState('vue_ensemble');
@@ -33,6 +36,34 @@ export function App() {
   function ouvrirSanitaire(colonieId) {
     setColonieSelectionnee(colonieId);
     setEcran('sanitaire');
+  }
+
+  function ouvrirRecolte(colonieId) {
+    setColonieSelectionnee(colonieId);
+    setEcran('recolte');
+  }
+
+  function ouvrirSaisieRecolte(colonieId) {
+    setColonieSelectionnee(colonieId);
+    setEcran('saisie_recolte');
+  }
+
+  function ouvrirRendement() {
+    setEcran('rendement');
+  }
+
+  function ouvrirMouvement(colonieId) {
+    setColonieSelectionnee(colonieId);
+    setEcran('mouvement');
+  }
+
+  function ouvrirSaisieMouvement(colonieId) {
+    setColonieSelectionnee(colonieId);
+    setEcran('saisie_mouvement');
+  }
+
+  function ouvrirTaches() {
+    setEcran('taches');
   }
 
   function ouvrirSaisieTraitement(colonieId) {
@@ -88,6 +119,8 @@ export function App() {
         onOuvrirHistorique={ouvrirHistorique}
         onOuvrirSanitaire={ouvrirSanitaire}
         onOuvrirObservationCadre={ouvrirObservationCadre}
+        onOuvrirRecolte={ouvrirRecolte}
+        onOuvrirMouvement={ouvrirMouvement}
       />
     );
   }
@@ -138,6 +171,55 @@ export function App() {
     );
   }
 
+  if (ecran === 'recolte') {
+    return (
+      <HistoriqueRecolte
+        colonieId={colonieSelectionnee}
+        onRetour={() => ouvrirSaisie(colonieSelectionnee)}
+        onOuvrirSaisieRecolte={ouvrirSaisieRecolte}
+        onOuvrirRendement={ouvrirRendement}
+      />
+    );
+  }
+
+  if (ecran === 'saisie_recolte') {
+    return (
+      <SaisieRecolte
+        colonieId={colonieSelectionnee}
+        onRetour={() => ouvrirRecolte(colonieSelectionnee)}
+        onEnregistre={ouvrirRecolte}
+      />
+    );
+  }
+
+  if (ecran === 'rendement') {
+    return <RendementRecolte onRetour={() => ouvrirRecolte(colonieSelectionnee)} />;
+  }
+
+  if (ecran === 'mouvement') {
+    return (
+      <HistoriqueMouvement
+        colonieId={colonieSelectionnee}
+        onRetour={() => ouvrirSaisie(colonieSelectionnee)}
+        onOuvrirSaisieMouvement={ouvrirSaisieMouvement}
+      />
+    );
+  }
+
+  if (ecran === 'saisie_mouvement') {
+    return (
+      <SaisieMouvement
+        colonieId={colonieSelectionnee}
+        onRetour={() => ouvrirMouvement(colonieSelectionnee)}
+        onEnregistre={ouvrirMouvement}
+      />
+    );
+  }
+
+  if (ecran === 'taches') {
+    return <TachesAFaire onRetour={retourVueEnsemble} />;
+  }
+
   if (ecran === 'export_sanitaire_pdf') {
     return <ExportSanitairePdf onRetour={retourVueEnsemble} />;
   }
@@ -175,6 +257,7 @@ export function App() {
       onOuvrirRestauration={ouvrirRestauration}
       onOuvrirExportSanitairePdf={ouvrirExportSanitairePdf}
       onOuvrirTourneeVocale={ouvrirTourneeVocale}
+      onOuvrirTaches={ouvrirTaches}
     />
   );
 }

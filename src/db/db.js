@@ -95,3 +95,14 @@ db.version(7).stores({
   audio: 'id, colonie_id, visite_id, deleted_at',
   audio_blob: 'audio_id',
 });
+
+// v8 (lot L3, cahier des charges §4.2/M4/M7) : deux nouvelles tables,
+// additive uniquement. `recolte` indexée par colonie_id+date pour le
+// tableau de rendement (F4.4, regroupement par saison). `mouvement`
+// indexée par ruche_id et colonie_id : les deux sens de recherche sont
+// utiles (historique d'une ruche physique vs. d'une colonie qui a pu
+// changer de ruche).
+db.version(8).stores({
+  recolte: 'id, colonie_id, date, deleted_at',
+  mouvement: 'id, ruche_id, colonie_id, date, deleted_at',
+});

@@ -7,10 +7,14 @@ import {
   mettreAJourOrdreTournee,
 } from '../../db/repositories/ruchers.js';
 import { obtenirDerniereVisite } from '../../db/repositories/visites.js';
-import { listerTachesOuvertesRucher, marquerTacheFaite } from '../../db/repositories/taches.js';
+import {
+  listerTachesOuvertesRucher,
+  marquerTacheFaite,
+  creerTache,
+} from '../../db/repositories/taches.js';
 import { exporterDonnees, compterEnregistrements } from '../../db/repositories/sauvegarde.js';
 import { declencherTelechargementJson } from '../../lib/telechargement.js';
-import { calculerEtat, joursDepuis } from '../../lib/etats.js';
+import { calculerEtat, joursDepuis, SEUIL_JOURS_A_VISITER } from '../../lib/etats.js';
 import { surSync } from '../../lib/sync.js';
 
 function useHorsLigne() {
@@ -38,6 +42,7 @@ export function VueEnsemble({
   onOuvrirRestauration,
   onOuvrirExportSanitairePdf,
   onOuvrirTourneeVocale,
+  onOuvrirTaches,
 }) {
   const [rucher, setRucher] = useState(null);
   const [lignes, setLignes] = useState([]);
@@ -101,6 +106,41 @@ export function VueEnsemble({
         );
 
         const joursDepuisVisite = derniereVisite ? joursDepuis(derniereVisite.date) : null;
+
+        // §6.3 : "aucune visite depuis 21 jours en saison (avril-septembre)"
+        // → contrôle de routine. Contrairement aux autres rappels (créés au
+        // moment d'une saisie), celui-ci naît de l'écoulement du temps — il
+        // se vérifie ici, au chargement de l'écran d'accueil, pas dans un
+        // écran de saisie. Une seule tâche ouverte à la fois par colonie :
+        // on ne recrée pas si une précédente n'a pas encore été traitée.
+        const MOIS_SAISON = [4, 5, 6, 7, 8, 9];
+        const enSaison = MOIS_SAISON.includes(new Date().getMonth() + 1);
+        if (
+          enSaison &&
+          joursDepuisVisite != null &&
+          joursDepuisVisite > SEUIL_JOURS_A_VISITER &&
+          !tachesColonie.some((t) => t.regle_origine === 'pas_de_visite_21j')
+        ) {
+          const maintenant = new Date().toISOString();
+          const nouvelleTache = {
+            id: crypto.randomUUID(),
+            colonie_id: colonie.id,
+            rucher_id: r.id,
+            libelle: 'Contrôle de routine',
+            date_echeance: maintenant,
+            priorite: 'moyenne',
+            origine: 'generee',
+            regle_origine: 'pas_de_visite_21j',
+            statut: 'a_faire',
+            visite_declencheuse_id: null,
+            created_at: maintenant,
+            updated_at: maintenant,
+            deleted_at: null,
+          };
+          await creerTache(nouvelleTache);
+          tachesColonie.push(nouvelleTache);
+        }
+
         const etat = calculerEtat({ tachesOuvertes: tachesColonie, joursDepuisVisite });
 
         return {
@@ -272,6 +312,11 @@ export function VueEnsemble({
           >
             Exporter le PDF sanitaire
           </button>
+          {onOuvrirTaches && (
+            <button type="button" onClick={onOuvrirTaches} className="text-12 text-ink-secondary self-start">
+              Voir toutes les tâches
+            </button>
+          )}
           {messageSauvegarde && <p className="text-11 text-ink-muted">{messageSauvegarde}</p>}
         </div>
       </footer>

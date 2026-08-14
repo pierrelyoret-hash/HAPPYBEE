@@ -442,7 +442,7 @@ Affichage systématiquement accompagné de la série pluriannuelle. **Un ratio i
 | **Revue ergo** | Révision de l'ergonomie après 3 visites réelles avec L1+ | Corrections identifiées et arbitrées | À faire avant L2 |
 | **L2** | Synchronisation + photos + dictée + revue de tournée + **M13 observation cadre par cadre** | Une visite saisie sur le téléphone apparaît sur l'ordinateur ; un cadre remarquable se saisit en 15 s | **Livré 13/08/2026** (vérifié techniquement de bout en bout ; confirmation en conditions réelles de rucher à faire par l'exploitant, sans bloquer la suite — cf. `observation_cadre_et_cartographie_lots.md`) |
 | **L2.2** | M3 sanitaire : traitements, comptages varroa, nourrissement, rappels fixes (§6.3), export PDF ciblé aux deux blocs sanitaires du registre (F5.1) — cf. `brief_L2.2_sanitaire.md` | Un traitement et un comptage varroa se saisissent, génèrent automatiquement les trois rappels prévus, et s'exportent en PDF sur une période choisie | **Livré 12/08/2026** |
-| **L3** | M4 + M7 + reste de M3 (mouvements, récoltes, rendement, tâches manuelles) | Les tâches se génèrent seules après une intervention | Planifié |
+| **L3** | M4 + M7 + reste de M3 (mouvements, récoltes, rendement, tâches manuelles) | Les tâches se génèrent seules après une intervention | **Livré 13/08/2026** (vérifié techniquement de bout en bout — récolte 6 modes, interlock délai d'attente F3.2, tableau de rendement, mouvements, 8 règles §6.3, création manuelle et vue "à faire" consolidée ; confirmation en conditions réelles de rucher à faire par l'exploitant, sans bloquer la suite) |
 | **L3bis** | Ingestion météo quotidienne + moteur de règles (3 règles pilotes) — cf. addendum M12 | — | Planifié |
 | **L4** | M5 (registre complet, 5 blocs — réutilise la génération PDF de L2.2 pour 2 des 5 blocs) | Un PDF de registre conforme est produit et imprimé | Planifié |
 | **L5** | M6 | Le coût de revient au kg d'une ruche est calculé sur une saison réelle | Planifié |
@@ -545,3 +545,16 @@ L'entrée automatique au registre d'élevage (L4) et la génération automatisé
 | Reste de L3 après transposition | Mouvements de ruches/colonies, récoltes (M4), rendement, tâches manuelles/vue consolidée (M7 générique) |
 
 Détail complet du lot : `brief_L2.2_sanitaire.md`.
+
+---
+
+## 15. Arbitrages actés — 13 août 2026 (lot L3)
+
+| Question | Décision |
+|---|---|
+| Notification à l'approche d'une échéance (F7.4, priorité S) | **Pas de notification push OS.** La bannière "urgent" déjà en place sur l'écran d'accueil (échéance dépassée) plus la nouvelle vue "à faire" consolidée (F7.3) jouent ce rôle en PWA offline-first, sans infrastructure serveur de push à construire pour un usage solo |
+| `rucher_origine_id`/`rucher_destination_id` du mouvement (transhumance) | Restent au schéma, non exposés dans l'écran : l'exploitation ne compte qu'un seul rucher à ce jour — un sélecteur à une seule option n'apporterait rien. À rouvrir si un second rucher entre en gestion |
+| Capacité pleine d'une hausse (mode "ratio de remplissage", §6.1) | **Aucun défaut inventé** : contrairement à `poids_moyen_cadre` (2,5 kg donné explicitement par le cahier des charges), aucune valeur n'est fournie pour la capacité d'une hausse — champ de saisie obligatoire pour ce mode plutôt qu'une estimation non validée |
+| "Introduction d'un cadre de couvain frais" (§6.3, cascade J+9/J+16/J+28) | Aucun champ `visite` dédié dans le modèle de données — ajouté comme signal ponctuel de l'écran de saisie (jamais persisté en base), visible uniquement quand une anomalie orpheline/bourdonneuse est cochée, condition du déclencheur |
+| `hausses_posees` (§4.2, jamais construit avant cette date) | Exposé comme interrupteur dans l'écran de saisie visite, aux côtés de "Cellules royales" — déclenche le rappel "Contrôler le remplissage" (§6.3) |
+| "Aucune visite depuis 21 jours en saison" (§6.3) | Seule règle du moteur qui ne naît pas d'une saisie mais de l'écoulement du temps — vérifiée au chargement de l'écran d'accueil plutôt que dans un écran dédié ; réutilise le seuil déjà défini pour l'état visuel "à visiter" (`SEUIL_JOURS_A_VISITER`, 21 jours) |

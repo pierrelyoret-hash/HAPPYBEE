@@ -19,6 +19,8 @@ const TABLES = [
   'nourrissement',
   'document',
   'audio',
+  'recolte',
+  'mouvement',
 ];
 
 const CLE_CURSEURS = 'happybee_sync_curseurs';
