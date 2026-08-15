@@ -18,6 +18,7 @@ import { RevueTournee } from './features/revue-tournee';
 import { SaisieRecolte, HistoriqueRecolte, RendementRecolte } from './features/recolte';
 import { SaisieMouvement, HistoriqueMouvement } from './features/mouvement';
 import { TachesAFaire } from './features/taches';
+import { Meteo } from './features/meteo';
 
 export function App() {
   const [ecran, setEcran] = useState('accueil');
@@ -85,6 +86,10 @@ export function App() {
 
   function ouvrirTaches() {
     setEcran('taches');
+  }
+
+  function ouvrirMeteo() {
+    setEcran('meteo');
   }
 
   function ouvrirSaisieTraitement(colonieId) {
@@ -263,6 +268,10 @@ export function App() {
     return <TachesAFaire onRetour={ouvrirAccueil} />;
   }
 
+  if (ecran === 'meteo') {
+    return <Meteo onRetour={ouvrirAccueil} onOuvrirSaisieRucher={ouvrirSaisieRucher} />;
+  }
+
   if (ecran === 'export_sanitaire_pdf') {
     return <ExportSanitairePdf onRetour={ouvrirAccueil} />;
   }
@@ -326,6 +335,7 @@ export function App() {
       onOuvrirRestauration={ouvrirRestauration}
       onOuvrirExportSanitairePdf={ouvrirExportSanitairePdf}
       onOuvrirTaches={ouvrirTaches}
+      onOuvrirMeteo={ouvrirMeteo}
     />
   );
 }

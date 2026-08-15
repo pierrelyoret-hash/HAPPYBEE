@@ -21,6 +21,7 @@ export function Accueil({
   onOuvrirRestauration,
   onOuvrirExportSanitairePdf,
   onOuvrirTaches,
+  onOuvrirMeteo,
 }) {
   const [ruchers, setRuchers] = useState(null);
   const [nbRuchesParRucher, setNbRuchesParRucher] = useState(new Map());
@@ -115,9 +116,9 @@ export function Accueil({
         >
           Tâches
         </button>
-        {/* Économique (M6) et météo (M8) : modules planifiés, pas encore
-            construits — la place leur est réservée ici plutôt que
-            d'attendre que tout soit prêt pour toucher à cet écran. */}
+        {/* Économique (M6) : module planifié, pas encore construit — la
+            place lui est réservée ici plutôt que d'attendre que tout soit
+            prêt pour toucher à cet écran. */}
         <button
           type="button"
           disabled
@@ -128,11 +129,10 @@ export function Accueil({
         </button>
         <button
           type="button"
-          disabled
-          className="h-16 rounded bg-surface-sunk border border-rule text-ink-muted text-13 font-bold flex flex-col items-center justify-center text-center px-2 cursor-not-allowed"
+          onClick={onOuvrirMeteo}
+          className="h-16 rounded bg-miel text-ink text-13 font-bold flex items-center justify-center text-center px-2"
         >
           Météo
-          <span className="text-11 font-normal">à venir</span>
         </button>
       </section>
 

@@ -443,6 +443,7 @@ Affichage systématiquement accompagné de la série pluriannuelle. **Un ratio i
 | **L2** | Synchronisation + photos + dictée + revue de tournée + **M13 observation cadre par cadre** | Une visite saisie sur le téléphone apparaît sur l'ordinateur ; un cadre remarquable se saisit en 15 s | **Livré 13/08/2026** (vérifié techniquement de bout en bout ; confirmation en conditions réelles de rucher à faire par l'exploitant, sans bloquer la suite — cf. `observation_cadre_et_cartographie_lots.md`) |
 | **L2.2** | M3 sanitaire : traitements, comptages varroa, nourrissement, rappels fixes (§6.3), export PDF ciblé aux deux blocs sanitaires du registre (F5.1) — cf. `brief_L2.2_sanitaire.md` | Un traitement et un comptage varroa se saisissent, génèrent automatiquement les trois rappels prévus, et s'exportent en PDF sur une période choisie | **Livré 12/08/2026** |
 | **L3** | M4 + M7 + reste de M3 (mouvements, récoltes, rendement, tâches manuelles) | Les tâches se génèrent seules après une intervention | **Livré 13/08/2026** (vérifié techniquement de bout en bout — récolte 6 modes, interlock délai d'attente F3.2, tableau de rendement, mouvements, 8 règles §6.3, création manuelle et vue "à faire" consolidée ; confirmation en conditions réelles de rucher à faire par l'exploitant, sans bloquer la suite) |
+| **M8** | Module météo (F8.1-F8.3) : prévisions 7-16 jours aux coordonnées du rucher, cache hors-ligne, repère de créneau favorable | La prévision d'un rucher s'affiche, reste consultable hors-ligne, sans clé ni coût | **Livré 15/08/2026** |
 | **L3bis** | Ingestion météo quotidienne + moteur de règles (3 règles pilotes) — cf. addendum M12 | — | Planifié |
 | **L4** | M5 (registre complet, 5 blocs — réutilise la génération PDF de L2.2 pour 2 des 5 blocs) | Un PDF de registre conforme est produit et imprimé | Planifié |
 | **L5** | M6 | Le coût de revient au kg d'une ruche est calculé sur une saison réelle | Planifié |
@@ -600,3 +601,16 @@ La fiche visite était jugée trop terne ("le noir et blanc c'est triste"). Nouv
 Demandé juste après l'ouverture du multi-rucher. Réactive `mouvement.rucher_origine_id`/`rucher_destination_id` (§4.2), au schéma depuis le début mais non exposés jusqu'ici faute d'un second rucher pour leur donner un sens (cf. arbitrage L3 ci-dessus, §15) — la ruche que la ligne 556 laissait dormir.
 
 Le type "Transhumance" de l'écran Mouvement (`SaisieMouvement.jsx`) fait désormais un geste réel, pas seulement une entrée de journal : sélectionner un rucher de destination y déplace effectivement la ruche (`ruche.rucher_id`, retirée de l'ordre de tournée d'origine, ajoutée à celui de destination) en plus d'enregistrer la trace `mouvement`. La colonie suit sans rien à faire — elle est rattachée à la ruche (`colonie.ruche_id`), jamais directement au rucher. Aucun autre type de mouvement ne touche à la structure ; transhumance est le seul à agir, tous les autres restent un journal.
+
+## 18. Arbitrages actés — 15 août 2026 (module météo, M8)
+
+Demandé via la place réservée à l'écran d'accueil ("Météo — à venir", §17). Couvre F8.1, F8.2 et F8.3 tels que décrits §5 — **pas** l'ingestion quotidienne ni le moteur de règles de l'addendum M12/L3bis, qui restent un lot distinct et non entamé (cf. ligne 544 : "reste exclu... sans exception").
+
+| Point | Décision |
+|---|---|
+| API (F8.1) | [Open-Meteo](https://open-meteo.com), gratuite, sans clé pour un usage non commercial. Sélectionne automatiquement le meilleur modèle au point demandé (`best_match`), ce qui inclut AROME/ARPEGE (Météo-France) sur le territoire français — vérifié par appel direct à l'API avant intégration, conformément à l'exigence du cahier des charges |
+| Portée (F8.1) | Prévision journalière (température min/max, vent max, précipitations, code météo), 16 jours, aux coordonnées du rucher (`rucher.latitude`/`longitude`, déjà au schéma depuis le multi-rucher) |
+| Cache (F8.2) | Une ligne par rucher (`meteo_cache`, table locale, non synchronisée — chaque appareil retélécharge la sienne), écrasée à chaque succès. En cas d'échec réseau, l'écran retombe sur cette dernière prévision connue avec un bandeau "Hors-ligne — dernière prévision récupérée le [date]" |
+| Créneau favorable (F8.3) | Heuristique fixe et volontairement simple (température ≥ 15°C, vent ≤ 20 km/h, précipitations < 1 mm), affichée comme un simple repère visuel (✓), pas une recommandation. **Ce n'est pas le moteur de règles paramétrable de M12** — celui-ci reste hors périmètre |
+| Rucher sans coordonnées | Message explicite + raccourci vers la fiche rucher plutôt qu'un écran vide ou une erreur silencieuse |
+| Pré-remplissage météo en fiche visite (F2.4) | Non traité dans ce lot — l'écran météo est autonome, accessible depuis l'accueil uniquement. F2.4 resterait à faire séparément si souhaité |

@@ -136,3 +136,11 @@ db.version(9)
         }
       });
   });
+
+// v10 (M8, F8.2) : cache local de la dernière prévision météo par rucher —
+// une seule ligne par rucher (clé = rucher_id), jamais un historique. Table
+// locale uniquement, jamais listée dans lib/sync.js : une prévision se
+// re-télécharge sur chaque appareil, elle n'a pas besoin de synchroniser.
+db.version(10).stores({
+  meteo_cache: 'rucher_id',
+});
