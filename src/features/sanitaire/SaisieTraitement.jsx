@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Compteur } from '../../components/Compteur.jsx';
 import { Segmente } from '../../components/Segmente.jsx';
 import { Interrupteur } from '../../components/Interrupteur.jsx';
-import { BoutonRetour } from '../../components/BoutonRetour.jsx';
+import { EnTeteEcran } from '../../components/EnTeteEcran.jsx';
 import { db } from '../../db/db.js';
 import { enregistrerTraitement } from '../../db/repositories/sanitaire.js';
 import { creerTache } from '../../db/repositories/taches.js';
@@ -119,11 +119,10 @@ export function SaisieTraitement({ colonieId, onRetour, onEnregistre }) {
   }
 
   return (
-    <div className="min-h-screen bg-ground text-ink p-4 flex flex-col gap-4 max-w-md mx-auto">
-      <header className="flex flex-col gap-1">
-        <BoutonRetour onRetour={onRetour} />
-        <h1 className="text-20 font-bold">Traitement</h1>
-      </header>
+    <div className="min-h-screen bg-ground text-ink flex flex-col max-w-md mx-auto">
+      <EnTeteEcran retourLibelle="← Retour" onRetour={onRetour} titre="Traitement" />
+
+      <div className="p-4 flex flex-col gap-4">
 
       <section className="flex flex-col gap-3">
         <div className="flex gap-3">
@@ -276,6 +275,7 @@ export function SaisieTraitement({ colonieId, onRetour, onEnregistre }) {
           Retour
         </button>
       )}
+      </div>
     </div>
   );
 }

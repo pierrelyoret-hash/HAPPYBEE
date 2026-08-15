@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Compteur } from '../../components/Compteur.jsx';
-import { BoutonRetour } from '../../components/BoutonRetour.jsx';
+import { EnTeteEcran } from '../../components/EnTeteEcran.jsx';
 import { Segmente } from '../../components/Segmente.jsx';
 import { Interrupteur } from '../../components/Interrupteur.jsx';
 import { Chips } from '../../components/Chips.jsx';
@@ -13,6 +13,7 @@ import {
 import { creerTache } from '../../db/repositories/taches.js';
 import { enregistrerPhoto } from '../../db/repositories/photos.js';
 import { comprimerImage } from '../../lib/compressionImage.js';
+import { joursDepuis } from '../../lib/etats.js';
 import { SIGNES_SANITAIRES_OPTIONS, SIGNES_CATEGORIE1 } from '../../lib/taxonomieSanitaire.js';
 
 // Correction écrans L1 §7/§9.2 : un seul contrôle pour la ponte, sur 0-5.
@@ -45,6 +46,23 @@ const ANOMALIE_OPTIONS = [
   { value: 'abeilles_tremblantes', label: 'Abeilles noires tremblantes' },
   { value: 'ponte_males', label: 'Ponte de mâles' },
   { value: 'autre', label: 'Autre' },
+];
+
+// Génération automatique de tâches par anomalie (§6.3, retour d'usage réel
+// du 15/08/2026) — une tâche directe par anomalie sélectionnée, à la
+// différence de la cascade orpheline/bourdonneuse ci-dessous qui suit une
+// intervention précise (cadre de couvain introduit), pas l'anomalie seule.
+// "Autre" et "orpheline" volontairement absentes : "Autre" est trop
+// générique pour un libellé actionnable, "orpheline" seule (sans cadre de
+// couvain introduit) ne déclenche encore aucune action définie.
+const REGLES_ANOMALIE = [
+  ['bourdonneuse', 0, 'Secouer les cadres à 50m de la ruche pour faire tomber les pondeuses', 'urgente', 'visite_bourdonneuse_secouer'],
+  ['pillage', 3, "Vérifier l'état de la colonie après le pillage", 'urgente', 'visite_pillage'],
+  ['fausse_teigne', 14, 'Contrôler l’évolution de la fausse teigne', 'moyenne', 'visite_fausse_teigne'],
+  ['mortalite_anormale', 3, 'Contrôler la colonie après mortalité anormale', 'urgente', 'visite_mortalite_anormale'],
+  ['diarrhee', 7, 'Contrôler l’évolution (suspicion nosémose)', 'moyenne', 'visite_diarrhee'],
+  ['abeilles_tremblantes', 3, 'Contrôler l’évolution (abeilles tremblantes)', 'urgente', 'visite_abeilles_tremblantes'],
+  ['ponte_males', 10, 'Recontrôler la ponte', 'moyenne', 'visite_ponte_males'],
 ];
 
 // Champs pouvant être reportés d'une visite à l'autre (les anomalies en
@@ -91,6 +109,12 @@ function etatInitial() {
 
 function dateLisible(iso) {
   return new Date(iso).toLocaleDateString('fr-FR');
+}
+
+function anciennete(jours) {
+  if (jours == null) return 'jamais visitée';
+  if (jours === 0) return "vue aujourd'hui";
+  return `vue il y a ${jours} j`;
 }
 
 export function SaisieVisite({
@@ -213,6 +237,8 @@ export function SaisieVisite({
   }
 
   const dateReference = derniereVisite ? dateLisible(derniereVisite.date) : null;
+  const joursDepuisVisite = derniereVisite ? joursDepuis(derniereVisite.date) : null;
+  const contexteSaisieVisite = `${positionTournee ? `Position ${positionTournee} · ` : ''}${anciennete(joursDepuisVisite)}`;
 
   async function construireVisite() {
     const maintenant = new Date();
@@ -347,6 +373,25 @@ export function SaisieVisite({
         });
       }
     }
+
+    for (const [anomalie, jours, libelle, priorite, regleOrigine] of REGLES_ANOMALIE) {
+      if (!anomalies.includes(anomalie)) continue;
+      await creerTache({
+        id: crypto.randomUUID(),
+        colonie_id: visite.colonie_id,
+        rucher_id: rucherId,
+        libelle,
+        date_echeance: ajouterJours(visite.date, jours),
+        priorite,
+        origine: 'generee',
+        regle_origine: regleOrigine,
+        statut: 'a_faire',
+        visite_declencheuse_id: visite.id,
+        created_at: maintenant,
+        updated_at: maintenant,
+        deleted_at: null,
+      });
+    }
   }
 
   // Comprimées dès l'ajout (pas à l'enregistrement) : l'aperçu affiché est
@@ -439,27 +484,27 @@ export function SaisieVisite({
   }
 
   return (
-    <div className="min-h-screen bg-ground text-ink p-4 flex flex-col gap-4 max-w-md mx-auto">
-      <header className="flex flex-col gap-1">
-        <BoutonRetour onRetour={onRetour} />
-        <select
-          className="text-15 h-12 border border-rule-strong rounded px-2 bg-surface text-ink"
-          value={colonieId ?? ''}
-          onChange={(e) => setColonieId(e.target.value)}
-        >
-          {contextes.map(({ colonie, ruche }) => (
-            <option key={colonie.id} value={colonie.id}>
-              Ruche {ruche.numero}
-            </option>
-          ))}
-        </select>
-        <p className="text-13 text-ink-secondary">
-          {positionTournee && `Position ${positionTournee} de la tournée · `}
-          {dateReference
-            ? `Dernière visite : ${dateReference}`
-            : 'Aucune visite précédente'}
-        </p>
-      </header>
+    <div className="min-h-screen bg-ground text-ink flex flex-col max-w-md mx-auto">
+      <EnTeteEcran
+        retourLibelle="← Tournée"
+        onRetour={onRetour}
+        titre={
+          <select
+            className="text-15 h-12 border border-rule-strong rounded px-2 bg-surface text-ink"
+            value={colonieId ?? ''}
+            onChange={(e) => setColonieId(e.target.value)}
+          >
+            {contextes.map(({ colonie, ruche }) => (
+              <option key={colonie.id} value={colonie.id}>
+                Ruche {ruche.numero}
+              </option>
+            ))}
+          </select>
+        }
+        contexte={contexteSaisieVisite}
+      />
+
+      <div className="p-4 flex flex-col gap-4">
 
       {/* Mosaïque d'accès rapide (retour d'usage réel du 14/08/2026) : ces
           quatre écrans étaient injoignables sans défiler tout le formulaire
@@ -811,6 +856,7 @@ export function SaisieVisite({
           Retour à la vue d'ensemble
         </button>
       )}
+      </div>
     </div>
   );
 }

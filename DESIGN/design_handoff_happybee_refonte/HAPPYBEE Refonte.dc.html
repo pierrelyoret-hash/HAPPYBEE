@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics><meta name="design_doc_mode" content="canvas"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@400;700&display=swap" rel="stylesheet"><style>
+body{margin:0;background:#EDEBE5;font-family:'Atkinson Hyperlegible',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:#7A1830}a:hover{color:#1A1A17}
+.dv-turn{padding:40px 44px 32px;border-bottom:1px solid rgba(0,0,0,.08);scroll-margin-top:16px}
+.dv-thd{display:flex;align-items:baseline;gap:10px;margin:0 0 6px}
+.dv-tid{font:700 10px 'IBM Plex Mono',monospace;padding:3px 7px;background:#1A1A17;color:#fff;border-radius:4px;text-decoration:none}
+.dv-tname{font:700 13px/1.2 'Atkinson Hyperlegible',sans-serif;color:#1A1A17}
+.dv-note{margin:0 0 22px;font:400 12px/1.55 'Atkinson Hyperlegible',sans-serif;color:#5C5C55;max-width:70ch}
+.dv-opts{display:flex;flex-wrap:wrap;gap:28px;align-items:flex-start}
+.dv-opt{flex:none;display:flex;flex-direction:column;gap:9px;scroll-margin-top:16px}
+.dv-oid{font:700 10.5px 'IBM Plex Mono',monospace;padding:3px 7px;background:rgba(0,0,0,.08);color:#1A1A17;border-radius:5px;text-decoration:none}
+.dv-olabel{display:flex;align-items:baseline;gap:8px;font:400 11px/1.3 'Atkinson Hyperlegible',sans-serif;color:rgba(0,0,0,.55);max-width:376px}
+.dv-card{width:360px;background:#FAFAF8;border:1px solid rgba(0,0,0,.1);border-radius:8px;overflow:hidden}
+.dv-opt:target .dv-oid{background:#D89A2E;color:#1A1A17}
+.dv-next{margin:22px 0 0;font:12px/1.5 'Atkinson Hyperlegible',sans-serif;color:rgba(0,0,0,.5)}
+.ph{width:360px;height:720px;background:#FAFAF8;display:flex;flex-direction:column;overflow:hidden;position:relative}
+.sb{display:flex;justify-content:space-between;align-items:center;padding:8px 16px 2px;font:700 11px 'IBM Plex Mono',monospace;color:#8A8A80;flex:none}
+.scr{flex:1;overflow:hidden;display:flex;flex-direction:column}
+</style></helmet>
+
+<section class="dv-turn" id="t1">
+<div class="dv-thd"><a class="dv-tid" href="#t1">1</a><span class="dv-tname">HAPPYBEE — cinq directions</span></div>
+<p class="dv-note">Le brief de refonte interdit la palette miel/cire et réserve la teinte aux quatre états. Vous demandez des couleurs apicoles et un ton chaleureux : ces options tiennent les deux en faisant du miel, du vert et du bordeaux (déjà dans vos jetons depuis le 14/08) une couleur <em>de structure</em> — bandeaux, navigation, jalons de tournée — et non une couleur d'état. La densité de registre, les chiffres tabulaires et la distinction « — / 0 » sont conservés partout.</p>
+<div class="dv-opts">
+
+<div class="dv-opt" id="1a"><div class="dv-olabel"><a class="dv-oid" href="#1a">1a</a>Registre — la ligne de base, resserrée. Encre seule, filets pleine largeur, aucune couleur hors états.</div>
+<div class="dv-card"><div class="ph">
+<div class="sb" style="background:#D89A2E;color:#5C3E05;padding-bottom:6px"><span>9:41</span><span>◍ 4G · 82%</span></div>
+<div class="scr">
+  <div style="background:#D89A2E;padding:10px 16px 14px;display:flex;align-items:baseline;justify-content:space-between">
+    <div style="font:700 13px 'IBM Plex Mono',monospace;letter-spacing:.14em;color:#1A1A17">HAPPYBEE</div>
+    <div style="font:700 11px 'IBM Plex Mono',monospace;color:#5C3E05">15 AOÛT · SEM. 33</div>
+  </div>
+  <div style="padding:16px;display:flex;flex-direction:column;gap:16px;flex:1">
+  <div>
+    <div style="font:400 12px/1.5 'Atkinson Hyperlegible';color:#5C5C55;padding-bottom:6px">Ruchers</div>
+    <div style="background:#fff;border-top:1px solid #E3E2DC;border-bottom:1px solid #E3E2DC">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 12px;border-bottom:1px solid #E3E2DC">
+        <div><div style="font:700 15px 'Atkinson Hyperlegible';color:#1A1A17">Le Pré Long</div><div style="font:400 12px 'IBM Plex Mono',monospace;color:#5C5C55">Saint-Chamond · 5 ruches · 1 urgent</div></div>
+        <div style="font:400 15px 'Atkinson Hyperlegible';color:#8A8A80">›</div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 12px">
+        <div><div style="font:700 15px 'Atkinson Hyperlegible';color:#1A1A17">Bois de Cotte</div><div style="font:400 12px 'IBM Plex Mono',monospace;color:#5C5C55">Doizieux · 3 ruches · à jour</div></div>
+        <div style="font:400 15px 'Atkinson Hyperlegible';color:#8A8A80">›</div>
+      </div>
+    </div>
+  </div>
+  <div>
+    <div style="font:400 12px/1.5 'Atkinson Hyperlegible';color:#5C5C55;padding-bottom:6px">À faire</div>
+    <div style="background:#fff;border-top:1px solid #E3E2DC;border-bottom:1px solid #E3E2DC">
+      <div style="display:flex;align-items:baseline;gap:8px;padding:10px 12px;border-bottom:1px solid #E3E2DC;background:#FBEAE8">
+        <span style="font:700 11px 'Atkinson Hyperlegible';color:#8C1D18;background:#fff;border-radius:6px;padding:2px 6px;flex:none">! Urgent</span>
+        <span style="font:400 13px 'Atkinson Hyperlegible';color:#8C1D18">Ruche 3 — contrôler l'operculation</span>
+      </div>
+      <div style="display:flex;align-items:baseline;gap:8px;padding:10px 12px">
+        <span style="font:400 11px 'IBM Plex Mono',monospace;color:#5C5C55;flex:none">18/08</span>
+        <span style="font:400 13px 'Atkinson Hyperlegible';color:#1A1A17">Ruche 1 — poser une hausse</span>
+      </div>
+    </div>
+  </div>
+  <div style="margin-top:auto;display:flex;flex-direction:column;gap:8px">
+    <button style="height:46px;border:0;border-radius:6px;background:#1A1A17;color:#fff;font:700 15px 'Atkinson Hyperlegible'">Ouvrir la tournée</button>
+    <div style="display:flex;gap:8px">
+      <button style="flex:1;height:40px;border:1px solid #C9C8C0;border-radius:6px;background:#fff;color:#1A1A17;font:700 13px 'Atkinson Hyperlegible'">Tâches</button>
+      <button style="flex:1;height:40px;border:1px solid #C9C8C0;border-radius:6px;background:#fff;color:#1A1A17;font:700 13px 'Atkinson Hyperlegible'">Météo</button>
+      <button style="flex:1;height:40px;border:1px solid #C9C8C0;border-radius:6px;background:#fff;color:#1A1A17;font:700 13px 'Atkinson Hyperlegible'">Nouveau rucher</button>
+    </div>
+  </div>
+  </div>
+</div>
+</div></div></div>
+
+<div class="dv-opt" id="1b"><div class="dv-olabel"><a class="dv-oid" href="#1b">1b</a>Bandeau de saison — un bloc miel plein en tête, chiffres de tournée en mono géant. Chaleureux et affirmé, teinte hors états mais jamais sur une ligne de colonie.</div>
+<div class="dv-card"><div class="ph">
+<div class="sb" style="background:#D89A2E;color:#5C3E05;padding-bottom:6px"><span>9:41</span><span>◍ 4G · 82%</span></div>
+<div class="scr">
+  <div style="background:#D89A2E;padding:10px 16px 18px;display:flex;flex-direction:column;gap:14px">
+    <div style="display:flex;align-items:baseline;justify-content:space-between">
+      <div style="font:700 13px 'IBM Plex Mono',monospace;letter-spacing:.14em;color:#1A1A17">HAPPYBEE</div>
+      <div style="font:700 11px 'IBM Plex Mono',monospace;color:#5C3E05">MIELLÉE · SEM. 33</div>
+    </div>
+    <div style="display:flex;align-items:flex-end;gap:16px">
+      <div><div style="font:700 40px/1 'IBM Plex Mono',monospace;color:#1A1A17">8</div><div style="font:400 11px 'Atkinson Hyperlegible';color:#5C3E05">colonies</div></div>
+      <div style="width:1px;height:38px;background:rgba(26,26,23,.25)"></div>
+      <div><div style="font:700 40px/1 'IBM Plex Mono',monospace;color:#1A1A17">6</div><div style="font:400 11px 'Atkinson Hyperlegible';color:#5C3E05">jours depuis la tournée</div></div>
+      <div style="width:1px;height:38px;background:rgba(26,26,23,.25)"></div>
+      <div><div style="font:700 40px/1 'IBM Plex Mono',monospace;color:#8C1D18">1</div><div style="font:400 11px 'Atkinson Hyperlegible';color:#5C3E05">urgent</div></div>
+    </div>
+  </div>
+  <div style="padding:16px;display:flex;flex-direction:column;gap:14px;flex:1">
+    <div style="font:400 12px 'Atkinson Hyperlegible';color:#5C5C55">Ruchers</div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div style="background:#fff;border:1px solid #E3E2DC;border-left:4px solid #2B6E48;border-radius:6px;padding:12px">
+        <div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font:700 15px 'Atkinson Hyperlegible'">Le Pré Long</span><span style="font:700 11px 'Atkinson Hyperlegible';background:#FBEAE8;color:#8C1D18;border-radius:6px;padding:2px 6px">! 1 urgent</span></div>
+        <div style="font:400 12px 'IBM Plex Mono',monospace;color:#5C5C55">5 ruches · 34 cadres couvain · vue il y a 6 j</div>
+      </div>
+      <div style="background:#fff;border:1px solid #E3E2DC;border-left:4px solid #2B6E48;border-radius:6px;padding:12px">
+        <div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font:700 15px 'Atkinson Hyperlegible'">Bois de Cotte</span><span style="font:700 11px 'Atkinson Hyperlegible';background:#E4F2EA;color:#12543C;border-radius:6px;padding:2px 6px">à jour</span></div>
+        <div style="font:400 12px 'IBM Plex Mono',monospace;color:#5C5C55">3 ruches · 19 cadres couvain · vue il y a 2 j</div>
+      </div>
+    </div>
+    <div style="margin-top:auto;display:flex;flex-direction:column;gap:8px">
+      <button style="height:46px;border:0;border-radius:6px;background:#1A1A17;color:#fff;font:700 15px 'Atkinson Hyperlegible'">Commencer la tournée</button>
+      <div style="display:flex;gap:8px">
+        <button style="flex:1;height:40px;border:1px solid #C9C8C0;border-radius:6px;background:#fff;font:700 13px 'Atkinson Hyperlegible';color:#1A1A17">Tâches · 4</button>
+        <button style="flex:1;height:40px;border:1px solid #C9C8C0;border-radius:6px;background:#fff;font:700 13px 'Atkinson Hyperlegible';color:#1A1A17">Météo · 24°</button>
+      </div>
+    </div>
+  </div>
+</div>
+</div></div></div>
+
+<div class="dv-opt" id="1c"><div class="dv-olabel"><a class="dv-oid" href="#1c">1c</a>Navigation par onglets bas — plus de retour arrière en haut d'écran, le pouce atteint tout. Ici la vue d'ensemble, ligne de colonie inchangée.</div>
+<div class="dv-card"><div class="ph">
+<div class="sb" style="background:#D89A2E;color:#5C3E05;padding-bottom:6px"><span>9:41</span><span>◍ hors ligne · 82%</span></div>
+<div class="scr">
+  <div style="background:#D89A2E;padding:10px 16px 14px;display:flex;align-items:baseline;justify-content:space-between;gap:12px">
+    <div><div style="font:700 20px/1.25 'Atkinson Hyperlegible';color:#1A1A17">Le Pré Long</div><div style="font:700 11px 'IBM Plex Mono',monospace;color:#5C3E05">5 COLONIES · ORDRE DE TOURNÉE</div></div>
+    <span style="flex:none;font:700 10px 'IBM Plex Mono',monospace;color:#5C3E05;border:1px solid #5C3E05;border-radius:6px;padding:3px 6px">HORS LIGNE</span>
+  </div>
+  <div style="flex:1;overflow:hidden;background:#fff">
+    <div style="display:flex;gap:12px;padding:11px 12px;border-bottom:1px solid #E3E2DC;align-items:center">
+      <div style="width:28px;height:28px;border-radius:50%;background:#F3F3EF;color:#1A1A17;font:700 13px 'IBM Plex Mono',monospace;display:flex;align-items:center;justify-content:center;flex:none">1</div>
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px"><span style="font:700 13px 'Atkinson Hyperlegible'">Reine 2026</span><span style="font:700 11px 'Atkinson Hyperlegible';background:#E4F2EA;color:#12543C;border-radius:6px;padding:2px 6px;flex:none">Normale</span></div>
+        <div style="font:400 12px 'IBM Plex Mono',monospace;color:#5C5C55">6 couvain · 4 provis. · vue il y a 2 j</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:12px;padding:11px 12px;border-bottom:1px solid #E3E2DC;align-items:center">
+      <div style="width:28px;height:28px;border-radius:50%;background:#F3F3EF;font:700 13px 'IBM Plex Mono',monospace;display:flex;align-items:center;justify-content:center;flex:none">2</div>
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px"><span style="font:700 13px 'Atkinson Hyperlegible'">Reine 2025</span><span style="font:700 11px 'Atkinson Hyperlegible';background:#F0EFEA;color:#44443E;border-radius:6px;padding:2px 6px;flex:none">À visiter</span></div>
+        <div style="font:400 12px 'IBM Plex Mono',monospace;color:#5C5C55">— couvain · — provis. · vue il y a 24 j</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:12px;padding:12px;border-bottom:1px solid #E3E2DC;align-items:flex-start;background:#FBEAE8">
+      <div style="width:28px;height:28px;border-radius:50%;background:#8C1D18;color:#fff;font:700 13px 'IBM Plex Mono',monospace;display:flex;align-items:center;justify-content:center;flex:none">3</div>
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px"><span style="font:700 13px 'Atkinson Hyperlegible';color:#8C1D18">Reine non confirmée</span><span style="font:700 11px 'Atkinson Hyperlegible';background:#fff;color:#8C1D18;border-radius:6px;padding:2px 6px;flex:none">! Urgent</span></div>
+        <div style="font:400 12px 'IBM Plex Mono',monospace;color:#8C1D18">4 couvain · 3 provis. · vue il y a 9 j</div>
+        <div style="font:italic 400 12px 'Atkinson Hyperlegible';color:#8C1D18;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">« Cadre de couvain introduit, contrôler l'operculation »</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:12px;padding:12px;border-bottom:1px solid #E3E2DC;align-items:flex-start">
+      <div style="width:28px;height:28px;border-radius:50%;background:#F3F3EF;font:700 13px 'IBM Plex Mono',monospace;display:flex;align-items:center;justify-content:center;flex:none">4</div>
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px"><span style="font:700 13px 'Atkinson Hyperlegible'">Essaim de mai</span><span style="font:700 11px 'Atkinson Hyperlegible';background:#FCF0DC;color:#6B4106;border-radius:6px;padding:2px 6px;flex:none">Action</span></div>
+        <div style="font:400 12px 'IBM Plex Mono',monospace;color:#5C5C55">3 couvain · 0 provis. · vue il y a 5 j</div>
+        <div style="font:italic 400 12px 'Atkinson Hyperlegible';color:#5C5C55;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">« Provisions basses, prévoir un nourrissement »</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:12px;padding:11px 12px;border-bottom:1px solid #E3E2DC;align-items:center">
+      <div style="width:28px;height:28px;border-radius:50%;background:#F3F3EF;font:700 13px 'IBM Plex Mono',monospace;display:flex;align-items:center;justify-content:center;flex:none">5</div>
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px"><span style="font:700 13px 'Atkinson Hyperlegible'">Reine 2026</span><span style="font:700 11px 'Atkinson Hyperlegible';background:#E4F2EA;color:#12543C;border-radius:6px;padding:2px 6px;flex:none">Normale</span></div>
+        <div style="font:400 12px 'IBM Plex Mono',monospace;color:#5C5C55">7 couvain · 5 provis. · vue il y a 2 j</div>
+      </div>
+    </div>
+    <div style="padding:12px;display:flex;flex-wrap:wrap;gap:6px;align-items:center">
+      <span style="font:400 11px 'Atkinson Hyperlegible';color:#8A8A80">Légende</span>
+      <span style="font:700 11px 'Atkinson Hyperlegible';background:#FBEAE8;color:#8C1D18;border-radius:6px;padding:2px 6px">! Urgent</span>
+      <span style="font:700 11px 'Atkinson Hyperlegible';background:#FCF0DC;color:#6B4106;border-radius:6px;padding:2px 6px">Action</span>
+      <span style="font:700 11px 'Atkinson Hyperlegible';background:#F0EFEA;color:#44443E;border-radius:6px;padding:2px 6px">À visiter</span>
+      <span style="font:700 11px 'Atkinson Hyperlegible';background:#E4F2EA;color:#12543C;border-radius:6px;padding:2px 6px">Normale</span>
+    </div>
+  </div>
+  <div style="padding:10px 16px;background:#FAFAF8;border-top:1px solid #E3E2DC"><button style="height:46px;width:100%;border:0;border-radius:6px;background:#1A1A17;color:#fff;font:700 15px 'Atkinson Hyperlegible'">Saisir une visite</button></div>
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid #C9C8C0;background:#fff">
+    <div style="height:56px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border-top:3px solid #D89A2E"><div style="width:14px;height:14px;border:2px solid #1A1A17;border-radius:3px"></div><span style="font:700 10px 'Atkinson Hyperlegible';color:#1A1A17">Rucher</span></div>
+    <div style="height:56px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border-top:3px solid transparent"><div style="width:14px;height:14px;border:2px solid #8A8A80;border-radius:50%"></div><span style="font:400 10px 'Atkinson Hyperlegible';color:#5C5C55">Tâches · 4</span></div>
+    <div style="height:56px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border-top:3px solid transparent"><div style="width:14px;height:14px;border:2px solid #8A8A80;transform:rotate(45deg)"></div><span style="font:400 10px 'Atkinson Hyperlegible';color:#5C5C55">Météo</span></div>
+    <div style="height:56px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border-top:3px solid transparent"><div style="width:14px;height:2px;background:#8A8A80;box-shadow:0 5px 0 #8A8A80,0 -5px 0 #8A8A80"></div><span style="font:400 10px 'Atkinson Hyperlegible';color:#5C5C55">Registre</span></div>
+  </div>
+</div>
+</div></div></div>
+
+<div class="dv-opt" id="1d"><div class="dv-olabel"><a class="dv-oid" href="#1d">1d</a>Interaction signature — le fil de tournée. Une colonne verte relie les colonies dans l'ordre : jalon plein = visitée, creux = à faire. Balayer une ligne vers la droite la marque visitée sans ouvrir la saisie.</div>
+<div class="dv-card"><div class="ph">
+<div class="sb" style="background:#D89A2E;color:#5C3E05;padding-bottom:6px"><span>9:41</span><span>◍ 4G · 82%</span></div>
+<div class="scr">
+  <div style="background:#D89A2E;padding:10px 16px 14px;display:flex;flex-direction:column;gap:10px">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+      <div><div style="font:700 20px/1.25 'Atkinson Hyperlegible';color:#1A1A17">Tournée en cours</div><div style="font:700 11px 'IBM Plex Mono',monospace;color:#5C3E05">LE PRÉ LONG · 15/08 · 09:41</div></div>
+      <div style="font:700 26px 'IBM Plex Mono',monospace;color:#1A1A17">2<span style="color:#5C3E05;font-size:13px">/5</span></div>
+    </div>
+    <div style="height:6px;background:rgba(26,26,23,.2);border-radius:6px;overflow:hidden"><div style="width:40%;height:100%;background:#2B6E48"></div></div>
+  </div>
+  <div style="flex:1;padding:14px 16px 0;display:flex;flex-direction:column">
+    <div style="display:flex;gap:12px">
+      <div style="width:28px;display:flex;flex-direction:column;align-items:center;flex:none"><div style="width:14px;height:14px;border-radius:50%;background:#2B6E48"></div><div style="flex:1;width:2px;background:#2B6E48"></div></div>
+      <div style="flex:1;padding-bottom:14px;opacity:.55"><div style="display:flex;justify-content:space-between"><span style="font:700 13px 'Atkinson Hyperlegible'">Ruche 1 · Reine 2026</span><span style="font:700 11px 'IBM Plex Mono',monospace;color:#2B6E48">✓ 09:22</span></div><div style="font:400 12px 'IBM Plex Mono',monospace;color:#5C5C55">6 couvain · 4 provis. · saisie 38 s</div></div>
+    </div>
+    <div style="display:flex;gap:12px">
+      <div style="width:28px;display:flex;flex-direction:column;align-items:center;flex:none"><div style="width:14px;height:14px;border-radius:50%;background:#2B6E48"></div><div style="flex:1;width:2px;background:#2B6E48"></div></div>
+      <div style="flex:1;padding-bottom:14px;opacity:.55"><div style="display:flex;justify-content:space-between"><span style="font:700 13px 'Atkinson Hyperlegible'">Ruche 2 · Reine 2025</span><span style="font:700 11px 'IBM Plex Mono',monospace;color:#2B6E48">✓ 09:31</span></div><div style="font:400 12px 'IBM Plex Mono',monospace;color:#5C5C55">5 couvain · 3 provis. · saisie 44 s</div></div>
+    </div>
+    <div style="display:flex;gap:12px">
+      <div style="width:28px;display:flex;flex-direction:column;align-items:center;flex:none"><div style="width:14px;height:14px;border-radius:50%;background:#FAFAF8;border:3px solid #2B6E48"></div><div style="flex:1;width:2px;background:#C9C8C0"></div></div>
+      <div style="flex:1;padding-bottom:14px">
+        <div style="border:1px solid #C9C8C0;border-left:4px solid #8C1D18;border-radius:6px;background:#FBEAE8;padding:10px;position:relative;overflow:hidden">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px"><span style="font:700 15px 'Atkinson Hyperlegible';color:#8C1D18">Ruche 3</span><span style="font:700 11px 'Atkinson Hyperlegible';background:#fff;color:#8C1D18;border-radius:6px;padding:2px 6px">! Urgent</span></div>
+          <div style="font:400 12px 'IBM Plex Mono',monospace;color:#8C1D18">4 couvain · 3 provis. · vue il y a 9 j</div>
+          <div style="font:italic 400 12px/1.4 'Atkinson Hyperlegible';color:#8C1D18;padding-top:2px">« Cadre de couvain introduit, contrôler l'operculation »</div>
+          <div style="display:flex;gap:6px;padding-top:10px"><button style="flex:1;height:44px;border:0;border-radius:6px;background:#1A1A17;color:#fff;font:700 13px 'Atkinson Hyperlegible'">Saisir la visite</button><button style="width:92px;height:44px;border:1px solid #8C1D18;border-radius:6px;background:transparent;color:#8C1D18;font:700 13px 'Atkinson Hyperlegible'">Passer</button></div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;gap:12px">
+      <div style="width:28px;display:flex;flex-direction:column;align-items:center;flex:none"><div style="width:14px;height:14px;border-radius:50%;background:#FAFAF8;border:2px solid #C9C8C0"></div><div style="flex:1;width:2px;background:#C9C8C0"></div></div>
+      <div style="flex:1;padding-bottom:14px;position:relative">
+        <div style="position:absolute;inset:0 0 14px 0;background:#2B6E48;border-radius:6px;display:flex;align-items:center;padding-left:12px;font:700 12px 'Atkinson Hyperlegible';color:#fff">✓ Visitée, rien à signaler</div>
+        <div style="position:relative;background:#fff;border:1px solid #E3E2DC;border-radius:6px;padding:10px;transform:translateX(104px)">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px"><span style="font:700 13px 'Atkinson Hyperlegible'">Ruche 4 · Essaim de mai</span><span style="font:700 11px 'Atkinson Hyperlegible';background:#FCF0DC;color:#6B4106;border-radius:6px;padding:2px 6px;flex:none">Action</span></div>
+          <div style="font:400 12px 'IBM Plex Mono',monospace;color:#5C5C55">3 couvain · 0 provis.</div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;gap:12px">
+      <div style="width:28px;display:flex;flex-direction:column;align-items:center;flex:none"><div style="width:14px;height:14px;border-radius:50%;background:#FAFAF8;border:2px solid #C9C8C0"></div></div>
+      <div style="flex:1"><div style="font:700 13px 'Atkinson Hyperlegible'">Ruche 5 · Reine 2026</div><div style="font:400 12px 'IBM Plex Mono',monospace;color:#5C5C55">7 couvain · 5 provis.</div></div>
+    </div>
+    <div style="margin-top:auto;padding:12px 0 14px;display:flex;flex-direction:column;gap:6px">
+      <button style="height:46px;border:0;border-radius:6px;background:#1A1A17;color:#fff;font:700 15px 'Atkinson Hyperlegible'">Clore la tournée</button>
+      <div style="font:400 11px 'Atkinson Hyperlegible';color:#8A8A80;text-align:center">Balayer une ligne vers la droite : visitée, rien à signaler</div>
+    </div>
+  </div>
+</div>
+</div></div></div>
+
+<div class="dv-opt" id="1e"><div class="dv-olabel"><a class="dv-oid" href="#1e">1e</a>Parcours cliquable — rucher → colonie → saisie de visite → retour. Les compteurs, le segmenté, les chips et l'état de la ligne fonctionnent pour de vrai.</div>
+<div class="dv-card"><div class="ph">
+<div class="sb" style="background:#D89A2E;color:#5C3E05;padding-bottom:6px"><span>9:41</span><span>◍ 4G · 82%</span></div>
+<div class="scr">
+  <sc-if value="{{ estAccueil }}" hint-placeholder-val="{{ true }}">
+  <div style="display:flex;flex-direction:column;flex:1">
+    <div style="background:#D89A2E;padding:10px 16px 14px;display:flex;align-items:baseline;justify-content:space-between">
+      <div style="font:700 13px 'IBM Plex Mono',monospace;letter-spacing:.14em;color:#1A1A17">HAPPYBEE</div>
+      <div style="font:700 11px 'IBM Plex Mono',monospace;color:#5C3E05">15 AOÛT · SEM. 33</div>
+    </div>
+    <div style="padding:16px;display:flex;flex-direction:column;gap:16px;flex:1">
+    <div style="font:400 12px 'Atkinson Hyperlegible';color:#5C5C55">Ruchers</div>
+    <div style="background:#fff;border:1px solid #E3E2DC;border-radius:6px;overflow:hidden">
+      <button onClick="{{ ouvrirRucher }}" style="width:100%;text-align:left;border:0;border-bottom:1px solid #E3E2DC;background:#fff;padding:12px;display:flex;justify-content:space-between;align-items:center;gap:12px;cursor:pointer">
+        <span><span style="display:block;font:700 15px 'Atkinson Hyperlegible';color:#1A1A17">Le Pré Long</span><span style="display:block;font:400 12px 'IBM Plex Mono',monospace;color:#5C5C55">Saint-Chamond · 5 ruches</span></span>
+        <span style="font:400 15px 'Atkinson Hyperlegible';color:#8A8A80">›</span>
+      </button>
+      <div style="padding:12px;display:flex;justify-content:space-between;align-items:center;gap:12px;opacity:.5">
+        <span><span style="display:block;font:700 15px 'Atkinson Hyperlegible'">Bois de Cotte</span><span style="display:block;font:400 12px 'IBM Plex Mono',monospace;color:#5C5C55">Doizieux · 3 ruches</span></span>
+        <span style="font:400 15px 'Atkinson Hyperlegible';color:#8A8A80">›</span>
+      </div>
+    </div>
+    <div style="margin-top:auto;font:400 11px/1.5 'Atkinson Hyperlegible';color:#8A8A80">Maquette : seul « Le Pré Long » est ouvrable.</div>
+    </div>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ estRucher }}" hint-placeholder-val="{{ false }}">
+  <div style="flex:1;display:flex;flex-direction:column">
+    <div style="background:#D89A2E;padding:10px 16px 14px">
+      <button onClick="{{ retourAccueil }}" style="border:0;background:none;padding:0 0 4px;font:400 13px 'Atkinson Hyperlegible';color:#5C3E05;text-decoration:underline;cursor:pointer">← Ruchers</button>
+      <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px">
+        <div style="font:700 20px/1.25 'Atkinson Hyperlegible';color:#1A1A17">Le Pré Long</div>
+        <div style="font:700 13px 'IBM Plex Mono',monospace;color:#1A1A17">{{ progression }}</div>
+      </div>
+      <div style="height:6px;background:rgba(26,26,23,.2);border-radius:6px;overflow:hidden;margin-top:8px"><div style="height:100%;background:#2B6E48;transition:width .35s ease;width:{{ largeurProgression }}"></div></div>
+    </div>
+    <sc-if value="{{ message }}" hint-placeholder-val="{{ false }}">
+      <div style="margin:10px 16px 0;background:#E4F2EA;color:#12543C;border-radius:6px;padding:8px 10px;font:700 12px 'Atkinson Hyperlegible'">{{ message }}</div>
+    </sc-if>
+    <div style="flex:1;overflow:auto;background:#fff;border-top:1px solid #E3E2DC;margin-top:10px">
+      <sc-for list="{{ lignes }}" as="l" hint-placeholder-count="5">
+        <button onClick="{{ l.ouvrir }}" style="width:100%;text-align:left;border:0;border-bottom:1px solid #E3E2DC;cursor:pointer;display:flex;gap:12px;align-items:flex-start;padding:11px 12px;min-height:64px;background:{{ l.fond }}">
+          <span style="width:28px;height:28px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;font:700 13px 'IBM Plex Mono',monospace;background:{{ l.badgeFond }};color:{{ l.badgeEncre }}">{{ l.numero }}</span>
+          <span style="flex:1;min-width:0">
+            <span style="display:flex;justify-content:space-between;align-items:baseline;gap:8px">
+              <span style="font:700 13px 'Atkinson Hyperlegible';color:{{ l.titreEncre }}">{{ l.titre }}</span>
+              <span style="flex:none;font:700 11px 'Atkinson Hyperlegible';border-radius:6px;padding:2px 6px;background:{{ l.pastilleFond }};color:{{ l.pastilleEncre }}">{{ l.pastille }}</span>
+            </span>
+            <span style="display:block;font:400 12px 'IBM Plex Mono',monospace;color:{{ l.metriqueEncre }}">{{ l.metriques }}</span>
+            <sc-if value="{{ l.note }}" hint-placeholder-val="{{ false }}">
+              <span style="display:block;font:italic 400 12px 'Atkinson Hyperlegible';color:{{ l.metriqueEncre }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">« {{ l.note }} »</span>
+            </sc-if>
+          </span>
+        </button>
+      </sc-for>
+      <div style="padding:12px;display:flex;flex-wrap:wrap;gap:6px;align-items:center">
+        <span style="font:400 11px 'Atkinson Hyperlegible';color:#8A8A80">Légende</span>
+        <span style="font:700 11px 'Atkinson Hyperlegible';background:#FBEAE8;color:#8C1D18;border-radius:6px;padding:2px 6px">! Urgent</span>
+        <span style="font:700 11px 'Atkinson Hyperlegible';background:#FCF0DC;color:#6B4106;border-radius:6px;padding:2px 6px">Action</span>
+        <span style="font:700 11px 'Atkinson Hyperlegible';background:#F0EFEA;color:#44443E;border-radius:6px;padding:2px 6px">À visiter</span>
+        <span style="font:700 11px 'Atkinson Hyperlegible';background:#E4F2EA;color:#12543C;border-radius:6px;padding:2px 6px">Normale</span>
+      </div>
+    </div>
+    <div style="padding:10px 16px 14px;border-top:1px solid #E3E2DC">
+      <button onClick="{{ ouvrirPremiere }}" style="height:46px;width:100%;border:0;border-radius:6px;background:#1A1A17;color:#fff;font:700 15px 'Atkinson Hyperlegible';cursor:pointer">Saisir une visite</button>
+    </div>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ estVisite }}" hint-placeholder-val="{{ false }}">
+  <div style="flex:1;display:flex;flex-direction:column">
+    <div style="background:#D89A2E;padding:10px 16px 14px">
+      <button onClick="{{ annuler }}" style="border:0;background:none;padding:0 0 4px;font:400 13px 'Atkinson Hyperlegible';color:#5C3E05;text-decoration:underline;cursor:pointer">← Tournée</button>
+      <div style="display:flex;align-items:baseline;justify-content:space-between">
+        <div style="font:700 20px/1.25 'Atkinson Hyperlegible';color:#1A1A17">Ruche {{ numeroActif }}</div>
+        <div style="font:700 11px 'IBM Plex Mono',monospace;color:#5C3E05">{{ ancienneteActive }}</div>
+      </div>
+    </div>
+    <div style="flex:1;overflow:auto;padding:14px 16px;display:flex;flex-direction:column;gap:14px">
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid #E3E2DC;border-radius:6px;padding:8px 10px;background:#fff">
+          <span><span style="display:block;font:400 13px 'Atkinson Hyperlegible';color:#5C5C55">Cadres de couvain operculé</span><span style="display:block;font:400 11px 'IBM Plex Mono',monospace;color:#8A8A80">{{ refCouvain }}</span></span>
+          <span style="display:flex;align-items:center;gap:8px;flex:none">
+            <button onClick="{{ moinsCouvain }}" style="width:44px;height:44px;border:0;border-radius:6px;background:#F3F3EF;font:400 22px 'Atkinson Hyperlegible';color:#1A1A17;cursor:pointer">–</button>
+            <span style="width:32px;text-align:center;font:700 20px 'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums;color:{{ encreCouvain }}">{{ affCouvain }}</span>
+            <button onClick="{{ plusCouvain }}" style="width:44px;height:44px;border:0;border-radius:6px;background:#F3F3EF;font:400 22px 'Atkinson Hyperlegible';color:#1A1A17;cursor:pointer">+</button>
+          </span>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid #E3E2DC;border-radius:6px;padding:8px 10px;background:#fff">
+          <span><span style="display:block;font:400 13px 'Atkinson Hyperlegible';color:#5C5C55">Cadres de provisions</span><span style="display:block;font:400 11px 'IBM Plex Mono',monospace;color:#8A8A80">{{ refProvisions }}</span></span>
+          <span style="display:flex;align-items:center;gap:8px;flex:none">
+            <button onClick="{{ moinsProvisions }}" style="width:44px;height:44px;border:0;border-radius:6px;background:#F3F3EF;font:400 22px 'Atkinson Hyperlegible';color:#1A1A17;cursor:pointer">–</button>
+            <span style="width:32px;text-align:center;font:700 20px 'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums;color:{{ encreProvisions }}">{{ affProvisions }}</span>
+            <button onClick="{{ plusProvisions }}" style="width:44px;height:44px;border:0;border-radius:6px;background:#F3F3EF;font:400 22px 'Atkinson Hyperlegible';color:#1A1A17;cursor:pointer">+</button>
+          </span>
+        </div>
+      </div>
+      <div>
+        <div style="font:400 13px 'Atkinson Hyperlegible';color:#5C5C55;padding-bottom:6px">Reine</div>
+        <div style="display:flex;gap:6px">
+          <button onClick="{{ reineVue }}" style="flex:1;height:44px;border-radius:6px;font:700 13px 'Atkinson Hyperlegible';cursor:pointer;border:1px solid {{ reineVueBord }};background:{{ reineVueFond }};color:{{ reineVueEncre }}">Vue</button>
+          <button onClick="{{ reinePonte }}" style="flex:1;height:44px;border-radius:6px;font:700 13px 'Atkinson Hyperlegible';cursor:pointer;border:1px solid {{ reinePonteBord }};background:{{ reinePonteFond }};color:{{ reinePonteEncre }}">Ponte constatée</button>
+          <button onClick="{{ reineAbsente }}" style="flex:1;height:44px;border-radius:6px;font:700 13px 'Atkinson Hyperlegible';cursor:pointer;border:1px solid {{ reineAbsenteBord }};background:{{ reineAbsenteFond }};color:{{ reineAbsenteEncre }}">Non vue</button>
+        </div>
+        <div style="font:400 11px 'Atkinson Hyperlegible';color:#8A8A80;padding-top:4px">{{ legendeReine }}</div>
+      </div>
+      <div>
+        <div style="font:400 13px 'Atkinson Hyperlegible';color:#5C5C55;padding-bottom:6px">Observations</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">
+          <sc-for list="{{ chips }}" as="c" hint-placeholder-count="5">
+            <button onClick="{{ c.basculer }}" style="height:34px;padding:0 12px;border-radius:6px;font:700 13px 'Atkinson Hyperlegible';cursor:pointer;border:1px solid {{ c.bord }};background:{{ c.fond }};color:{{ c.encre }}">{{ c.libelle }}</button>
+          </sc-for>
+        </div>
+      </div>
+      <div>
+        <div style="font:400 13px 'Atkinson Hyperlegible';color:#5C5C55;padding-bottom:6px">Note libre</div>
+        <textarea onInput="{{ majNote }}" placeholder="Ce qui doit être relu à la prochaine visite" style="width:100%;box-sizing:border-box;height:72px;resize:none;border:1px solid #C9C8C0;border-radius:6px;background:#F3F3EF;padding:8px;font:400 13px/1.5 'Atkinson Hyperlegible';color:#1A1A17"></textarea>
+      </div>
+    </div>
+    <div style="padding:10px 16px 14px;border-top:1px solid #E3E2DC;display:flex;flex-direction:column;gap:6px">
+      <button onClick="{{ enregistrer }}" style="height:46px;border:0;border-radius:6px;background:#1A1A17;color:#fff;font:700 15px 'Atkinson Hyperlegible';cursor:pointer">Enregistrer</button>
+      <div style="font:400 11px 'IBM Plex Mono',monospace;color:#8A8A80;text-align:center">{{ chrono }}</div>
+    </div>
+  </div>
+  </sc-if>
+</div>
+</div></div></div>
+
+</div>
+<p class="dv-next">Try next : « garde <a class="dv-oid" href="#1c">1c</a> mais avec le bandeau de <a class="dv-oid" href="#1b">1b</a> » · « pousse <a class="dv-oid" href="#1d">1d</a> plus loin : la tournée en plein écran » · « branche le fil de tournée dans le parcours <a class="dv-oid" href="#1e">1e</a> » · « des directions plus radicales »</p>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{}">
+const ETATS = {
+  urgent: { pastille: '! Urgent', fond: '#FBEAE8', encre: '#8C1D18' },
+  action: { pastille: 'Action', fond: '#FCF0DC', encre: '#6B4106' },
+  a_visiter: { pastille: 'À visiter', fond: '#F0EFEA', encre: '#44443E' },
+  normale: { pastille: 'Normale', fond: '#E4F2EA', encre: '#12543C' },
+};
+const CHIPS = ['Cellules royales', 'Provisions basses', 'Varroa visible', 'Hausse à poser', 'Colonie nerveuse'];
+
+class Component extends DCLogic {
+  state = {
+    ecran: 'accueil',
+    actif: null,
+    message: null,
+    debut: null,
+    chrono: 0,
+    form: { couvain: null, provisions: null, reine: null, chips: [], note: '' },
+    colonies: [
+      { numero: 1, titre: 'Reine 2026', etat: 'normale', couvain: 6, provisions: 4, jours: 2, note: null, visitee: false },
+      { numero: 2, titre: 'Reine 2025', etat: 'a_visiter', couvain: null, provisions: null, jours: 24, note: null, visitee: false },
+      { numero: 3, titre: 'Reine non confirmée', etat: 'urgent', couvain: 4, provisions: 3, jours: 9, note: "Cadre de couvain introduit, contrôler l'operculation", visitee: false },
+      { numero: 4, titre: 'Essaim de mai', etat: 'action', couvain: 3, provisions: 0, jours: 5, note: 'Provisions basses, prévoir un nourrissement', visitee: false },
+      { numero: 5, titre: 'Reine 2026', etat: 'normale', couvain: 7, provisions: 5, jours: 2, note: null, visitee: false },
+    ],
+  };
+
+  componentDidMount() {
+    this.minuteur = setInterval(() => {
+      if (this.state.ecran === 'visite' && this.state.debut) {
+        this.setState({ chrono: Math.floor((Date.now() - this.state.debut) / 1000) });
+      }
+    }, 1000);
+  }
+  componentWillUnmount() { clearInterval(this.minuteur); }
+
+  colonie(n) { return this.state.colonies.find((c) => c.numero === n); }
+
+  ouvrirVisite = (n) => {
+    const c = this.colonie(n);
+    this.setState({
+      ecran: 'visite', actif: n, message: null, debut: Date.now(), chrono: 0,
+      form: { couvain: c.couvain, provisions: c.provisions, reine: null, chips: [], note: '' },
+    });
+  };
+
+  majForm(patch) { this.setState((s) => ({ form: { ...s.form, ...patch } })); }
+  compteur(cle, delta) {
+    const v = this.state.form[cle];
+    this.majForm({ [cle]: Math.max(0, Math.min(12, (v ?? 0) + delta)) });
+  }
+
+  enregistrer = () => {
+    const { actif, form } = this.state;
+    const grave = form.reine === 'absente' || form.chips.includes('Cellules royales') || form.chips.includes('Varroa visible');
+    const attention = form.chips.includes('Provisions basses') || (form.provisions ?? 9) <= 1;
+    const etat = grave ? 'urgent' : attention ? 'action' : 'normale';
+    this.setState((s) => ({
+      ecran: 'rucher',
+      message: `Visite enregistrée — ruche ${actif} · ${s.chrono} s`,
+      colonies: s.colonies.map((c) => c.numero === actif
+        ? { ...c, etat, couvain: form.couvain, provisions: form.provisions, jours: 0, visitee: true,
+            note: (etat === 'urgent' || etat === 'action') ? (form.note || c.note || 'Observation à relire') : null }
+        : c),
+    }));
+  };
+
+  renderVals() {
+    const s = this.state;
+    const f = s.form;
+    const m = (v) => (v == null ? '—' : String(v));
+    const anc = (j) => (j == null ? 'jamais visitée' : j === 0 ? "vue aujourd'hui" : `vue il y a ${j} j`);
+    const faites = s.colonies.filter((c) => c.visitee).length;
+    const act = s.actif ? this.colonie(s.actif) : null;
+    const dateRef = act && act.jours != null
+      ? new Date(Date.now() - act.jours * 864e5).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })
+      : '';
+
+    const seg = (val) => {
+      const on = f.reine === val;
+      return { fond: on ? '#1A1A17' : '#fff', encre: on ? '#fff' : '#1A1A17', bord: on ? '#1A1A17' : '#C9C8C0' };
+    };
+    const sVue = seg('vue'), sPonte = seg('ponte'), sAbs = seg('absente');
+    const legendes = { vue: 'Reine aperçue sur un cadre', ponte: 'Œufs ou jeune couvain constatés', absente: 'Reine non vue lors de cette visite', };
+
+    return {
+      estAccueil: s.ecran === 'accueil',
+      estRucher: s.ecran === 'rucher',
+      estVisite: s.ecran === 'visite',
+      message: s.message,
+      progression: `${faites}/5`,
+      largeurProgression: `${(faites / 5) * 100}%`,
+      ouvrirRucher: () => this.setState({ ecran: 'rucher' }),
+      retourAccueil: () => this.setState({ ecran: 'accueil', message: null }),
+      annuler: () => this.setState({ ecran: 'rucher' }),
+      ouvrirPremiere: () => this.ouvrirVisite(s.colonies.find((c) => !c.visitee)?.numero ?? 1),
+      lignes: s.colonies.map((c) => {
+        const e = ETATS[c.etat];
+        const urgent = c.etat === 'urgent';
+        return {
+          numero: c.numero, titre: c.titre,
+          metriques: `${m(c.couvain)} couvain · ${m(c.provisions)} provis. · ${anc(c.jours)}`,
+          note: (c.etat === 'urgent' || c.etat === 'action') ? c.note : null,
+          pastille: e.pastille, pastilleFond: urgent ? '#fff' : e.fond, pastilleEncre: e.encre,
+          fond: urgent ? '#FBEAE8' : '#fff',
+          badgeFond: urgent ? '#8C1D18' : '#F3F3EF', badgeEncre: urgent ? '#fff' : '#1A1A17',
+          titreEncre: urgent ? '#8C1D18' : '#1A1A17', metriqueEncre: urgent ? '#8C1D18' : '#5C5C55',
+          ouvrir: () => this.ouvrirVisite(c.numero),
+        };
+      }),
+      numeroActif: s.actif,
+      ancienneteActive: act ? anc(act.jours) : '',
+      affCouvain: f.couvain == null ? '·' : f.couvain,
+      affProvisions: f.provisions == null ? '·' : f.provisions,
+      encreCouvain: f.couvain == null ? '#8A8A80' : '#1A1A17',
+      encreProvisions: f.provisions == null ? '#8A8A80' : '#1A1A17',
+      refCouvain: act && act.couvain != null ? `${act.couvain} le ${dateRef}` : 'non observé',
+      refProvisions: act && act.provisions != null ? `${act.provisions} le ${dateRef}` : 'non observé',
+      moinsCouvain: () => this.compteur('couvain', -1),
+      plusCouvain: () => this.compteur('couvain', 1),
+      moinsProvisions: () => this.compteur('provisions', -1),
+      plusProvisions: () => this.compteur('provisions', 1),
+      reineVue: () => this.majForm({ reine: 'vue' }),
+      reinePonte: () => this.majForm({ reine: 'ponte' }),
+      reineAbsente: () => this.majForm({ reine: 'absente' }),
+      reineVueFond: sVue.fond, reineVueEncre: sVue.encre, reineVueBord: sVue.bord,
+      reinePonteFond: sPonte.fond, reinePonteEncre: sPonte.encre, reinePonteBord: sPonte.bord,
+      reineAbsenteFond: sAbs.fond, reineAbsenteEncre: sAbs.encre, reineAbsenteBord: sAbs.bord,
+      legendeReine: f.reine ? legendes[f.reine] : 'Aucune observation saisie',
+      chips: CHIPS.map((libelle) => {
+        const on = f.chips.includes(libelle);
+        return {
+          libelle,
+          fond: on ? '#1A1A17' : '#fff', encre: on ? '#fff' : '#1A1A17', bord: on ? '#1A1A17' : '#C9C8C0',
+          basculer: () => this.majForm({ chips: on ? f.chips.filter((x) => x !== libelle) : [...f.chips, libelle] }),
+        };
+      }),
+      majNote: (e) => this.majForm({ note: e.target.value }),
+      chrono: `saisie en cours · ${s.chrono} s`,
+      enregistrer: this.enregistrer,
+    };
+  }
+}
+</script>
+</body>
+</html>

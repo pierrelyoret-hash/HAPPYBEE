@@ -122,9 +122,11 @@ export function LigneColonie({
             <span className={`text-13 font-bold truncate ${estUrgent ? 'text-urgent-ink' : 'text-ink'}`}>
               Ruche {ligne.ruche.numero}
             </span>
-            <PastilleEtat etat={ligne.etat} />
+            <PastilleEtat etat={ligne.etat} surFondTeinte={estUrgent} />
           </span>
-          <span className="font-mono text-12 text-ink-secondary whitespace-nowrap">
+          <span
+            className={`font-mono text-12 whitespace-nowrap ${estUrgent ? 'text-urgent-ink' : 'text-ink-secondary'}`}
+          >
             {metrique(ligne.couvain)} couvain · {metrique(ligne.provisions)} provis. · {anciennete(ligne.joursDepuisVisite)}
           </span>
           {note && (

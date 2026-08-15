@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { obtenirRendementParColonieEtAnnee } from '../../db/repositories/recolte.js';
 import { surSync } from '../../lib/sync.js';
-import { BoutonRetour } from '../../components/BoutonRetour.jsx';
+import { EnTeteEcran } from '../../components/EnTeteEcran.jsx';
 import { PRODUIT_LIBELLES } from '../../lib/libellesRecolte.js';
 
 function arrondi(n) {
@@ -27,11 +27,10 @@ export function RendementRecolte({ onRetour }) {
   const produits = Object.keys(donnees.parProduit);
 
   return (
-    <div className="min-h-screen bg-ground text-ink p-4 flex flex-col gap-4 max-w-md mx-auto">
-      <header className="flex flex-col gap-1">
-        <BoutonRetour onRetour={onRetour} />
-        <h1 className="text-20 font-bold">Tableau de rendement</h1>
-      </header>
+    <div className="min-h-screen bg-ground text-ink flex flex-col max-w-md mx-auto">
+      <EnTeteEcran retourLibelle="← Retour" onRetour={onRetour} titre="Tableau de rendement" />
+
+      <div className="p-4 flex flex-col gap-4">
 
       {produits.length === 0 && (
         <p className="text-13 text-ink-secondary">Aucune récolte enregistrée pour l'instant.</p>
@@ -80,6 +79,7 @@ export function RendementRecolte({ onRetour }) {
           Retour
         </button>
       )}
+      </div>
     </div>
   );
 }

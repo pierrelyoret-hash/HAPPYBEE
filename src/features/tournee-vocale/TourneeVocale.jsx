@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { BoutonRetour } from '../../components/BoutonRetour.jsx';
+import { EnTeteEcran } from '../../components/EnTeteEcran.jsx';
 import { db } from '../../db/db.js';
 import { obtenirRucher } from '../../db/repositories/ruchers.js';
 import {
@@ -158,15 +158,15 @@ export function TourneeVocale({ rucherId, onRetour, onOuvrirRevueTournee }) {
   }
 
   return (
-    <div className="min-h-screen bg-ground text-ink p-4 flex flex-col gap-4 max-w-md mx-auto">
-      <header className="flex flex-col gap-1">
-        <BoutonRetour onRetour={onRetour} />
-        <h1 className="text-20 font-bold">Tournée vocale</h1>
-        <p className="text-13 text-ink-secondary">
-          Un enregistrement par colonie. La transcription se fait automatiquement — à relire et
-          valider sur l'écran de revue.
-        </p>
-      </header>
+    <div className="min-h-screen bg-ground text-ink flex flex-col max-w-md mx-auto">
+      <EnTeteEcran retourLibelle="← Retour" onRetour={onRetour} titre="Tournée vocale" />
+
+      <div className="p-4 flex flex-col gap-4">
+
+      <p className="text-13 text-ink-secondary">
+        Un enregistrement par colonie. La transcription se fait automatiquement — à relire et
+        valider sur l'écran de revue.
+      </p>
 
       {progresModele != null && (
         <p className="text-12 text-ink-muted">
@@ -204,6 +204,7 @@ export function TourneeVocale({ rucherId, onRetour, onOuvrirRevueTournee }) {
           Retour à la vue d'ensemble
         </button>
       )}
+      </div>
     </div>
   );
 }

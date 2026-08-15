@@ -8,11 +8,15 @@ const CONFIG = {
   normale: { icone: null, libelle: 'Normale', classe: 'bg-normale-bg text-normale-ink' },
 };
 
-export function PastilleEtat({ etat }) {
+// `surFondTeinte` : la ligne de colonie urgente porte déjà le fond
+// `--urgent-bg` (brief §5) — la pastille urgent y serait invisible avec sa
+// propre teinte identique, donc elle passe en encre pleine sur fond blanc.
+export function PastilleEtat({ etat, surFondTeinte = false }) {
   const config = CONFIG[etat] ?? CONFIG.normale;
+  const classe = surFondTeinte && etat === 'urgent' ? 'bg-surface text-urgent-ink' : config.classe;
   return (
     <span
-      className={`inline-flex items-center gap-1 rounded px-2 py-1 text-11 font-bold whitespace-nowrap shrink-0 ${config.classe}`}
+      className={`inline-flex items-center gap-1 rounded px-2 py-1 text-11 font-bold whitespace-nowrap shrink-0 ${classe}`}
     >
       {config.icone && <span aria-hidden="true">{config.icone}</span>}
       {config.libelle}

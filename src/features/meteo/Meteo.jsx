@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { BoutonRetour } from '../../components/BoutonRetour.jsx';
+import { EnTeteEcran } from '../../components/EnTeteEcran.jsx';
 import { listerRuchers } from '../../db/repositories/ruchers.js';
 import { obtenirPrevisionRucher } from '../../db/repositories/meteo.js';
 import { libelleCodeMeteo, estCreneauFavorable } from '../../lib/meteo.js';
@@ -55,11 +55,10 @@ function DetailMeteoRucher({ rucher, onRetour, onOuvrirSaisieRucher }) {
   }, [rucher]);
 
   return (
-    <div className="min-h-screen bg-ground text-ink p-4 flex flex-col gap-4 max-w-md mx-auto">
-      <header className="flex flex-col gap-1">
-        <BoutonRetour onRetour={onRetour} />
-        <h1 className="text-20 font-bold">Météo — {rucher.nom}</h1>
-      </header>
+    <div className="min-h-screen bg-ground text-ink flex flex-col max-w-md mx-auto pb-14">
+      <EnTeteEcran retourLibelle="← Météo" onRetour={onRetour} titre={`Météo — ${rucher.nom}`} />
+
+      <div className="p-4 flex flex-col gap-4">
 
       {prevision === null && <p className="text-13 text-ink-secondary">Chargement…</p>}
 
@@ -102,6 +101,7 @@ function DetailMeteoRucher({ rucher, onRetour, onOuvrirSaisieRucher }) {
           </p>
         </>
       )}
+      </div>
     </div>
   );
 }
@@ -170,11 +170,10 @@ export function Meteo({ onRetour, onOuvrirSaisieRucher }) {
   if (ruchers === null) return null;
 
   return (
-    <div className="min-h-screen bg-ground text-ink p-4 flex flex-col gap-4 max-w-md mx-auto">
-      <header className="flex flex-col gap-1">
-        <BoutonRetour onRetour={onRetour} />
-        <h1 className="text-20 font-bold">Météo</h1>
-      </header>
+    <div className="min-h-screen bg-ground text-ink flex flex-col max-w-md mx-auto pb-14">
+      <EnTeteEcran retourLibelle="← Retour" onRetour={onRetour} titre="Météo" />
+
+      <div className="p-4 flex flex-col gap-4">
 
       <StationNetatmo />
 
@@ -199,6 +198,7 @@ export function Meteo({ onRetour, onOuvrirSaisieRucher }) {
           </li>
         ))}
       </ul>
+      </div>
     </div>
   );
 }

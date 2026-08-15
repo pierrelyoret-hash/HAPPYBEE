@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { db } from '../../db/db.js';
 import { listerHistoriqueConsolideColonie } from '../../db/repositories/historiqueConsolide.js';
 import { surSync } from '../../lib/sync.js';
-import { BoutonRetour } from '../../components/BoutonRetour.jsx';
+import { EnTeteEcran } from '../../components/EnTeteEcran.jsx';
 import { PhotosVisite } from '../../components/PhotosVisite.jsx';
 import { SIGNES_SANITAIRES_LIBELLES } from '../../lib/taxonomieSanitaire.js';
 import {
@@ -365,16 +365,18 @@ export function Historique({ colonieId, onRetour }) {
   const totalEvenements = saisons.reduce((n, s) => n + s.evenements.length, 0);
 
   return (
-    <div className="min-h-screen bg-ground text-ink p-4 flex flex-col gap-4 max-w-md mx-auto">
-      <header className="flex flex-col gap-1">
-        <BoutonRetour onRetour={onRetour} />
-        <h1 className="text-20 font-bold">
-          {ruche ? `Ruche ${ruche.numero}` : 'Colonie'} — Historique
-        </h1>
-        <p className="text-13 text-ink-secondary">
-          Visites, sanitaire, récoltes et mouvements consolidés par saison apicole (avril à mars).
-        </p>
-      </header>
+    <div className="min-h-screen bg-ground text-ink flex flex-col max-w-md mx-auto">
+      <EnTeteEcran
+        retourLibelle="← Retour"
+        onRetour={onRetour}
+        titre={`${ruche ? `Ruche ${ruche.numero}` : 'Colonie'} — Historique`}
+      />
+
+      <div className="p-4 flex flex-col gap-4">
+
+      <p className="text-13 text-ink-secondary">
+        Visites, sanitaire, récoltes et mouvements consolidés par saison apicole (avril à mars).
+      </p>
 
       {totalEvenements === 0 && (
         <p className="text-13 text-ink-secondary">Aucun événement enregistré pour cette colonie.</p>
@@ -436,6 +438,7 @@ export function Historique({ colonieId, onRetour }) {
           Retour à la vue d'ensemble
         </button>
       )}
+      </div>
     </div>
   );
 }

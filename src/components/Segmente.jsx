@@ -17,7 +17,7 @@ export function Segmente({ options, value, provenance, referenceDate, libelles, 
               key={String(option.value)}
               type="button"
               onClick={() => onChange(option.value)}
-              className={`flex-1 h-10 rounded text-13 font-bold border ${
+              className={`flex-1 h-11 rounded text-13 font-bold border ${
                 selectionne
                   ? estReporte
                     ? 'bg-surface-sunk border-rule-strong text-ink-muted'

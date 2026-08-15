@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { BoutonRetour } from '../../components/BoutonRetour.jsx';
+import { EnTeteEcran } from '../../components/EnTeteEcran.jsx';
 import { listerDonneesExportPdf } from '../../db/repositories/sanitaire.js';
 import { genererPdfSanitaire } from '../../lib/pdfSanitaire.js';
 
@@ -46,15 +46,15 @@ export function ExportSanitairePdf({ onRetour }) {
   }
 
   return (
-    <div className="min-h-screen bg-ground text-ink p-4 flex flex-col gap-4 max-w-md mx-auto">
-      <header className="flex flex-col gap-1">
-        <BoutonRetour onRetour={onRetour} />
-        <h1 className="text-20 font-bold">Export PDF sanitaire</h1>
-        <p className="text-13 text-ink-secondary">
-          Couvre les traitements et les comptages varroa. Ce n'est pas le registre d'élevage
-          complet.
-        </p>
-      </header>
+    <div className="min-h-screen bg-ground text-ink flex flex-col max-w-md mx-auto">
+      <EnTeteEcran retourLibelle="← Retour" onRetour={onRetour} titre="Export PDF sanitaire" />
+
+      <div className="p-4 flex flex-col gap-4">
+
+      <p className="text-13 text-ink-secondary">
+        Couvre les traitements et les comptages varroa. Ce n'est pas le registre d'élevage
+        complet.
+      </p>
 
       <section className="flex flex-col gap-3">
         <div className="flex gap-3">
@@ -104,6 +104,7 @@ export function ExportSanitairePdf({ onRetour }) {
           Retour
         </button>
       )}
+      </div>
     </div>
   );
 }

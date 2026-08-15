@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { db } from '../../db/db.js';
 import { listerHistoriqueRecolte } from '../../db/repositories/recolte.js';
 import { surSync } from '../../lib/sync.js';
-import { BoutonRetour } from '../../components/BoutonRetour.jsx';
+import { EnTeteEcran } from '../../components/EnTeteEcran.jsx';
 import { PRODUIT_LIBELLES, MODE_SAISIE_LIBELLES } from '../../lib/libellesRecolte.js';
 
 function dateLisible(iso) {
@@ -29,11 +29,14 @@ export function HistoriqueRecolte({ colonieId, onRetour, onOuvrirSaisieRecolte, 
   if (lignes === null) return null;
 
   return (
-    <div className="min-h-screen bg-ground text-ink p-4 flex flex-col gap-4 max-w-md mx-auto">
-      <header className="flex flex-col gap-1">
-        <BoutonRetour onRetour={onRetour} />
-        <h1 className="text-20 font-bold">{ruche ? `Ruche ${ruche.numero}` : 'Colonie'} — Récolte</h1>
-      </header>
+    <div className="min-h-screen bg-ground text-ink flex flex-col max-w-md mx-auto">
+      <EnTeteEcran
+        retourLibelle="← Retour"
+        onRetour={onRetour}
+        titre={`${ruche ? `Ruche ${ruche.numero}` : 'Colonie'} — Récolte`}
+      />
+
+      <div className="p-4 flex flex-col gap-4">
 
       <div className="flex flex-col gap-2">
         {onOuvrirSaisieRecolte && (
@@ -88,6 +91,7 @@ export function HistoriqueRecolte({ colonieId, onRetour, onOuvrirSaisieRecolte, 
           Retour
         </button>
       )}
+      </div>
     </div>
   );
 }

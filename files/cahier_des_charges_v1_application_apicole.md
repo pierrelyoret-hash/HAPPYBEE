@@ -392,6 +392,13 @@ Règles paramétrables, valeurs par défaut :
 | Comptage varroa en niveau « modéré » | J+14 : recompter |
 | Hausse posée | J+14 : contrôler le remplissage |
 | Aucune visite depuis 21 jours en saison (avril–septembre) | contrôle de routine |
+| Anomalie « Bourdonneuse » signalée | immédiat : secouer les cadres à 50 m de la ruche pour faire tomber les pondeuses |
+| Anomalie « Pillage » signalée | J+3 : vérifier l'état de la colonie après le pillage |
+| Anomalie « Fausse teigne » signalée | J+14 : contrôler l'évolution de la fausse teigne |
+| Anomalie « Mortalité anormale » signalée | J+3 : contrôler la colonie après mortalité anormale |
+| Anomalie « Diarrhée » signalée | J+7 : contrôler l'évolution (suspicion nosémose) |
+| Anomalie « Abeilles noires tremblantes » signalée | J+3 : contrôler l'évolution |
+| Anomalie « Ponte de mâles » signalée | J+10 : recontrôler la ponte |
 
 ### 6.4 Agrégation cadre → colonie
 
@@ -626,3 +633,15 @@ Hors périmètre initial du cahier des charges (aucune ligne M ne le prévoyait)
 | Fréquence de rafraîchissement | L'access_token (valable 3h) est réutilisé tel quel tant qu'il n'est pas expiré — pas de rafraîchissement à chaque ouverture de l'écran, pour limiter les rotations inutiles du refresh_token |
 | Affichage | Carte "Ma station (domicile)" en tête de l'écran Météo (pas rattachée à un rucher précis) — un relevé par module Netatmo détecté (intérieur, extérieur, pluie, vent selon l'équipement), dégradation silencieuse si la station n'est pas configurée ou injoignable |
 | Secrets | `NETATMO_CLIENT_ID`, `NETATMO_CLIENT_SECRET` et `SUPABASE_SERVICE_ROLE_KEY` en variables d'environnement Netlify (jamais préfixées `VITE_`, donc jamais embarquées dans le bundle client) |
+
+## 20. Arbitrages actés — 15 août 2026 (tâches générées par anomalie, §6.3)
+
+Jusqu'ici, seules les anomalies « orpheline » et « bourdonneuse » déclenchaient une génération de tâches (§6.3), et uniquement si le toggle « cadre de couvain frais introduit » était activé — c'est le suivi de cette intervention précise, pas de l'anomalie en elle-même. Demandé par l'exploitant : étendre la génération automatique aux 7 autres anomalies, chacune directement (signaler l'anomalie + enregistrer la visite suffit, aucune condition supplémentaire). Contenu et délais proposés par l'assistant puis validés par l'exploitant avant implémentation.
+
+| Point | Décision |
+|---|---|
+| « Bourdonneuse » | Reçoit en plus une tâche immédiate et indépendante du toggle couvain (« secouer les cadres à 50 m... ») — la cascade J+9/J+16/J+28 existante reste, elle, conditionnée au toggle, inchangée |
+| « Orpheline » | Non concernée par cette extension — seule, sans cadre de couvain introduit, elle ne déclenche encore aucune action définie |
+| « Autre » | Volontairement exclue — libellé trop générique pour une tâche actionnable |
+| Implémentation | Table de règles `REGLES_ANOMALIE` (anomalie → délai, libellé, priorité, `regle_origine`) dans `SaisieVisite.jsx`, même convention que les 8 règles existantes (pas de déduplication — comme toutes les règles déclenchées à la sauvegarde d'une visite, à la différence de la règle "21 jours" recalculée à chaque chargement) |
+| Limite connue, non corrigée dans ce lot | La revue de tournée (`RevueTournee.jsx`, saisie vocale) n'appelle aucune règle §6.3 — ni les nouvelles, ni les 8 existantes (essaimage, hausse posée, cascade couvain, et même la tâche urgente de suspicion catégorie 1). Une visite saisie par dictée vocale ne génère donc aucune tâche automatique. Gap constaté pendant la vérification, existant avant ce lot, non corrigé ici — signalé séparément |

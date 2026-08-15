@@ -4,7 +4,7 @@ import { obtenirRucher } from '../../db/repositories/ruchers.js';
 import { listerColoniesActives } from '../../db/repositories/colonies.js';
 import { importerEnregistrements } from '../../db/repositories/import.js';
 import { parserArchivesCsv, resoudreLignes } from '../../lib/csv.js';
-import { BoutonRetour } from '../../components/BoutonRetour.jsx';
+import { EnTeteEcran } from '../../components/EnTeteEcran.jsx';
 
 const CORRESPONDANCE_COLONNES = [
   ['Date', 'visite.date'],
@@ -72,12 +72,12 @@ export function ImportCsv({ rucherId, onRetour }) {
   const contientToutes = analyse?.lignesValides.some((l) => l.ruche === 'Toutes');
 
   return (
-    <div className="min-h-screen bg-ground text-ink p-4 flex flex-col gap-4 max-w-md mx-auto">
-      <header className="flex flex-col gap-1">
-        <BoutonRetour onRetour={onRetour} />
-        <h1 className="text-20 font-bold">Importer l'historique</h1>
-        <p className="text-13 text-ink-secondary">Fichier archives_apicoles.csv</p>
-      </header>
+    <div className="min-h-screen bg-ground text-ink flex flex-col max-w-md mx-auto">
+      <EnTeteEcran retourLibelle="← Retour" onRetour={onRetour} titre="Importer l'historique" />
+
+      <div className="p-4 flex flex-col gap-4">
+
+      <p className="text-13 text-ink-secondary">Fichier archives_apicoles.csv</p>
 
       {!analyse && (
         <label className="border border-dashed border-rule-strong rounded p-4 text-center text-13 text-ink-secondary block">
@@ -195,6 +195,7 @@ export function ImportCsv({ rucherId, onRetour }) {
           Retour à la vue d'ensemble
         </button>
       )}
+      </div>
     </div>
   );
 }

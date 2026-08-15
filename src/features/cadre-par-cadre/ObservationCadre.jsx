@@ -3,7 +3,7 @@ import { Compteur } from '../../components/Compteur.jsx';
 import { Segmente } from '../../components/Segmente.jsx';
 import { Interrupteur } from '../../components/Interrupteur.jsx';
 import { Chips } from '../../components/Chips.jsx';
-import { BoutonRetour } from '../../components/BoutonRetour.jsx';
+import { EnTeteEcran } from '../../components/EnTeteEcran.jsx';
 import { db } from '../../db/db.js';
 import {
   enregistrerObservationCadre,
@@ -173,18 +173,20 @@ export function ObservationCadre({ visiteId, colonieId, onTerminer }) {
   }
 
   return (
-    <div className="min-h-screen bg-ground text-ink p-4 flex flex-col gap-4 max-w-md mx-auto">
-      <header className="flex flex-col gap-1">
-        <BoutonRetour onRetour={onTerminer} />
-        <h1 className="text-20 font-bold">
-          {ruche ? `Ruche ${ruche.numero}` : 'Colonie'} — Cadre par cadre
-        </h1>
-        <p className="text-13 text-ink-secondary">
-          {nbEnregistrees > 0
-            ? `${nbEnregistrees} face(s) déjà enregistrée(s) pour cette visite.`
-            : 'Un cadre remarquable suffit — pas besoin de tout saisir.'}
-        </p>
-      </header>
+    <div className="min-h-screen bg-ground text-ink flex flex-col max-w-md mx-auto">
+      <EnTeteEcran
+        retourLibelle="← Retour"
+        onRetour={onTerminer}
+        titre={`${ruche ? `Ruche ${ruche.numero}` : 'Colonie'} — Cadre par cadre`}
+      />
+
+      <div className="p-4 flex flex-col gap-4">
+
+      <p className="text-13 text-ink-secondary">
+        {nbEnregistrees > 0
+          ? `${nbEnregistrees} face(s) déjà enregistrée(s) pour cette visite.`
+          : 'Un cadre remarquable suffit — pas besoin de tout saisir.'}
+      </p>
 
       <section className="flex gap-3 items-end">
         <div className="flex-1">
@@ -314,6 +316,7 @@ export function ObservationCadre({ visiteId, colonieId, onTerminer }) {
           Terminer
         </button>
       )}
+      </div>
     </div>
   );
 }

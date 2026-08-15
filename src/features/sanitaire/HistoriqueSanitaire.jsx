@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { db } from '../../db/db.js';
 import { listerHistoriqueSanitaire } from '../../db/repositories/sanitaire.js';
 import { surSync } from '../../lib/sync.js';
-import { BoutonRetour } from '../../components/BoutonRetour.jsx';
+import { EnTeteEcran } from '../../components/EnTeteEcran.jsx';
 import {
   VOIE_LIBELLES,
   METHODE_LIBELLES,
@@ -43,13 +43,14 @@ export function HistoriqueSanitaire({
   if (lignes === null) return null;
 
   return (
-    <div className="min-h-screen bg-ground text-ink p-4 flex flex-col gap-4 max-w-md mx-auto">
-      <header className="flex flex-col gap-1">
-        <BoutonRetour onRetour={onRetour} />
-        <h1 className="text-20 font-bold">
-          {ruche ? `Ruche ${ruche.numero}` : 'Colonie'} — Sanitaire
-        </h1>
-      </header>
+    <div className="min-h-screen bg-ground text-ink flex flex-col max-w-md mx-auto">
+      <EnTeteEcran
+        retourLibelle="← Retour"
+        onRetour={onRetour}
+        titre={`${ruche ? `Ruche ${ruche.numero}` : 'Colonie'} — Sanitaire`}
+      />
+
+      <div className="p-4 flex flex-col gap-4">
 
       <div className="flex flex-col gap-2">
         {onOuvrirSaisieTraitement && (
@@ -230,6 +231,7 @@ export function HistoriqueSanitaire({
           Retour
         </button>
       )}
+      </div>
     </div>
   );
 }

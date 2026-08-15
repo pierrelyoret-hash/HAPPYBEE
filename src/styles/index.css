@@ -43,6 +43,17 @@
   --miel: #D89A2E;
   --vert: #2B6E48;
   --bordeaux: #7A1830;
+
+  /* Encre lisible sur fond miel (bandeau EnTeteEcran), réservée aux
+     métadonnées ; le texte principal sur miel reste --ink (7,1:1, cf. étape
+     6 revue finale). Corrigé le 15/08/2026 : la valeur d'origine (#5C3E05)
+     n'atteignait que ~4,0:1 sur #D89A2E — en dessous même du seuil AA
+     (4,5:1) malgré le commentaire d'origine annonçant 5,1:1 (non recalculé
+     rigoureusement à l'époque). #402C03 mesure ~5,4:1. Descendre jusqu'à
+     7:1 exigerait une teinte quasi noire, qui annulerait la hiérarchie
+     visuelle recherchée avec --ink — le critère de revue ("contraste ≥7:1")
+     ne porte de toute façon que sur le texte principal, pas les métadonnées. */
+  --sur-miel: #402C03;
 }
 
 body {

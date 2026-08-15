@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { BarreOnglets } from './components/BarreOnglets.jsx';
 import { Accueil, SaisieRucher, SaisieRuche } from './features/accueil';
 import { VueEnsemble } from './features/vue-ensemble';
 import { SaisieVisite } from './features/saisie-visite';
@@ -15,6 +16,7 @@ import {
 import { TourneeVocale } from './features/tournee-vocale';
 import { ObservationCadre } from './features/cadre-par-cadre';
 import { RevueTournee } from './features/revue-tournee';
+import { FilTournee } from './features/tournee';
 import { SaisieRecolte, HistoriqueRecolte, RendementRecolte } from './features/recolte';
 import { SaisieMouvement, HistoriqueMouvement } from './features/mouvement';
 import { TachesAFaire } from './features/taches';
@@ -25,6 +27,12 @@ export function App() {
   const [rucherSelectionne, setRucherSelectionne] = useState(null);
   const [colonieSelectionnee, setColonieSelectionnee] = useState(null);
   const [visiteSelectionnee, setVisiteSelectionnee] = useState(null);
+  // Écran vers lequel revenir après une saisie de visite — la plupart des
+  // parcours viennent de la vue d'ensemble, mais le fil de tournée doit
+  // pouvoir y ramener directement plutôt que de renvoyer systématiquement
+  // vers vue_ensemble (retour d'usage réel, 15/08/2026, relevé en relisant
+  // FilTournee.jsx).
+  const [ecranRetourSaisie, setEcranRetourSaisie] = useState('vue_ensemble');
 
   function ouvrirAccueil() {
     setEcran('accueil');
@@ -48,6 +56,11 @@ export function App() {
   function ouvrirSaisie(colonieId) {
     setColonieSelectionnee(colonieId);
     setEcran('saisie_visite');
+  }
+
+  function ouvrirSaisieDepuis(colonieId, origine) {
+    setEcranRetourSaisie(origine);
+    ouvrirSaisie(colonieId);
   }
 
   function ouvrirHistorique(colonieId) {
@@ -119,6 +132,11 @@ export function App() {
     setEcran('revue_tournee');
   }
 
+  function ouvrirFilTournee(rucherId) {
+    setRucherSelectionne(rucherId);
+    setEcran('fil_tournee');
+  }
+
   function ouvrirObservationCadre(visiteId, colonieId) {
     setVisiteSelectionnee(visiteId);
     setColonieSelectionnee(colonieId);
@@ -135,6 +153,35 @@ export function App() {
 
   function retourVueEnsemble() {
     setEcran('vue_ensemble');
+  }
+
+  function retourDepuisSaisie() {
+    if (ecranRetourSaisie === 'fil_tournee') {
+      setEcran('fil_tournee');
+      return;
+    }
+    retourVueEnsemble();
+  }
+
+  // Barre d'onglets (refonte visuelle §6) : uniquement sur les écrans de
+  // premier niveau. "vue_ensemble" reste sous l'onglet "Rucher" — c'est un
+  // écran poussé depuis Accueil, pas une destination d'onglet séparée, donc
+  // il garde en plus son propre retour "← Ruchers" dans EnTeteEcran.
+  const ONGLET_PAR_ECRAN = { accueil: 'rucher', vue_ensemble: 'rucher', taches: 'taches', meteo: 'meteo' };
+
+  function naviguerOnglet(cle) {
+    if (cle === 'rucher') ouvrirAccueil();
+    else if (cle === 'taches') ouvrirTaches();
+    else if (cle === 'meteo') ouvrirMeteo();
+  }
+
+  function avecBarreOnglets(contenu) {
+    return (
+      <>
+        {contenu}
+        <BarreOnglets actif={ONGLET_PAR_ECRAN[ecran]} onNaviguer={naviguerOnglet} />
+      </>
+    );
   }
 
   if (ecran === 'saisie_rucher') {
@@ -162,7 +209,7 @@ export function App() {
       <SaisieVisite
         rucherId={rucherSelectionne}
         colonieInitialeId={colonieSelectionnee}
-        onRetour={retourVueEnsemble}
+        onRetour={retourDepuisSaisie}
         onOuvrirHistorique={ouvrirHistorique}
         onOuvrirSanitaire={ouvrirSanitaire}
         onOuvrirObservationCadre={ouvrirObservationCadre}
@@ -265,11 +312,13 @@ export function App() {
   }
 
   if (ecran === 'taches') {
-    return <TachesAFaire onRetour={ouvrirAccueil} />;
+    return avecBarreOnglets(<TachesAFaire onRetour={ouvrirAccueil} />);
   }
 
   if (ecran === 'meteo') {
-    return <Meteo onRetour={ouvrirAccueil} onOuvrirSaisieRucher={ouvrirSaisieRucher} />;
+    return avecBarreOnglets(
+      <Meteo onRetour={ouvrirAccueil} onOuvrirSaisieRucher={ouvrirSaisieRucher} />
+    );
   }
 
   if (ecran === 'export_sanitaire_pdf') {
@@ -296,6 +345,16 @@ export function App() {
     );
   }
 
+  if (ecran === 'fil_tournee') {
+    return (
+      <FilTournee
+        rucherId={rucherSelectionne}
+        onRetour={retourVueEnsemble}
+        onOuvrirVisite={(colonieId) => ouvrirSaisieDepuis(colonieId, 'fil_tournee')}
+      />
+    );
+  }
+
   if (ecran === 'observation_cadre') {
     return (
       <ObservationCadre
@@ -315,7 +374,7 @@ export function App() {
   }
 
   if (ecran === 'vue_ensemble') {
-    return (
+    return avecBarreOnglets(
       <VueEnsemble
         rucherId={rucherSelectionne}
         onOuvrirVisite={ouvrirSaisie}
@@ -328,7 +387,7 @@ export function App() {
     );
   }
 
-  return (
+  return avecBarreOnglets(
     <Accueil
       onOuvrirRucher={ouvrirRucher}
       onOuvrirSaisieRucher={ouvrirSaisieRucher}
@@ -336,6 +395,7 @@ export function App() {
       onOuvrirExportSanitairePdf={ouvrirExportSanitairePdf}
       onOuvrirTaches={ouvrirTaches}
       onOuvrirMeteo={ouvrirMeteo}
+      onOuvrirFilTournee={ouvrirFilTournee}
     />
   );
 }

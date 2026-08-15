@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { restaurerDonnees, compterEnregistrements } from '../../db/repositories/sauvegarde.js';
-import { BoutonRetour } from '../../components/BoutonRetour.jsx';
+import { EnTeteEcran } from '../../components/EnTeteEcran.jsx';
 
 export function Restauration({ onRetour }) {
   const [fichierChoisi, setFichierChoisi] = useState(null);
@@ -46,12 +46,12 @@ export function Restauration({ onRetour }) {
   }
 
   return (
-    <div className="min-h-screen bg-ground text-ink p-4 flex flex-col gap-4 max-w-md mx-auto">
-      <header className="flex flex-col gap-1">
-        <BoutonRetour onRetour={onRetour} />
-        <h1 className="text-20 font-bold">Restaurer une sauvegarde</h1>
-        <p className="text-13 text-ink-secondary">Remplace toutes les données actuelles</p>
-      </header>
+    <div className="min-h-screen bg-ground text-ink flex flex-col max-w-md mx-auto">
+      <EnTeteEcran retourLibelle="← Retour" onRetour={onRetour} titre="Restaurer une sauvegarde" />
+
+      <div className="p-4 flex flex-col gap-4">
+
+      <p className="text-13 text-ink-secondary">Remplace toutes les données actuelles</p>
 
       {!fichierChoisi && !message && (
         <label className="border border-dashed border-rule-strong rounded p-4 text-center text-13 text-ink-secondary block">
@@ -106,6 +106,7 @@ export function Restauration({ onRetour }) {
           Retour à la vue d'ensemble
         </button>
       )}
+      </div>
     </div>
   );
 }

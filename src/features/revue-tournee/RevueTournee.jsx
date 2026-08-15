@@ -3,7 +3,7 @@ import { Compteur } from '../../components/Compteur.jsx';
 import { Segmente } from '../../components/Segmente.jsx';
 import { Interrupteur } from '../../components/Interrupteur.jsx';
 import { Chips } from '../../components/Chips.jsx';
-import { BoutonRetour } from '../../components/BoutonRetour.jsx';
+import { EnTeteEcran } from '../../components/EnTeteEcran.jsx';
 import { db } from '../../db/db.js';
 import { obtenirRucher } from '../../db/repositories/ruchers.js';
 import { listerAudioColonie, rattacherVisite } from '../../db/repositories/audio.js';
@@ -390,15 +390,15 @@ export function RevueTournee({ rucherId, onRetour, onOuvrirSaisieVisite }) {
   }
 
   return (
-    <div className="min-h-screen bg-ground text-ink p-4 flex flex-col gap-4 max-w-md mx-auto">
-      <header className="flex flex-col gap-1">
-        <BoutonRetour onRetour={onRetour} />
-        <h1 className="text-20 font-bold">Revue de tournée</h1>
-        <p className="text-13 text-ink-secondary">
-          Chaque proposition de l'IA est à relire avant d'être enregistrée — rien n'est écrit
-          automatiquement.
-        </p>
-      </header>
+    <div className="min-h-screen bg-ground text-ink flex flex-col max-w-md mx-auto">
+      <EnTeteEcran retourLibelle="← Retour" onRetour={onRetour} titre="Revue de tournée" />
+
+      <div className="p-4 flex flex-col gap-4">
+
+      <p className="text-13 text-ink-secondary">
+        Chaque proposition de l'IA est à relire avant d'être enregistrée — rien n'est écrit
+        automatiquement.
+      </p>
 
       {absentes.length > 0 && (
         <section className="border border-rule-strong rounded p-3 bg-action-bg">
@@ -451,6 +451,7 @@ export function RevueTournee({ rucherId, onRetour, onOuvrirSaisieVisite }) {
           Retour à la vue d'ensemble
         </button>
       )}
+      </div>
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Compteur } from '../../components/Compteur.jsx';
 import { Segmente } from '../../components/Segmente.jsx';
-import { BoutonRetour } from '../../components/BoutonRetour.jsx';
+import { EnTeteEcran } from '../../components/EnTeteEcran.jsx';
 import { db } from '../../db/db.js';
 import { enregistrerComptageVarroa, calculerNiveauAlerte } from '../../db/repositories/sanitaire.js';
 import { creerTache } from '../../db/repositories/taches.js';
@@ -117,11 +117,10 @@ export function SaisieComptageVarroa({ colonieId, onRetour, onEnregistre }) {
   }
 
   return (
-    <div className="min-h-screen bg-ground text-ink p-4 flex flex-col gap-4 max-w-md mx-auto">
-      <header className="flex flex-col gap-1">
-        <BoutonRetour onRetour={onRetour} />
-        <h1 className="text-20 font-bold">Comptage varroa</h1>
-      </header>
+    <div className="min-h-screen bg-ground text-ink flex flex-col max-w-md mx-auto">
+      <EnTeteEcran retourLibelle="← Retour" onRetour={onRetour} titre="Comptage varroa" />
+
+      <div className="p-4 flex flex-col gap-4">
 
       <section className="flex flex-col gap-3">
         <div>
@@ -193,6 +192,7 @@ export function SaisieComptageVarroa({ colonieId, onRetour, onEnregistre }) {
           Retour
         </button>
       )}
+      </div>
     </div>
   );
 }

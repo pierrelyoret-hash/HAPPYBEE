@@ -27,7 +27,7 @@ export function Compteur({ label, value, min = 0, max = 12, provenance, referenc
         <button
           type="button"
           onClick={diminuer}
-          className="w-10 h-10 rounded bg-surface-sunk text-2xl leading-none active:bg-rule"
+          className="w-11 h-11 rounded bg-surface-sunk text-2xl leading-none active:bg-rule"
           aria-label="diminuer"
         >
           –
@@ -42,7 +42,7 @@ export function Compteur({ label, value, min = 0, max = 12, provenance, referenc
         <button
           type="button"
           onClick={augmenter}
-          className="w-10 h-10 rounded bg-surface-sunk text-2xl leading-none active:bg-rule"
+          className="w-11 h-11 rounded bg-surface-sunk text-2xl leading-none active:bg-rule"
           aria-label="augmenter"
         >
           +

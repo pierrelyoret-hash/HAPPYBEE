@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Segmente } from '../../components/Segmente.jsx';
 import { SelecteurUnique } from '../../components/SelecteurUnique.jsx';
 import { Chips } from '../../components/Chips.jsx';
-import { BoutonRetour } from '../../components/BoutonRetour.jsx';
+import { EnTeteEcran } from '../../components/EnTeteEcran.jsx';
 import { db } from '../../db/db.js';
 import { listerColoniesActives } from '../../db/repositories/colonies.js';
 import {
@@ -205,13 +205,14 @@ export function SaisieRecolte({ colonieId, onRetour, onEnregistre }) {
   }
 
   return (
-    <div className="min-h-screen bg-ground text-ink p-4 flex flex-col gap-4 max-w-md mx-auto">
-      <header className="flex flex-col gap-1">
-        <BoutonRetour onRetour={onRetour} />
-        <h1 className="text-20 font-bold">
-          {ruche ? `Ruche ${ruche.numero}` : 'Colonie'} — Récolte
-        </h1>
-      </header>
+    <div className="min-h-screen bg-ground text-ink flex flex-col max-w-md mx-auto">
+      <EnTeteEcran
+        retourLibelle="← Retour"
+        onRetour={onRetour}
+        titre={`${ruche ? `Ruche ${ruche.numero}` : 'Colonie'} — Récolte`}
+      />
+
+      <div className="p-4 flex flex-col gap-4">
 
       {alerteDelaiAttente.length > 0 && (
         <div className="border border-rule-strong bg-urgent-bg rounded p-3 flex flex-col gap-2">
@@ -550,6 +551,7 @@ export function SaisieRecolte({ colonieId, onRetour, onEnregistre }) {
           Retour
         </button>
       )}
+      </div>
     </div>
   );
 }

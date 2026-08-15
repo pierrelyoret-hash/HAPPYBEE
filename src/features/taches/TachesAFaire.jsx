@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Segmente } from '../../components/Segmente.jsx';
-import { BoutonRetour } from '../../components/BoutonRetour.jsx';
+import { EnTeteEcran } from '../../components/EnTeteEcran.jsx';
 import { listerColoniesActives } from '../../db/repositories/colonies.js';
 import {
   listerTachesAvecContexte,
@@ -85,11 +85,10 @@ export function TachesAFaire({ onRetour }) {
   if (taches === null) return null;
 
   return (
-    <div className="min-h-screen bg-ground text-ink p-4 flex flex-col gap-4 max-w-md mx-auto">
-      <header className="flex flex-col gap-1">
-        <BoutonRetour onRetour={onRetour} />
-        <h1 className="text-20 font-bold">Tâches</h1>
-      </header>
+    <div className="min-h-screen bg-ground text-ink flex flex-col max-w-md mx-auto pb-14">
+      <EnTeteEcran retourLibelle="← Retour" onRetour={onRetour} titre="Tâches" />
+
+      <div className="p-4 flex flex-col gap-4">
 
       <button
         type="button"
@@ -193,6 +192,7 @@ export function TachesAFaire({ onRetour }) {
           Retour
         </button>
       )}
+      </div>
     </div>
   );
 }

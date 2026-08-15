@@ -25,6 +25,7 @@ export default {
         miel: 'var(--miel)',
         vert: 'var(--vert)',
         bordeaux: 'var(--bordeaux)',
+        'sur-miel': 'var(--sur-miel)',
       },
       fontFamily: {
         sans: ['Atkinson Hyperlegible', 'sans-serif'],

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Segmente } from '../../components/Segmente.jsx';
-import { BoutonRetour } from '../../components/BoutonRetour.jsx';
+import { EnTeteEcran } from '../../components/EnTeteEcran.jsx';
 import { enregistrerNourrissement } from '../../db/repositories/sanitaire.js';
 
 const TYPE_OPTIONS = [
@@ -64,11 +64,10 @@ export function SaisieNourrissement({ colonieId, onRetour, onEnregistre }) {
   }
 
   return (
-    <div className="min-h-screen bg-ground text-ink p-4 flex flex-col gap-4 max-w-md mx-auto">
-      <header className="flex flex-col gap-1">
-        <BoutonRetour onRetour={onRetour} />
-        <h1 className="text-20 font-bold">Nourrissement</h1>
-      </header>
+    <div className="min-h-screen bg-ground text-ink flex flex-col max-w-md mx-auto">
+      <EnTeteEcran retourLibelle="← Retour" onRetour={onRetour} titre="Nourrissement" />
+
+      <div className="p-4 flex flex-col gap-4">
 
       <section className="flex flex-col gap-3">
         <div>
@@ -169,6 +168,7 @@ export function SaisieNourrissement({ colonieId, onRetour, onEnregistre }) {
           Retour
         </button>
       )}
+      </div>
     </div>
   );
 }

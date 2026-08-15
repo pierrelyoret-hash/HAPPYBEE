@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { SelecteurUnique } from '../../components/SelecteurUnique.jsx';
-import { BoutonRetour } from '../../components/BoutonRetour.jsx';
+import { EnTeteEcran } from '../../components/EnTeteEcran.jsx';
 import { db } from '../../db/db.js';
 import { enregistrerMouvement } from '../../db/repositories/mouvement.js';
 import { creerTache } from '../../db/repositories/taches.js';
@@ -122,13 +122,14 @@ export function SaisieMouvement({ colonieId, onRetour, onEnregistre, onRucheDepl
   }
 
   return (
-    <div className="min-h-screen bg-ground text-ink p-4 flex flex-col gap-4 max-w-md mx-auto">
-      <header className="flex flex-col gap-1">
-        <BoutonRetour onRetour={onRetour} />
-        <h1 className="text-20 font-bold">
-          {ruche ? `Ruche ${ruche.numero}` : 'Colonie'} — Mouvement
-        </h1>
-      </header>
+    <div className="min-h-screen bg-ground text-ink flex flex-col max-w-md mx-auto">
+      <EnTeteEcran
+        retourLibelle="← Retour"
+        onRetour={onRetour}
+        titre={`${ruche ? `Ruche ${ruche.numero}` : 'Colonie'} — Mouvement`}
+      />
+
+      <div className="p-4 flex flex-col gap-4">
 
       <section className="flex flex-col gap-3">
         <div>
@@ -226,6 +227,7 @@ export function SaisieMouvement({ colonieId, onRetour, onEnregistre, onRucheDepl
           Retour
         </button>
       )}
+      </div>
     </div>
   );
 }

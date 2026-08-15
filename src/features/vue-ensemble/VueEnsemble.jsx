@@ -1,15 +1,12 @@
 import { useEffect, useState } from 'react';
+import { EnTeteEcran } from '../../components/EnTeteEcran.jsx';
 import { PastilleEtat } from '../../components/PastilleEtat.jsx';
 import { LigneColonie } from './LigneColonie.jsx';
 import { db } from '../../db/db.js';
 import { obtenirRucher, mettreAJourOrdreTournee } from '../../db/repositories/ruchers.js';
 import { archiverRuche } from '../../db/repositories/ruches.js';
 import { obtenirDerniereVisite } from '../../db/repositories/visites.js';
-import {
-  listerTachesOuvertesRucher,
-  marquerTacheFaite,
-  creerTache,
-} from '../../db/repositories/taches.js';
+import { listerTachesOuvertesRucher, creerTache } from '../../db/repositories/taches.js';
 import { calculerEtat, joursDepuis, SEUIL_JOURS_A_VISITER } from '../../lib/etats.js';
 import { surSync } from '../../lib/sync.js';
 
@@ -27,10 +24,16 @@ function useHorsLigne() {
   return horsLigne;
 }
 
-function dateLisible(iso) {
-  return new Date(iso).toLocaleDateString('fr-FR');
+function estAujourdhui(dateIso) {
+  if (!dateIso) return false;
+  const d = new Date(dateIso);
+  const maintenant = new Date();
+  return (
+    d.getFullYear() === maintenant.getFullYear() &&
+    d.getMonth() === maintenant.getMonth() &&
+    d.getDate() === maintenant.getDate()
+  );
 }
-
 
 export function VueEnsemble({
   rucherId,
@@ -150,11 +153,6 @@ export function VueEnsemble({
     return surSync(() => charger());
   }, [rucherId]);
 
-  async function terminerTache(tacheId) {
-    await marquerTacheFaite(tacheId);
-    await charger();
-  }
-
   async function deplacer(index, direction) {
     const nouvelOrdre = [...rucher.ordre_tournee];
     const cible = index + direction;
@@ -175,159 +173,126 @@ export function VueEnsemble({
     return <p className="p-4 text-13 text-ink-secondary">Aucun rucher trouvé.</p>;
   }
 
-  const urgences = lignes.filter((l) => l.etat === 'urgent');
+  const visiteesAujourdhui = lignes.filter((l) => estAujourdhui(l.derniereVisite?.date)).length;
 
   return (
-    <div className="min-h-screen bg-ground text-ink p-4 flex flex-col gap-4 max-w-md mx-auto">
-      <header className="flex flex-col gap-1">
-        {onRetourAccueil && (
-          <button
-            type="button"
-            onClick={onRetourAccueil}
-            className="text-13 text-ink-secondary underline self-start"
-          >
-            ← Ruchers
-          </button>
-        )}
-        <div className="flex items-center justify-between gap-2">
-          <h1 className="text-20 font-bold">{rucher.nom}</h1>
-          <div className="flex items-center gap-2 shrink-0">
+    <div className="min-h-screen bg-ground text-ink flex flex-col max-w-md mx-auto pb-14">
+      <EnTeteEcran
+        titre={rucher.nom}
+        retourLibelle="← Ruchers"
+        onRetour={onRetourAccueil}
+        droite={
+          <div className="flex items-center gap-2">
             {horsLigne && (
-              <span className="text-11 text-ink-muted border border-rule-strong rounded px-2 py-1">
-                Hors ligne
+              <span className="font-mono text-[10px] font-bold text-sur-miel border border-sur-miel rounded px-1.5 py-0.5">
+                HORS LIGNE
               </span>
             )}
             {onOuvrirSaisieRucher && (
               <button
                 type="button"
                 onClick={() => onOuvrirSaisieRucher(rucher.id)}
-                className="text-13 text-ink-secondary underline"
+                className="text-13 text-sur-miel underline"
               >
                 Modifier
               </button>
             )}
           </div>
-        </div>
-      </header>
+        }
+        progression={lignes.length > 0 ? { fait: visiteesAujourdhui, total: lignes.length } : undefined}
+      />
 
-      {urgences.length > 0 && (
-        <section className="flex flex-col gap-2">
-          {urgences.map((ligne) => (
-            <div
-              key={ligne.colonie.id}
-              className="flex items-start gap-2 border border-rule-strong bg-urgent-bg rounded p-3"
-            >
+      <div className="flex-1 flex flex-col gap-4 pt-4">
+        <section>
+          <div className="flex items-center justify-between mb-2 px-4">
+            <p className="text-13 text-ink-secondary">Ordre de tournée</p>
+            {modeEdition && (
               <button
                 type="button"
-                onClick={() => onOuvrirVisite(ligne.colonie.id)}
-                className="text-left flex-1 min-w-0"
+                onClick={() => setModeEdition(false)}
+                className="text-12 text-ink-secondary underline"
               >
-                <p className="text-13 font-bold text-urgent-ink">
-                  ! Ruche {ligne.ruche.numero} — {ligne.tachesUrgentes[0]?.libelle ?? 'échéance dépassée'}
-                </p>
-                <p className="text-11 text-urgent-ink">
-                  Échéance : {dateLisible(ligne.tachesUrgentes[0]?.date_echeance)}
-                </p>
+                Terminé
               </button>
-              {ligne.tachesUrgentes[0] && (
-                <button
-                  type="button"
-                  onClick={() => terminerTache(ligne.tachesUrgentes[0].id)}
-                  className="text-11 text-urgent-ink underline shrink-0 mt-0.5"
-                >
-                  ✓ Fait
-                </button>
-              )}
+            )}
+          </div>
+          <ul className="bg-surface border-t border-b border-rule divide-y divide-rule">
+            {lignes.map((ligne, index) => (
+              <LigneColonie
+                key={ligne.colonie.id}
+                ligne={ligne}
+                modeEdition={modeEdition}
+                premiere={index === 0}
+                derniere={index === lignes.length - 1}
+                onOuvrirVisite={onOuvrirVisite}
+                onEntrerModeEdition={() => setModeEdition(true)}
+                onDeplacer={(direction) => deplacer(index, direction)}
+                onArchiver={() => archiver(ligne.ruche.id)}
+              />
+            ))}
+          </ul>
+          {/* Toujours visible, pas seulement en mode réordonnancement : sans
+              ça, un rucher neuf sans aucune ruche n'a aucun moyen d'en
+              ajouter une première (rien à appuyer longuement pour entrer en
+              mode édition). Bug constaté le 14/08/2026. */}
+          {onOuvrirSaisieRuche && (
+            <div className="px-4">
+              <button
+                type="button"
+                onClick={() => onOuvrirSaisieRuche(rucher.id)}
+                className="mt-2 h-11 w-full rounded bg-miel text-ink text-13 font-bold"
+              >
+                + Ruche
+              </button>
             </div>
-          ))}
-        </section>
-      )}
-
-      <button
-        type="button"
-        onClick={() => onOuvrirVisite(null)}
-        className="h-[46px] w-full rounded bg-ink text-surface text-15 font-bold"
-      >
-        Saisir une visite
-      </button>
-
-      <button
-        type="button"
-        onClick={onOuvrirTourneeVocale}
-        className="h-10 w-full rounded bg-surface border border-rule-strong text-ink text-15 font-bold"
-      >
-        Tournée vocale
-        <span className="block text-11 font-normal text-ink-secondary">
-          dicter la tournée, colonie par colonie
-        </span>
-      </button>
-
-      <section>
-        <div className="flex items-center justify-between mb-2">
-          <p className="text-13 text-ink-secondary">Ordre de tournée</p>
-          {modeEdition && (
-            <button
-              type="button"
-              onClick={() => setModeEdition(false)}
-              className="text-12 text-ink-secondary underline"
-            >
-              Terminé
-            </button>
           )}
-        </div>
-        <ul className="bg-surface rounded border border-rule divide-y divide-rule">
-          {lignes.map((ligne, index) => (
-            <LigneColonie
-              key={ligne.colonie.id}
-              ligne={ligne}
-              modeEdition={modeEdition}
-              premiere={index === 0}
-              derniere={index === lignes.length - 1}
-              onOuvrirVisite={onOuvrirVisite}
-              onEntrerModeEdition={() => setModeEdition(true)}
-              onDeplacer={(direction) => deplacer(index, direction)}
-              onArchiver={() => archiver(ligne.ruche.id)}
-            />
-          ))}
-        </ul>
-        {/* Toujours visible, pas seulement en mode réordonnancement : sans
-            ça, un rucher neuf sans aucune ruche n'a aucun moyen d'en
-            ajouter une première (rien à appuyer longuement pour entrer en
-            mode édition). Bug constaté le 14/08/2026. */}
-        {onOuvrirSaisieRuche && (
-          <button
-            type="button"
-            onClick={() => onOuvrirSaisieRuche(rucher.id)}
-            className="mt-2 h-11 w-full rounded bg-miel text-ink text-13 font-bold"
-          >
-            + Ruche
-          </button>
-        )}
-      </section>
+        </section>
 
-      <footer className="flex flex-col gap-3 mt-2">
-        <div>
-          <p className="text-12 text-ink-secondary mb-1">Légende</p>
-          <div className="flex flex-wrap gap-2">
-            <PastilleEtat etat="urgent" />
-            <PastilleEtat etat="action" />
-            <PastilleEtat etat="a_visiter" />
-            <PastilleEtat etat="normale" />
+        <footer className="flex flex-col gap-3 px-4">
+          <div>
+            <p className="text-12 text-ink-secondary mb-1">Légende</p>
+            <div className="flex flex-wrap gap-2">
+              <PastilleEtat etat="urgent" />
+              <PastilleEtat etat="action" />
+              <PastilleEtat etat="a_visiter" />
+              <PastilleEtat etat="normale" />
+            </div>
           </div>
-        </div>
 
-        {onOuvrirImport && (
-          <div className="pt-2 border-t border-rule">
-            <button
-              type="button"
-              onClick={onOuvrirImport}
-              className="text-12 text-ink-secondary self-start"
-            >
-              Importer l'historique CSV
-            </button>
-          </div>
-        )}
-      </footer>
+          {onOuvrirImport && (
+            <div className="pt-2 border-t border-rule">
+              <button
+                type="button"
+                onClick={onOuvrirImport}
+                className="text-12 text-ink-secondary self-start"
+              >
+                Importer l'historique CSV
+              </button>
+            </div>
+          )}
+        </footer>
+      </div>
+
+      <div className="px-4 py-3 border-t border-rule flex flex-col gap-2">
+        <button
+          type="button"
+          onClick={() => onOuvrirVisite(null)}
+          className="h-[46px] w-full rounded bg-ink text-surface text-15 font-bold"
+        >
+          Saisir une visite
+        </button>
+
+        <button
+          type="button"
+          onClick={onOuvrirTourneeVocale}
+          className="h-10 w-full rounded bg-surface border border-rule-strong text-ink text-15 font-bold"
+        >
+          Tournée vocale
+          <span className="block text-11 font-normal text-ink-secondary">
+            dicter la tournée, colonie par colonie
+          </span>
+        </button>
+      </div>
     </div>
   );
 }

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { db } from '../../db/db.js';
 import { listerHistoriqueMouvement } from '../../db/repositories/mouvement.js';
 import { surSync } from '../../lib/sync.js';
-import { BoutonRetour } from '../../components/BoutonRetour.jsx';
+import { EnTeteEcran } from '../../components/EnTeteEcran.jsx';
 import { TYPE_MOUVEMENT_LIBELLES } from '../../lib/libellesMouvement.js';
 
 function dateLisible(iso) {
@@ -29,11 +29,14 @@ export function HistoriqueMouvement({ colonieId, onRetour, onOuvrirSaisieMouveme
   if (lignes === null) return null;
 
   return (
-    <div className="min-h-screen bg-ground text-ink p-4 flex flex-col gap-4 max-w-md mx-auto">
-      <header className="flex flex-col gap-1">
-        <BoutonRetour onRetour={onRetour} />
-        <h1 className="text-20 font-bold">{ruche ? `Ruche ${ruche.numero}` : 'Colonie'} — Mouvements</h1>
-      </header>
+    <div className="min-h-screen bg-ground text-ink flex flex-col max-w-md mx-auto">
+      <EnTeteEcran
+        retourLibelle="← Retour"
+        onRetour={onRetour}
+        titre={`${ruche ? `Ruche ${ruche.numero}` : 'Colonie'} — Mouvements`}
+      />
+
+      <div className="p-4 flex flex-col gap-4">
 
       {onOuvrirSaisieMouvement && (
         <button
@@ -76,6 +79,7 @@ export function HistoriqueMouvement({ colonieId, onRetour, onOuvrirSaisieMouveme
           Retour
         </button>
       )}
+      </div>
     </div>
   );
 }
