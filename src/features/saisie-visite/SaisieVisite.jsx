@@ -10,10 +10,13 @@ import {
   obtenirDerniereVisite,
   enregistrerVisite,
 } from '../../db/repositories/visites.js';
-import { creerTache } from '../../db/repositories/taches.js';
 import { enregistrerPhoto } from '../../db/repositories/photos.js';
 import { comprimerImage } from '../../lib/compressionImage.js';
 import { SIGNES_SANITAIRES_OPTIONS, SIGNES_CATEGORIE1 } from '../../lib/taxonomieSanitaire.js';
+import {
+  creerTacheSuspicionSiNecessaire,
+  creerRappelsInterventionSiNecessaire,
+} from '../../lib/reglesVisite.js';
 
 // Correction écrans L1 §7/§9.2 : un seul contrôle pour la ponte, sur 0-5.
 // "Mâles" n'est pas un degré de compacité — il est sorti de cette échelle
@@ -66,12 +69,6 @@ const CHAMPS_REPORTABLES = [
 ];
 
 const ECHELLE_1_A_5 = [1, 2, 3, 4, 5].map((n) => ({ value: n, label: String(n) }));
-
-function ajouterJours(dateIso, jours) {
-  const d = new Date(dateIso);
-  d.setDate(d.getDate() + jours);
-  return d.toISOString();
-}
 
 const CELLULES_ROYALES_TYPE_OPTIONS = [
   { value: 'essaimage', label: 'Essaimage' },
@@ -253,102 +250,6 @@ export function SaisieVisite({
     };
   }
 
-  // Étape 5 du parcours catégorie 1 (brief L1+ §5) : la tâche urgente n'est
-  // créée qu'une fois la visite effectivement enregistrée, pour pouvoir la
-  // rattacher via visite_declencheuse_id.
-  async function creerTacheSuspicionSiNecessaire(visite) {
-    if (!visite.suspicion_reglementee) return;
-    const maintenant = new Date().toISOString();
-    await creerTache({
-      id: crypto.randomUUID(),
-      colonie_id: visite.colonie_id,
-      rucher_id: contexteActuel?.rucher?.id ?? null,
-      libelle: `Suspicion de danger sanitaire de catégorie 1 — Ruche ${contexteActuel?.ruche?.numero ?? ''} : déclaration et prélèvement à organiser`,
-      // Échéance = maintenant : l'état "urgent" (lib/etats.js) ne se
-      // déclenche que sur une échéance échue, pas sur le champ `priorite`.
-      // Une suspicion catégorie 1 n'a pas de délai — elle est due immédiatement.
-      date_echeance: maintenant,
-      priorite: 'urgente',
-      origine: 'manuelle',
-      statut: 'a_faire',
-      visite_declencheuse_id: visite.id,
-      created_at: maintenant,
-      updated_at: maintenant,
-      deleted_at: null,
-    });
-  }
-
-  // Rappels fixes (cahier des charges §6.3), même logique que ci-dessus :
-  // créés une fois la visite enregistrée, pour les rattacher.
-  async function creerRappelsInterventionSiNecessaire(visite) {
-    const maintenant = new Date().toISOString();
-    const rucherId = contexteActuel?.rucher?.id ?? null;
-
-    if (visite.cellules_royales_type === 'essaimage' && visite.cellules_royales_nb > 0) {
-      await creerTache({
-        id: crypto.randomUUID(),
-        colonie_id: visite.colonie_id,
-        rucher_id: rucherId,
-        libelle: "Contrôler l'essaimage",
-        date_echeance: ajouterJours(visite.date, 7),
-        priorite: 'moyenne',
-        origine: 'generee',
-        regle_origine: 'visite_cellules_essaimage',
-        statut: 'a_faire',
-        visite_declencheuse_id: visite.id,
-        created_at: maintenant,
-        updated_at: maintenant,
-        deleted_at: null,
-      });
-    }
-
-    if (visite.hausses_posees) {
-      await creerTache({
-        id: crypto.randomUUID(),
-        colonie_id: visite.colonie_id,
-        rucher_id: rucherId,
-        libelle: 'Contrôler le remplissage',
-        date_echeance: ajouterJours(visite.date, 14),
-        priorite: 'moyenne',
-        origine: 'generee',
-        regle_origine: 'visite_hausse_posee',
-        statut: 'a_faire',
-        visite_declencheuse_id: visite.id,
-        created_at: maintenant,
-        updated_at: maintenant,
-        deleted_at: null,
-      });
-    }
-
-    // "Introduction d'un cadre de couvain frais" ne fait pas partie du
-    // schéma `visite` (§4.2) — signal ponctuel de cet écran uniquement,
-    // jamais persisté, seulement utilisé ici pour déclencher la cascade.
-    if (cadreCouvainIntroduit && (anomalies.includes('orpheline') || anomalies.includes('bourdonneuse'))) {
-      const cascade = [
-        [9, "Vérifier l'operculation des cellules royales"],
-        [16, 'Vérifier la naissance'],
-        [28, 'Contrôler la ponte'],
-      ];
-      for (const [jours, libelle] of cascade) {
-        await creerTache({
-          id: crypto.randomUUID(),
-          colonie_id: visite.colonie_id,
-          rucher_id: rucherId,
-          libelle,
-          date_echeance: ajouterJours(visite.date, jours),
-          priorite: 'moyenne',
-          origine: 'generee',
-          regle_origine: 'visite_cadre_couvain_introduit',
-          statut: 'a_faire',
-          visite_declencheuse_id: visite.id,
-          created_at: maintenant,
-          updated_at: maintenant,
-          deleted_at: null,
-        });
-      }
-    }
-  }
-
   // Comprimées dès l'ajout (pas à l'enregistrement) : l'aperçu affiché est
   // déjà la version qui sera stockée, pas de surprise de taille après coup.
   async function ajouterPhotos(fichiers) {
@@ -389,8 +290,14 @@ export function SaisieVisite({
     try {
       const visite = await construireVisite();
       await enregistrerVisite(visite);
-      await creerTacheSuspicionSiNecessaire(visite);
-      await creerRappelsInterventionSiNecessaire(visite);
+      await creerTacheSuspicionSiNecessaire(visite, {
+        rucherId: contexteActuel?.rucher?.id ?? null,
+        rucheNumero: contexteActuel?.ruche?.numero,
+      });
+      await creerRappelsInterventionSiNecessaire(visite, {
+        rucherId: contexteActuel?.rucher?.id ?? null,
+        cadreCouvainIntroduit,
+      });
       await enregistrerPhotosEnAttente(visite.id);
       setDerniereVisite(visite);
       setMessage('Visite enregistrée.');
@@ -405,8 +312,14 @@ export function SaisieVisite({
     try {
       const visite = await construireVisite();
       await enregistrerVisite(visite);
-      await creerTacheSuspicionSiNecessaire(visite);
-      await creerRappelsInterventionSiNecessaire(visite);
+      await creerTacheSuspicionSiNecessaire(visite, {
+        rucherId: contexteActuel?.rucher?.id ?? null,
+        rucheNumero: contexteActuel?.ruche?.numero,
+      });
+      await creerRappelsInterventionSiNecessaire(visite, {
+        rucherId: contexteActuel?.rucher?.id ?? null,
+        cadreCouvainIntroduit,
+      });
       await enregistrerPhotosEnAttente(visite.id);
       setDerniereVisite(visite);
       setMessage('Visite enregistrée — rien à signaler.');
