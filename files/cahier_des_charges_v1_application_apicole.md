@@ -614,3 +614,15 @@ Demandé via la place réservée à l'écran d'accueil ("Météo — à venir", 
 | Créneau favorable (F8.3) | Heuristique fixe et volontairement simple (température ≥ 15°C, vent ≤ 20 km/h, précipitations < 1 mm), affichée comme un simple repère visuel (✓), pas une recommandation. **Ce n'est pas le moteur de règles paramétrable de M12** — celui-ci reste hors périmètre |
 | Rucher sans coordonnées | Message explicite + raccourci vers la fiche rucher plutôt qu'un écran vide ou une erreur silencieuse |
 | Pré-remplissage météo en fiche visite (F2.4) | Non traité dans ce lot — l'écran météo est autonome, accessible depuis l'accueil uniquement. F2.4 resterait à faire séparément si souhaité |
+
+## 19. Arbitrages actés — 15 août 2026 (station Netatmo personnelle)
+
+Hors périmètre initial du cahier des charges (aucune ligne M ne le prévoyait) : demandé directement par l'exploitant, qui possède une station Netatmo à domicile. Complète l'écran Météo avec des relevés **réels** (domicile), à distinguer des prévisions Open-Meteo (§18) qui restent, elles, par rucher.
+
+| Point | Décision |
+|---|---|
+| Architecture | Première brique serveur de l'application (jusqu'ici entièrement statique côté client + Supabase). Une fonction Netlify (`netlify/functions/netatmo-meteo.mjs`) fait l'intermédiaire : le `client_secret` Netatmo et la clé `service_role` Supabase n'existent **jamais** côté navigateur |
+| Rotation du refresh_token | Netatmo régénère le refresh_token à **chaque** rafraîchissement (RFC OAuth2, depuis avril 2023) — l'ancien devient invalide. D'où une table Supabase dédiée (`netatmo_credentials`, RLS activé sans policy = verrouillée à `service_role` uniquement) plutôt qu'une variable d'environnement figée, qui se serait cassée au premier rafraîchissement |
+| Fréquence de rafraîchissement | L'access_token (valable 3h) est réutilisé tel quel tant qu'il n'est pas expiré — pas de rafraîchissement à chaque ouverture de l'écran, pour limiter les rotations inutiles du refresh_token |
+| Affichage | Carte "Ma station (domicile)" en tête de l'écran Météo (pas rattachée à un rucher précis) — un relevé par module Netatmo détecté (intérieur, extérieur, pluie, vent selon l'équipement), dégradation silencieuse si la station n'est pas configurée ou injoignable |
+| Secrets | `NETATMO_CLIENT_ID`, `NETATMO_CLIENT_SECRET` et `SUPABASE_SERVICE_ROLE_KEY` en variables d'environnement Netlify (jamais préfixées `VITE_`, donc jamais embarquées dans le bundle client) |

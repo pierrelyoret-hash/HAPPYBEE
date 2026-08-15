@@ -3,6 +3,7 @@ import { BoutonRetour } from '../../components/BoutonRetour.jsx';
 import { listerRuchers } from '../../db/repositories/ruchers.js';
 import { obtenirPrevisionRucher } from '../../db/repositories/meteo.js';
 import { libelleCodeMeteo, estCreneauFavorable } from '../../lib/meteo.js';
+import { recupererReleveNetatmo, CHAMPS_NETATMO } from '../../lib/netatmo.js';
 
 function dateLisible(iso) {
   return new Date(iso).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' });
@@ -105,6 +106,45 @@ function DetailMeteoRucher({ rucher, onRetour, onOuvrirSaisieRucher }) {
   );
 }
 
+function StationNetatmo() {
+  const [releves, setReleves] = useState(undefined);
+  const [erreur, setErreur] = useState(null);
+
+  useEffect(() => {
+    recupererReleveNetatmo()
+      .then(setReleves)
+      .catch((err) => {
+        setErreur(err.message);
+        setReleves(null);
+      });
+  }, []);
+
+  if (releves === undefined) return null;
+
+  if (releves === null) {
+    return <p className="text-11 text-ink-muted">Station Netatmo indisponible ({erreur}).</p>;
+  }
+
+  return (
+    <section className="flex flex-col gap-2">
+      <p className="text-13 text-ink-secondary">Ma station (domicile)</p>
+      <ul className="bg-surface rounded border border-rule divide-y divide-rule">
+        {releves.map((releve) => (
+          <li key={releve.type} className="p-3">
+            <p className="text-14 font-bold">{releve.libelle}</p>
+            <p className="text-13 text-ink-secondary">
+              {Object.entries(releve.donnees)
+                .filter(([cle]) => CHAMPS_NETATMO[cle])
+                .map(([cle, valeur]) => `${CHAMPS_NETATMO[cle].libelle} : ${valeur}${CHAMPS_NETATMO[cle].unite}`)
+                .join(' · ')}
+            </p>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
 // M8 (F8.1-F8.3) : module météo, accessible depuis l'écran d'accueil.
 // F8.3 reste une heuristique fixe et indicative (voir lib/meteo.js) —
 // distincte du moteur de règles paramétrable de l'addendum M12, hors
@@ -135,6 +175,8 @@ export function Meteo({ onRetour, onOuvrirSaisieRucher }) {
         <BoutonRetour onRetour={onRetour} />
         <h1 className="text-20 font-bold">Météo</h1>
       </header>
+
+      <StationNetatmo />
 
       {ruchers.length === 0 && <p className="text-13 text-ink-secondary">Aucun rucher pour l'instant.</p>}
 
