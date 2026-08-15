@@ -1,5 +1,3 @@
-import { createClient } from '@supabase/supabase-js';
-
 const URL_JETON = 'https://api.netatmo.com/oauth2/token';
 const URL_STATIONS = 'https://api.netatmo.com/api/getstationsdata';
 const LIGNE_ID = 'principal';
@@ -12,22 +10,37 @@ const LIBELLES_TYPE = {
   NAModule4: 'Intérieur (module)',
 };
 
-function clientAdmin() {
-  return createClient(process.env.VITE_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+// Appels REST directs à PostgREST (Supabase) plutôt que le SDK
+// @supabase/supabase-js : son module realtime exige un WebSocket natif que
+// le runtime des fonctions Netlify n'expose pas ("Node.js detected but
+// native WebSocket not found"), inutile ici pour deux requêtes ponctuelles.
+function urlTable() {
+  return `${process.env.VITE_SUPABASE_URL}/rest/v1/netatmo_credentials`;
+}
+
+function entetesSupabase(json) {
+  const entetes = {
+    apikey: process.env.SUPABASE_SERVICE_ROLE_KEY,
+    Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
+  };
+  if (json) entetes['Content-Type'] = 'application/json';
+  return entetes;
 }
 
 // Netatmo fait tourner (RFC OAuth2) le refresh_token à chaque rafraîchissement
 // depuis avril 2023 : l'ancien devient invalide, il faut réenregistrer le
 // nouveau immédiatement. D'où le passage par Supabase plutôt qu'une simple
 // variable d'environnement figée — cf. §19 du cahier des charges.
-async function obtenirAccessToken(supabase) {
-  const { data: ligne, error } = await supabase
-    .from('netatmo_credentials')
-    .select('*')
-    .eq('id', LIGNE_ID)
-    .single();
-  if (error || !ligne) {
-    throw new Error("Identifiants Netatmo introuvables en base (table netatmo_credentials vide).");
+async function obtenirAccessToken() {
+  const reponseLigne = await fetch(`${urlTable()}?id=eq.${LIGNE_ID}&select=*`, {
+    headers: entetesSupabase(false),
+  });
+  if (!reponseLigne.ok) {
+    throw new Error(`Échec de lecture des identifiants Netatmo (HTTP ${reponseLigne.status})`);
+  }
+  const [ligne] = await reponseLigne.json();
+  if (!ligne) {
+    throw new Error('Identifiants Netatmo introuvables en base (table netatmo_credentials vide).');
   }
 
   const expireBientot =
@@ -53,16 +66,17 @@ async function obtenirAccessToken(supabase) {
   const jeton = await reponse.json();
   const expireA = new Date(Date.now() + jeton.expires_in * 1000).toISOString();
 
-  const { error: erreurMaj } = await supabase
-    .from('netatmo_credentials')
-    .update({
+  const reponseMaj = await fetch(`${urlTable()}?id=eq.${LIGNE_ID}`, {
+    method: 'PATCH',
+    headers: { ...entetesSupabase(true), Prefer: 'return=minimal' },
+    body: JSON.stringify({
       access_token: jeton.access_token,
       refresh_token: jeton.refresh_token,
       expire_a: expireA,
       updated_at: new Date().toISOString(),
-    })
-    .eq('id', LIGNE_ID);
-  if (erreurMaj) {
+    }),
+  });
+  if (!reponseMaj.ok) {
     throw new Error("Échec de l'enregistrement du nouveau token en base.");
   }
 
@@ -86,8 +100,7 @@ function extraireReleves(donneesStation) {
 
 export default async () => {
   try {
-    const supabase = clientAdmin();
-    const accessToken = await obtenirAccessToken(supabase);
+    const accessToken = await obtenirAccessToken();
 
     const reponse = await fetch(URL_STATIONS, {
       headers: { Authorization: `Bearer ${accessToken}` },
