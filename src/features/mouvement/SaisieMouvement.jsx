@@ -4,6 +4,8 @@ import { BoutonRetour } from '../../components/BoutonRetour.jsx';
 import { db } from '../../db/db.js';
 import { enregistrerMouvement } from '../../db/repositories/mouvement.js';
 import { creerTache } from '../../db/repositories/taches.js';
+import { listerRuchers } from '../../db/repositories/ruchers.js';
+import { deplacerRucheVersRucher } from '../../db/repositories/ruches.js';
 import { TYPE_MOUVEMENT_LIBELLES } from '../../lib/libellesMouvement.js';
 
 function ajouterJours(dateIso, jours) {
@@ -25,17 +27,19 @@ function dateDuJour() {
 }
 
 // Écran de saisie mouvement (lot L3, §4.2 `mouvement`). Pas de champ
-// obligatoire. rucher_origine_id/rucher_destination_id existent au schéma
-// mais ne sont pas exposés ici : l'exploitation ne compte qu'un seul
-// rucher à ce jour (repositories/ruchers.js) — un sélecteur à une seule
-// option n'apporterait rien.
-export function SaisieMouvement({ colonieId, onRetour, onEnregistre }) {
+// obligatoire. rucher_origine_id/rucher_destination_id (transhumance)
+// activés le 14/08/2026 avec l'arrivée du multi-rucher — jusque-là
+// l'exploitation ne comptait qu'un seul rucher, un sélecteur de
+// destination n'aurait eu aucune option.
+export function SaisieMouvement({ colonieId, onRetour, onEnregistre, onRucheDeplacee }) {
   const [ruche, setRuche] = useState(null);
   const [date, setDate] = useState(dateDuJour());
   const [type, setType] = useState(null);
   const [motif, setMotif] = useState('');
   const [notes, setNotes] = useState('');
   const [message, setMessage] = useState(null);
+  const [ruchersDisponibles, setRuchersDisponibles] = useState([]);
+  const [rucherDestinationId, setRucherDestinationId] = useState('');
 
   useEffect(() => {
     if (!colonieId) return;
@@ -43,6 +47,8 @@ export function SaisieMouvement({ colonieId, onRetour, onEnregistre }) {
       const colonie = await db.colonie.get(colonieId);
       const r = colonie ? await db.ruche.get(colonie.ruche_id) : null;
       setRuche(r ?? null);
+      const tous = await listerRuchers();
+      setRuchersDisponibles(tous.filter((rr) => rr.id !== r?.rucher_id));
     }
     charger();
   }, [colonieId]);
@@ -72,7 +78,20 @@ export function SaisieMouvement({ colonieId, onRetour, onEnregistre }) {
 
   async function enregistrer() {
     if (!colonieId) return;
+    const estTranshumance = type === 'transhumance';
+    if (estTranshumance && !rucherDestinationId) {
+      setMessage('Choisissez un rucher de destination.');
+      return;
+    }
     try {
+      const rucherOrigineId = ruche?.rucher_id ?? null;
+      // Le déplacement réel précède l'enregistrement du mouvement : si la
+      // ruche n'a plus lieu d'être (colonie clôturée entre-temps, etc.),
+      // autant échouer avant de créer une trace qui ne correspondrait à rien.
+      if (estTranshumance && ruche) {
+        await deplacerRucheVersRucher(ruche.id, rucherOrigineId, rucherDestinationId);
+      }
+
       const maintenant = new Date().toISOString();
       const mouvement = {
         id: crypto.randomUUID(),
@@ -80,8 +99,8 @@ export function SaisieMouvement({ colonieId, onRetour, onEnregistre }) {
         colonie_id: colonieId,
         date: date || null,
         type,
-        rucher_origine_id: null,
-        rucher_destination_id: null,
+        rucher_origine_id: estTranshumance ? rucherOrigineId : null,
+        rucher_destination_id: estTranshumance ? rucherDestinationId : null,
         motif: motif || null,
         notes: notes || null,
         created_at: maintenant,
@@ -90,8 +109,12 @@ export function SaisieMouvement({ colonieId, onRetour, onEnregistre }) {
       };
       await enregistrerMouvement(mouvement);
       await creerRappelSiNecessaire(mouvement);
-      setMessage('Mouvement enregistré.');
-      onEnregistre?.(colonieId);
+      setMessage(estTranshumance ? 'Ruche déplacée et mouvement enregistré.' : 'Mouvement enregistré.');
+      if (estTranshumance && onRucheDeplacee) {
+        onRucheDeplacee();
+      } else {
+        onEnregistre?.(colonieId);
+      }
     } catch (err) {
       console.error('[mouvement] échec enregistrement', err);
       setMessage("Erreur : le mouvement n'a pas pu être enregistré.");
@@ -125,6 +148,37 @@ export function SaisieMouvement({ colonieId, onRetour, onEnregistre }) {
           <p className="text-13 text-ink-secondary mb-1">Type</p>
           <SelecteurUnique options={TYPE_OPTIONS} value={type} onChange={setType} />
         </div>
+
+        {type === 'transhumance' && (
+          <div>
+            <label className="text-13 text-ink-secondary mb-1 block" htmlFor="rucher_destination">
+              Rucher de destination
+            </label>
+            {ruchersDisponibles.length === 0 ? (
+              <p className="text-13 text-ink-secondary">
+                Aucun autre rucher — créez-en un d'abord depuis l'accueil.
+              </p>
+            ) : (
+              <select
+                id="rucher_destination"
+                className={CHAMP_CLASSE}
+                value={rucherDestinationId}
+                onChange={(e) => setRucherDestinationId(e.target.value)}
+              >
+                <option value="">Choisir…</option>
+                {ruchersDisponibles.map((r) => (
+                  <option key={r.id} value={r.id}>
+                    {r.nom}
+                  </option>
+                ))}
+              </select>
+            )}
+            <p className="text-11 text-ink-muted mt-1">
+              Déplace réellement la ruche vers ce rucher — elle rejoint sa tournée, quitte
+              celle d'ici.
+            </p>
+          </div>
+        )}
 
         <div>
           <label className="text-13 text-ink-secondary mb-1 block" htmlFor="motif">

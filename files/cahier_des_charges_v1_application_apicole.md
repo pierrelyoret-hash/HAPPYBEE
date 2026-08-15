@@ -594,3 +594,9 @@ La fiche visite était jugée trop terne ("le noir et blanc c'est triste"). Nouv
 | Archivage d'une ruche | Retire la ruche de l'ordre de tournée du rucher et passe son statut à "réformée" — la ruche (le contenant) reste en base, comme le veut le modèle de données (§4.2, "persiste au-delà de la colonie"), jamais de suppression définitive |
 
 **Limite connue, non corrigée dans ce lot** : `resoudreLignes` (import CSV, `lib/csv.js`) résout les numéros de ruche sur `db.ruche.toArray()`, toutes ruches confondues — avec plusieurs ruchers portant chacun une "Ruche 1", un import pourrait cibler la mauvaise ruche si les numéros se recoupent entre ruchers. Le sélecteur de colonie de la fiche visite, lui, a été corrigé pour n'afficher que les colonies du rucher ouvert (`SaisieVisite` reçoit désormais `rucherId`) — c'était un vrai bug (deux "Ruche 1" indiscernables dans la liste dès qu'un second rucher existe), constaté et corrigé pendant la vérification de ce lot.
+
+### Transhumance — déplacer une ruche d'un rucher à un autre
+
+Demandé juste après l'ouverture du multi-rucher. Réactive `mouvement.rucher_origine_id`/`rucher_destination_id` (§4.2), au schéma depuis le début mais non exposés jusqu'ici faute d'un second rucher pour leur donner un sens (cf. arbitrage L3 ci-dessus, §15) — la ruche que la ligne 556 laissait dormir.
+
+Le type "Transhumance" de l'écran Mouvement (`SaisieMouvement.jsx`) fait désormais un geste réel, pas seulement une entrée de journal : sélectionner un rucher de destination y déplace effectivement la ruche (`ruche.rucher_id`, retirée de l'ordre de tournée d'origine, ajoutée à celui de destination) en plus d'enregistrer la trace `mouvement`. La colonie suit sans rien à faire — elle est rattachée à la ruche (`colonie.ruche_id`), jamais directement au rucher. Aucun autre type de mouvement ne touche à la structure ; transhumance est le seul à agir, tous les autres restent un journal.

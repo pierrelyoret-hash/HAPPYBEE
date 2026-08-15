@@ -81,6 +81,32 @@ export async function creerRucheAvecColonie({
   return { rucheId, colonieId };
 }
 
+// Transhumance (14/08/2026) — déplace une ruche d'un rucher à un autre :
+// change son rattachement, la retire de l'ordre de tournée d'origine, la
+// rejoint à celui de destination. La colonie qu'elle héberge suit
+// automatiquement (colonie.ruche_id ne change pas, seul ruche.rucher_id
+// change — la colonie est déjà rattachée à la ruche, pas au rucher).
+export async function deplacerRucheVersRucher(rucheId, rucherOrigineId, rucherDestinationId) {
+  const maintenant = new Date().toISOString();
+  await db.transaction('rw', db.ruche, db.rucher, async () => {
+    await db.ruche.update(rucheId, { rucher_id: rucherDestinationId, updated_at: maintenant });
+
+    const origine = await db.rucher.get(rucherOrigineId);
+    if (origine) {
+      await db.rucher.update(rucherOrigineId, {
+        ordre_tournee: (origine.ordre_tournee ?? []).filter((id) => id !== rucheId),
+        updated_at: maintenant,
+      });
+    }
+
+    const destination = await db.rucher.get(rucherDestinationId);
+    if (destination) {
+      const ordreTournee = [...(destination.ordre_tournee ?? []), rucheId];
+      await db.rucher.update(rucherDestinationId, { ordre_tournee: ordreTournee, updated_at: maintenant });
+    }
+  });
+}
+
 // F1.1 "archiver" — la ruche (le contenant) persiste en base, comme le
 // reste de l'application le fait déjà (jamais de suppression définitive) ;
 // elle sort seulement de l'ordre de tournée, qui pilote ce qui s'affiche

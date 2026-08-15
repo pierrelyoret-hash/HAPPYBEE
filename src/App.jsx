@@ -254,6 +254,7 @@ export function App() {
         colonieId={colonieSelectionnee}
         onRetour={() => ouvrirMouvement(colonieSelectionnee)}
         onEnregistre={ouvrirMouvement}
+        onRucheDeplacee={ouvrirAccueil}
       />
     );
   }
