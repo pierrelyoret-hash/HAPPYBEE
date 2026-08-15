@@ -51,7 +51,14 @@ async function chargerTousEvenements(colonieId) {
   const rucheParColonieId = new Map(
     colonies.filter(Boolean).map((c) => [c.id, rucheParId.get(c.ruche_id) ?? null])
   );
-  const rucherIds = [...new Set(ruches.filter(Boolean).map((r) => r.rucher_id).filter(Boolean))];
+  // Les ruchers d'origine/destination d'une transhumance (mouvement) ne
+  // sont pas forcément le rucher actuel de la colonie — la ruche a pu
+  // repartir depuis, l'origine ne serait alors plus atteignable via
+  // colonie → ruche → rucher. Récupérés à part pour ne rien perdre.
+  const rucherIdsTranshumance = mouvements.flatMap((m) => [m.rucher_origine_id, m.rucher_destination_id]).filter(Boolean);
+  const rucherIds = [
+    ...new Set([...ruches.filter(Boolean).map((r) => r.rucher_id).filter(Boolean), ...rucherIdsTranshumance]),
+  ];
   const ruchers = await db.rucher.bulkGet(rucherIds);
   const rucherParId = new Map(ruchers.filter(Boolean).map((r) => [r.id, r]));
   const rucherParColonieId = new Map(
@@ -104,6 +111,10 @@ async function chargerTousEvenements(colonieId) {
       _date: m.date,
       _ruche: rucheParColonieId.get(m.colonie_id),
       _rucher: rucherParColonieId.get(m.colonie_id),
+      rucherOrigineNom: m.rucher_origine_id ? (rucherParId.get(m.rucher_origine_id)?.nom ?? null) : null,
+      rucherDestinationNom: m.rucher_destination_id
+        ? (rucherParId.get(m.rucher_destination_id)?.nom ?? null)
+        : null,
       mouvement: m,
     })),
   ];

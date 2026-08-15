@@ -317,11 +317,16 @@ function LigneRecolte({ recolte: r }) {
   );
 }
 
-function LigneMouvement({ mouvement: m }) {
+function LigneMouvement({ mouvement: m, rucherOrigineNom, rucherDestinationNom }) {
   return (
     <li className="p-3">
       <p className="text-15 font-bold">{TYPE_MOUVEMENT_LIBELLES[m.type] ?? m.type ?? 'Mouvement'}</p>
       <p className="text-11 text-ink-muted mb-2">{dateLisible(m.date) ?? 'date non renseignée'}</p>
+      {(rucherOrigineNom || rucherDestinationNom) && (
+        <p className="text-13 text-ink-secondary">
+          {rucherOrigineNom ?? '?'} → {rucherDestinationNom ?? '?'}
+        </p>
+      )}
       {m.motif && <p className="text-13 text-ink-secondary">Motif : {m.motif}</p>}
     </li>
   );
@@ -406,7 +411,14 @@ export function Historique({ colonieId, onRetour }) {
                 case 'recolte':
                   return <LigneRecolte key={evenement.recolte.id} recolte={evenement.recolte} />;
                 case 'mouvement':
-                  return <LigneMouvement key={evenement.mouvement.id} mouvement={evenement.mouvement} />;
+                  return (
+                    <LigneMouvement
+                      key={evenement.mouvement.id}
+                      mouvement={evenement.mouvement}
+                      rucherOrigineNom={evenement.rucherOrigineNom}
+                      rucherDestinationNom={evenement.rucherDestinationNom}
+                    />
+                  );
                 default:
                   return null;
               }

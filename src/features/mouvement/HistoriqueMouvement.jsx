@@ -56,6 +56,11 @@ export function HistoriqueMouvement({ colonieId, onRetour, onOuvrirSaisieMouveme
               {TYPE_MOUVEMENT_LIBELLES[ligne.type] ?? ligne.type ?? 'Mouvement'}
             </p>
             <p className="text-11 text-ink-muted mb-2">{dateLisible(ligne.date) ?? 'date non renseignée'}</p>
+            {(ligne.rucherOrigineNom || ligne.rucherDestinationNom) && (
+              <p className="text-13 text-ink-secondary">
+                {ligne.rucherOrigineNom ?? '?'} → {ligne.rucherDestinationNom ?? '?'}
+              </p>
+            )}
             {ligne.motif && <p className="text-13 text-ink-secondary">Motif : {ligne.motif}</p>}
             {ligne.notes && <p className="text-13 text-ink-secondary mt-1 italic">« {ligne.notes} »</p>}
           </li>
