@@ -573,3 +573,24 @@ Quatre frictions remontées après un usage réel prolongé (fiche visite et san
 | Export CSV consolidé vs. export CSV par table (F10.2, prévu en L6) | **Les deux coexisteront** : celui-ci est une vue humaine, une ligne par événement, colonnes communes + détail texte ; F10.2 restera une sauvegarde fidèle table par table, non construite dans ce lot |
 
 Détail technique : `couvain_opercule`, `couvain_ouvert`, `oeufs`, `miel_opercule`, `nectar_frais`, `pollen`, `cellules_vides`, `non_bati`, `couvain_male` (§4.2 `observation_cadre`) stockent désormais un pourcentage (0-100) au lieu d'un huitième (0-8) — migration Dexie des observations existantes (× 12,5, arrondi). La formule d'agrégation §6.4 est mise à jour en conséquence (division par 100 au lieu de 8).
+
+---
+
+## 17. Arbitrages actés — 14 août 2026 (identité visuelle, multi-rucher, écran d'accueil)
+
+### Identité visuelle
+
+La fiche visite était jugée trop terne ("le noir et blanc c'est triste"). Nouvelle palette d'accent — **miel, vert, bordeaux**, en plus du noir et blanc déjà en place — appliquée d'abord à la fiche visite (mosaïque de 4 boutons colorés en haut d'écran remplaçant les liens texte en pied de page) puis étendue à l'écran d'accueil et aux boutons "+" des écrans de création. Les pastilles d'état (urgent/action/à visiter/normale) gardent leur palette pastel existante, non retouchée — c'était déjà la seule couleur de l'interface avant ce jour, elle n'entrait pas en conflit. Le bloc "Colonie" (Population/Tempérament/Bâtisse) est replié par défaut sur la fiche visite, déplié au clic.
+
+### Multi-rucher et écran d'accueil
+
+**F1.1 "Créer, modifier, archiver ruchers, ruches, colonies, reines"** était resté non construit malgré son rattachement théorique à L1 (livré 10/08/2026) : un seul rucher et trois ruches, saisis une fois pour toutes dans `db/seed.js`, aucun écran ne permettait d'en ajouter. Complété aujourd'hui à la demande de l'exploitant, à l'échelle de rucher et ruche (colonies/reines toujours créées uniquement via un rucher/ruche neuf, pas d'écran dédié à leur gestion indépendante — hors périmètre de cette demande).
+
+| Question | Décision |
+|---|---|
+| Nouvel écran d'accueil | **Remplace l'écran de lancement** — l'application ouvre sur la liste des ruchers ; VueEnsemble (la tournée) s'ouvre après en avoir choisi un. Regroupe aussi les utilitaires qui ne sont pas propres à un rucher (sauvegarde JSON, restauration, export PDF sanitaire, export CSV consolidé, vue "à faire" toutes ruchers) |
+| Emplacements Économique (M6) et Météo (M8) | Réservés sur l'écran d'accueil, désactivés ("à venir") — modules non construits, pas de contenu à afficher encore |
+| Import CSV | Reste propre à un rucher (résout les numéros de ruche dans son contexte) — accessible depuis VueEnsemble, pas depuis l'accueil |
+| Archivage d'une ruche | Retire la ruche de l'ordre de tournée du rucher et passe son statut à "réformée" — la ruche (le contenant) reste en base, comme le veut le modèle de données (§4.2, "persiste au-delà de la colonie"), jamais de suppression définitive |
+
+**Limite connue, non corrigée dans ce lot** : `resoudreLignes` (import CSV, `lib/csv.js`) résout les numéros de ruche sur `db.ruche.toArray()`, toutes ruches confondues — avec plusieurs ruchers portant chacun une "Ruche 1", un import pourrait cibler la mauvaise ruche si les numéros se recoupent entre ruchers. Le sélecteur de colonie de la fiche visite, lui, a été corrigé pour n'afficher que les colonies du rucher ouvert (`SaisieVisite` reçoit désormais `rucherId`) — c'était un vrai bug (deux "Ruche 1" indiscernables dans la liste dès qu'un second rucher existe), constaté et corrigé pendant la vérification de ce lot.

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { BoutonRetour } from '../../components/BoutonRetour.jsx';
 import { db } from '../../db/db.js';
-import { obtenirPremierRucher } from '../../db/repositories/ruchers.js';
+import { obtenirRucher } from '../../db/repositories/ruchers.js';
 import {
   enregistrerAudio,
   enregistrerTranscription,
@@ -105,7 +105,7 @@ function LigneColonieVocale({ ruche, colonieId, onProgresModele }) {
   );
 }
 
-export function TourneeVocale({ onRetour, onOuvrirRevueTournee }) {
+export function TourneeVocale({ rucherId, onRetour, onOuvrirRevueTournee }) {
   const [rucher, setRucher] = useState(null);
   const [lignes, setLignes] = useState([]);
   const [chargement, setChargement] = useState(true);
@@ -113,7 +113,7 @@ export function TourneeVocale({ onRetour, onOuvrirRevueTournee }) {
 
   useEffect(() => {
     async function charger() {
-      const r = await obtenirPremierRucher();
+      const r = await obtenirRucher(rucherId);
       if (!r) {
         setRucher(null);
         setLignes([]);
@@ -141,7 +141,7 @@ export function TourneeVocale({ onRetour, onOuvrirRevueTournee }) {
       setChargement(false);
     }
     charger();
-  }, []);
+  }, [rucherId]);
 
   function onProgresModele(evenement) {
     if (evenement?.status === 'progress' && evenement.total) {

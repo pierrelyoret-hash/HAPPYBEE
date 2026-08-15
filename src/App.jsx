@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Accueil, SaisieRucher, SaisieRuche } from './features/accueil';
 import { VueEnsemble } from './features/vue-ensemble';
 import { SaisieVisite } from './features/saisie-visite';
 import { Historique } from './features/historique';
@@ -19,9 +20,29 @@ import { SaisieMouvement, HistoriqueMouvement } from './features/mouvement';
 import { TachesAFaire } from './features/taches';
 
 export function App() {
-  const [ecran, setEcran] = useState('vue_ensemble');
+  const [ecran, setEcran] = useState('accueil');
+  const [rucherSelectionne, setRucherSelectionne] = useState(null);
   const [colonieSelectionnee, setColonieSelectionnee] = useState(null);
   const [visiteSelectionnee, setVisiteSelectionnee] = useState(null);
+
+  function ouvrirAccueil() {
+    setEcran('accueil');
+  }
+
+  function ouvrirRucher(rucherId) {
+    setRucherSelectionne(rucherId);
+    setEcran('vue_ensemble');
+  }
+
+  function ouvrirSaisieRucher(rucherId) {
+    setRucherSelectionne(rucherId);
+    setEcran('saisie_rucher');
+  }
+
+  function ouvrirSaisieRuche(rucherId) {
+    setRucherSelectionne(rucherId);
+    setEcran('saisie_ruche');
+  }
 
   function ouvrirSaisie(colonieId) {
     setColonieSelectionnee(colonieId);
@@ -111,9 +132,30 @@ export function App() {
     setEcran('vue_ensemble');
   }
 
+  if (ecran === 'saisie_rucher') {
+    return (
+      <SaisieRucher
+        rucherId={rucherSelectionne}
+        onRetour={ouvrirAccueil}
+        onEnregistre={ouvrirRucher}
+      />
+    );
+  }
+
+  if (ecran === 'saisie_ruche') {
+    return (
+      <SaisieRuche
+        rucherId={rucherSelectionne}
+        onRetour={() => ouvrirRucher(rucherSelectionne)}
+        onEnregistre={ouvrirRucher}
+      />
+    );
+  }
+
   if (ecran === 'saisie_visite') {
     return (
       <SaisieVisite
+        rucherId={rucherSelectionne}
         colonieInitialeId={colonieSelectionnee}
         onRetour={retourVueEnsemble}
         onOuvrirHistorique={ouvrirHistorique}
@@ -217,19 +259,31 @@ export function App() {
   }
 
   if (ecran === 'taches') {
-    return <TachesAFaire onRetour={retourVueEnsemble} />;
+    return <TachesAFaire onRetour={ouvrirAccueil} />;
   }
 
   if (ecran === 'export_sanitaire_pdf') {
-    return <ExportSanitairePdf onRetour={retourVueEnsemble} />;
+    return <ExportSanitairePdf onRetour={ouvrirAccueil} />;
   }
 
   if (ecran === 'tournee_vocale') {
-    return <TourneeVocale onRetour={retourVueEnsemble} onOuvrirRevueTournee={ouvrirRevueTournee} />;
+    return (
+      <TourneeVocale
+        rucherId={rucherSelectionne}
+        onRetour={retourVueEnsemble}
+        onOuvrirRevueTournee={ouvrirRevueTournee}
+      />
+    );
   }
 
   if (ecran === 'revue_tournee') {
-    return <RevueTournee onRetour={retourVueEnsemble} onOuvrirSaisieVisite={ouvrirSaisie} />;
+    return (
+      <RevueTournee
+        rucherId={rucherSelectionne}
+        onRetour={retourVueEnsemble}
+        onOuvrirSaisieVisite={ouvrirSaisie}
+      />
+    );
   }
 
   if (ecran === 'observation_cadre') {
@@ -243,20 +297,33 @@ export function App() {
   }
 
   if (ecran === 'import_csv') {
-    return <ImportCsv onRetour={retourVueEnsemble} />;
+    return <ImportCsv rucherId={rucherSelectionne} onRetour={retourVueEnsemble} />;
   }
 
   if (ecran === 'restauration') {
-    return <Restauration onRetour={retourVueEnsemble} />;
+    return <Restauration onRetour={ouvrirAccueil} />;
+  }
+
+  if (ecran === 'vue_ensemble') {
+    return (
+      <VueEnsemble
+        rucherId={rucherSelectionne}
+        onOuvrirVisite={ouvrirSaisie}
+        onOuvrirTourneeVocale={ouvrirTourneeVocale}
+        onRetourAccueil={ouvrirAccueil}
+        onOuvrirSaisieRucher={ouvrirSaisieRucher}
+        onOuvrirSaisieRuche={ouvrirSaisieRuche}
+        onOuvrirImport={ouvrirImport}
+      />
+    );
   }
 
   return (
-    <VueEnsemble
-      onOuvrirVisite={ouvrirSaisie}
-      onOuvrirImport={ouvrirImport}
+    <Accueil
+      onOuvrirRucher={ouvrirRucher}
+      onOuvrirSaisieRucher={ouvrirSaisieRucher}
       onOuvrirRestauration={ouvrirRestauration}
       onOuvrirExportSanitairePdf={ouvrirExportSanitairePdf}
-      onOuvrirTourneeVocale={ouvrirTourneeVocale}
       onOuvrirTaches={ouvrirTaches}
     />
   );

@@ -5,7 +5,7 @@ import { Interrupteur } from '../../components/Interrupteur.jsx';
 import { Chips } from '../../components/Chips.jsx';
 import { BoutonRetour } from '../../components/BoutonRetour.jsx';
 import { db } from '../../db/db.js';
-import { obtenirPremierRucher } from '../../db/repositories/ruchers.js';
+import { obtenirRucher } from '../../db/repositories/ruchers.js';
 import { listerAudioColonie, rattacherVisite } from '../../db/repositories/audio.js';
 import { enregistrerVisite } from '../../db/repositories/visites.js';
 import { enregistrerTraitement, enregistrerNourrissement } from '../../db/repositories/sanitaire.js';
@@ -329,14 +329,14 @@ function CarteColonieRevue({ ruche, colonie, audio, onEnregistre }) {
   );
 }
 
-export function RevueTournee({ onRetour, onOuvrirSaisieVisite }) {
+export function RevueTournee({ rucherId, onRetour, onOuvrirSaisieVisite }) {
   const [rucher, setRucher] = useState(null);
   const [aRevoir, setARevoir] = useState([]);
   const [absentes, setAbsentes] = useState([]);
   const [chargement, setChargement] = useState(true);
 
   async function charger() {
-    const r = await obtenirPremierRucher();
+    const r = await obtenirRucher(rucherId);
     if (!r) {
       setRucher(null);
       setChargement(false);
@@ -381,7 +381,7 @@ export function RevueTournee({ onRetour, onOuvrirSaisieVisite }) {
 
   useEffect(() => {
     charger();
-  }, []);
+  }, [rucherId]);
 
   if (chargement) return null;
 

@@ -27,6 +27,7 @@ export function LigneColonie({
   onOuvrirVisite,
   onEntrerModeEdition,
   onDeplacer,
+  onArchiver,
 }) {
   const minuteur = useRef(null);
   const appuiLongDeclenche = useRef(false);
@@ -104,6 +105,15 @@ export function LigneColonie({
             >
               ↓
             </button>
+            {onArchiver && (
+              <button
+                type="button"
+                onClick={onArchiver}
+                className="h-11 px-3 rounded border border-bordeaux text-bordeaux text-12 font-bold"
+              >
+                Archiver
+              </button>
+            )}
           </div>
         </div>
       ) : (

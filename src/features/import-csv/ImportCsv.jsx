@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { db } from '../../db/db.js';
-import { obtenirPremierRucher } from '../../db/repositories/ruchers.js';
+import { obtenirRucher } from '../../db/repositories/ruchers.js';
 import { listerColoniesActives } from '../../db/repositories/colonies.js';
 import { importerEnregistrements } from '../../db/repositories/import.js';
 import { parserArchivesCsv, resoudreLignes } from '../../lib/csv.js';
@@ -20,7 +20,7 @@ const CORRESPONDANCE_COLONNES = [
   ['Notes', 'visite.observation_libre'],
 ];
 
-export function ImportCsv({ onRetour }) {
+export function ImportCsv({ rucherId, onRetour }) {
   const [analyse, setAnalyse] = useState(null);
   const [modeToutes, setModeToutes] = useState('dupliquer');
   const [resume, setResume] = useState(null);
@@ -48,7 +48,7 @@ export function ImportCsv({ onRetour }) {
     setEnCours(true);
     setErreur(null);
     try {
-      const rucher = await obtenirPremierRucher();
+      const rucher = await obtenirRucher(rucherId);
       const ruches = await db.ruche.toArray();
       const colonies = (await listerColoniesActives()).map((c) => c.colonie);
 

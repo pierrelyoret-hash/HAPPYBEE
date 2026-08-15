@@ -94,6 +94,7 @@ function dateLisible(iso) {
 }
 
 export function SaisieVisite({
+  rucherId,
   colonieInitialeId,
   onRetour,
   onOuvrirHistorique,
@@ -125,8 +126,12 @@ export function SaisieVisite({
   const [compressionEnCours, setCompressionEnCours] = useState(false);
   const [message, setMessage] = useState(null);
 
+  // Multi-rucher (14/08/2026) : sans ce filtre, le sélecteur mélangeait les
+  // colonies de tous les ruchers — deux "Ruche 1" côte à côte dès qu'un
+  // second rucher existe, impossible à distinguer.
   useEffect(() => {
-    listerColoniesActives().then((liste) => {
+    listerColoniesActives().then((toutes) => {
+      const liste = rucherId ? toutes.filter((c) => c.rucher.id === rucherId) : toutes;
       setContextes(liste);
       const initialeValide = liste.some((c) => c.colonie.id === colonieInitialeId);
       if (initialeValide) {
@@ -135,7 +140,7 @@ export function SaisieVisite({
         setColonieId(liste[0].colonie.id);
       }
     });
-  }, [colonieInitialeId]);
+  }, [rucherId, colonieInitialeId]);
 
   useEffect(() => {
     if (!colonieId) return;

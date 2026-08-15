@@ -2,20 +2,14 @@ import { useEffect, useState } from 'react';
 import { PastilleEtat } from '../../components/PastilleEtat.jsx';
 import { LigneColonie } from './LigneColonie.jsx';
 import { db } from '../../db/db.js';
-import {
-  obtenirPremierRucher,
-  mettreAJourOrdreTournee,
-} from '../../db/repositories/ruchers.js';
+import { obtenirRucher, mettreAJourOrdreTournee } from '../../db/repositories/ruchers.js';
+import { archiverRuche } from '../../db/repositories/ruches.js';
 import { obtenirDerniereVisite } from '../../db/repositories/visites.js';
 import {
   listerTachesOuvertesRucher,
   marquerTacheFaite,
   creerTache,
 } from '../../db/repositories/taches.js';
-import { exporterDonnees, compterEnregistrements } from '../../db/repositories/sauvegarde.js';
-import { listerEvenementsExportConsolide } from '../../db/repositories/historiqueConsolide.js';
-import { declencherTelechargementJson, declencherTelechargementCsv } from '../../lib/telechargement.js';
-import { genererCsvConsolide } from '../../lib/exportCsvConsolide.js';
 import { calculerEtat, joursDepuis, SEUIL_JOURS_A_VISITER } from '../../lib/etats.js';
 import { surSync } from '../../lib/sync.js';
 
@@ -39,58 +33,22 @@ function dateLisible(iso) {
 
 
 export function VueEnsemble({
+  rucherId,
   onOuvrirVisite,
-  onOuvrirImport,
-  onOuvrirRestauration,
-  onOuvrirExportSanitairePdf,
   onOuvrirTourneeVocale,
-  onOuvrirTaches,
+  onRetourAccueil,
+  onOuvrirSaisieRucher,
+  onOuvrirSaisieRuche,
+  onOuvrirImport,
 }) {
   const [rucher, setRucher] = useState(null);
   const [lignes, setLignes] = useState([]);
   const [chargement, setChargement] = useState(true);
-  const [messageSauvegarde, setMessageSauvegarde] = useState(null);
   const [modeEdition, setModeEdition] = useState(false);
   const horsLigne = useHorsLigne();
 
-  // Sauvegarde manuelle en un geste, directement depuis l'écran d'accueil
-  // (brief F10.4) — aucun écran intermédiaire pour l'export.
-  async function sauvegarder() {
-    try {
-      const donnees = await exporterDonnees();
-      declencherTelechargementJson(
-        `happybee-sauvegarde-${new Date().toISOString().slice(0, 10)}.json`,
-        donnees
-      );
-      setMessageSauvegarde(`Fichier téléchargé (${compterEnregistrements(donnees)} enregistrement(s)).`);
-    } catch (err) {
-      console.error('[sauvegarde] échec export', err);
-      setMessageSauvegarde("Échec de l'export.");
-    }
-  }
-
-  // Export consolidé (retour d'usage réel du 14/08/2026) : visite,
-  // sanitaire, récolte et mouvement de toute l'exploitation, une ligne par
-  // événement — distinct de la sauvegarde JSON ci-dessus (celle-ci reste la
-  // seule à garantir une restauration fidèle ; le CSV est pour la lecture
-  // et le croisement, pas une source de vérité pour la restauration).
-  async function exporterHistoriqueConsolide() {
-    try {
-      const evenements = await listerEvenementsExportConsolide();
-      const csv = genererCsvConsolide(evenements);
-      declencherTelechargementCsv(
-        `happybee-historique-${new Date().toISOString().slice(0, 10)}.csv`,
-        csv
-      );
-      setMessageSauvegarde(`Historique exporté (${evenements.length} événement(s)).`);
-    } catch (err) {
-      console.error('[export consolidé] échec', err);
-      setMessageSauvegarde("Échec de l'export de l'historique.");
-    }
-  }
-
   async function charger() {
-    const r = await obtenirPremierRucher();
+    const r = await obtenirRucher(rucherId);
     if (!r) {
       setRucher(null);
       setLignes([]);
@@ -190,7 +148,7 @@ export function VueEnsemble({
     // Se recharge tout seul quand une synchronisation en arrière-plan a pu
     // apporter de nouvelles données depuis un autre appareil.
     return surSync(() => charger());
-  }, []);
+  }, [rucherId]);
 
   async function terminerTache(tacheId) {
     await marquerTacheFaite(tacheId);
@@ -206,6 +164,11 @@ export function VueEnsemble({
     await charger();
   }
 
+  async function archiver(rucheId) {
+    await archiverRuche(rucheId, rucher.id);
+    await charger();
+  }
+
   if (chargement) return null;
 
   if (!rucher) {
@@ -216,13 +179,35 @@ export function VueEnsemble({
 
   return (
     <div className="min-h-screen bg-ground text-ink p-4 flex flex-col gap-4 max-w-md mx-auto">
-      <header className="flex items-center justify-between">
-        <h1 className="text-20 font-bold">{rucher.nom}</h1>
-        {horsLigne && (
-          <span className="text-11 text-ink-muted border border-rule-strong rounded px-2 py-1">
-            Hors ligne
-          </span>
+      <header className="flex flex-col gap-1">
+        {onRetourAccueil && (
+          <button
+            type="button"
+            onClick={onRetourAccueil}
+            className="text-13 text-ink-secondary underline self-start"
+          >
+            ← Ruchers
+          </button>
         )}
+        <div className="flex items-center justify-between gap-2">
+          <h1 className="text-20 font-bold">{rucher.nom}</h1>
+          <div className="flex items-center gap-2 shrink-0">
+            {horsLigne && (
+              <span className="text-11 text-ink-muted border border-rule-strong rounded px-2 py-1">
+                Hors ligne
+              </span>
+            )}
+            {onOuvrirSaisieRucher && (
+              <button
+                type="button"
+                onClick={() => onOuvrirSaisieRucher(rucher.id)}
+                className="text-13 text-ink-secondary underline"
+              >
+                Modifier
+              </button>
+            )}
+          </div>
+        </div>
       </header>
 
       {urgences.length > 0 && (
@@ -301,9 +286,23 @@ export function VueEnsemble({
               onOuvrirVisite={onOuvrirVisite}
               onEntrerModeEdition={() => setModeEdition(true)}
               onDeplacer={(direction) => deplacer(index, direction)}
+              onArchiver={() => archiver(ligne.ruche.id)}
             />
           ))}
         </ul>
+        {/* Toujours visible, pas seulement en mode réordonnancement : sans
+            ça, un rucher neuf sans aucune ruche n'a aucun moyen d'en
+            ajouter une première (rien à appuyer longuement pour entrer en
+            mode édition). Bug constaté le 14/08/2026. */}
+        {onOuvrirSaisieRuche && (
+          <button
+            type="button"
+            onClick={() => onOuvrirSaisieRuche(rucher.id)}
+            className="mt-2 h-11 w-full rounded bg-miel text-ink text-13 font-bold"
+          >
+            + Ruche
+          </button>
+        )}
       </section>
 
       <footer className="flex flex-col gap-3 mt-2">
@@ -317,37 +316,17 @@ export function VueEnsemble({
           </div>
         </div>
 
-        <div className="flex flex-col gap-1 pt-2 border-t border-rule">
-          <button type="button" onClick={onOuvrirImport} className="text-12 text-ink-secondary self-start">
-            Importer l'historique CSV
-          </button>
-          <button type="button" onClick={sauvegarder} className="text-12 text-ink-secondary self-start">
-            Sauvegarder (export JSON)
-          </button>
-          <button type="button" onClick={onOuvrirRestauration} className="text-12 text-ink-secondary self-start">
-            Restaurer une sauvegarde
-          </button>
-          <button
-            type="button"
-            onClick={onOuvrirExportSanitairePdf}
-            className="text-12 text-ink-secondary self-start"
-          >
-            Exporter le PDF sanitaire
-          </button>
-          <button
-            type="button"
-            onClick={exporterHistoriqueConsolide}
-            className="text-12 text-ink-secondary self-start"
-          >
-            Exporter l'historique consolidé (CSV)
-          </button>
-          {onOuvrirTaches && (
-            <button type="button" onClick={onOuvrirTaches} className="text-12 text-ink-secondary self-start">
-              Voir toutes les tâches
+        {onOuvrirImport && (
+          <div className="pt-2 border-t border-rule">
+            <button
+              type="button"
+              onClick={onOuvrirImport}
+              className="text-12 text-ink-secondary self-start"
+            >
+              Importer l'historique CSV
             </button>
-          )}
-          {messageSauvegarde && <p className="text-11 text-ink-muted">{messageSauvegarde}</p>}
-        </div>
+          </div>
+        )}
       </footer>
     </div>
   );

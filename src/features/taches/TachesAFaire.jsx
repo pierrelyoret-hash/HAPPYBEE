@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Segmente } from '../../components/Segmente.jsx';
 import { BoutonRetour } from '../../components/BoutonRetour.jsx';
-import { obtenirPremierRucher } from '../../db/repositories/ruchers.js';
 import { listerColoniesActives } from '../../db/repositories/colonies.js';
 import {
   listerTachesAvecContexte,
@@ -30,9 +29,10 @@ function estEchue(iso) {
   return !!iso && new Date(iso).getTime() <= Date.now();
 }
 
-// F7.1 (création manuelle) + F7.3 (vue "à faire" consolidée) — lot L3.
+// F7.1 (création manuelle) + F7.3 (vue "à faire" consolidée) — devenue une
+// vue toute l'exploitation le 14/08/2026 (plusieurs ruchers possibles
+// désormais), plus une seule vue par rucher.
 export function TachesAFaire({ onRetour }) {
-  const [rucher, setRucher] = useState(null);
   const [colonies, setColonies] = useState([]);
   const [taches, setTaches] = useState(null);
   const [formulaireOuvert, setFormulaireOuvert] = useState(false);
@@ -42,14 +42,8 @@ export function TachesAFaire({ onRetour }) {
   const [colonieId, setColonieId] = useState('');
 
   async function charger() {
-    const r = await obtenirPremierRucher();
-    setRucher(r ?? null);
-    if (!r) {
-      setTaches([]);
-      return;
-    }
     setColonies(await listerColoniesActives());
-    setTaches(await listerTachesAvecContexte(r.id));
+    setTaches(await listerTachesAvecContexte());
   }
 
   useEffect(() => {
@@ -58,13 +52,12 @@ export function TachesAFaire({ onRetour }) {
   }, []);
 
   async function enregistrerTache() {
-    if (!rucher) return;
-    const colonie = colonies.find((c) => c.colonie.id === colonieId);
+    const contexte = colonies.find((c) => c.colonie.id === colonieId);
     const maintenant = new Date().toISOString();
     await creerTache({
       id: crypto.randomUUID(),
-      colonie_id: colonie?.colonie.id ?? null,
-      rucher_id: rucher.id,
+      colonie_id: contexte?.colonie.id ?? null,
+      rucher_id: contexte?.ruche.rucher_id ?? null,
       libelle,
       date_echeance: dateEcheance ? new Date(dateEcheance).toISOString() : null,
       priorite,
@@ -146,10 +139,10 @@ export function TachesAFaire({ onRetour }) {
               value={colonieId}
               onChange={(e) => setColonieId(e.target.value)}
             >
-              <option value="">Rucher entier</option>
-              {colonies.map(({ colonie, ruche }) => (
+              <option value="">Générale (aucune colonie précise)</option>
+              {colonies.map(({ colonie, ruche, rucher }) => (
                 <option key={colonie.id} value={colonie.id}>
-                  Ruche {ruche.numero}
+                  {rucher.nom} — Ruche {ruche.numero}
                 </option>
               ))}
             </select>
@@ -172,7 +165,7 @@ export function TachesAFaire({ onRetour }) {
           <li key={t.id} className="p-3 flex items-start justify-between gap-2">
             <div className="min-w-0">
               <p className={`text-14 font-bold ${estEchue(t.date_echeance) ? 'text-urgent-ink' : 'text-ink'}`}>
-                {t.rucheNumero != null ? `Ruche ${t.rucheNumero} — ` : ''}
+                {t.rucheNumero != null ? `${t.rucherNom ? `${t.rucherNom} — ` : ''}Ruche ${t.rucheNumero} — ` : ''}
                 {t.libelle}
               </p>
               <p className="text-11 text-ink-muted">
