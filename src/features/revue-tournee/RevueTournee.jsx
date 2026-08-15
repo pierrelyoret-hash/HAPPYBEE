@@ -15,6 +15,7 @@ import {
   creerTacheSuspicionSiNecessaire,
   creerRappelsInterventionSiNecessaire,
 } from '../../lib/reglesVisite.js';
+import { capturerMeteoDomicileSiApplicable } from '../../lib/netatmo.js';
 
 const ANOMALIE_OPTIONS = [
   { value: 'bourdonneuse', label: 'Bourdonneuse' },
@@ -86,6 +87,9 @@ function CarteColonieRevue({ ruche, colonie, audio, onEnregistre }) {
   async function enregistrer() {
     try {
       const maintenant = new Date();
+      // Extension F2.4 (15/08/2026) : même capture météo que l'écran de
+      // saisie manuelle (src/lib/netatmo.js) — silencieuse, jamais bloquante.
+      const meteoDomicile = await capturerMeteoDomicileSiApplicable(ruche.rucher_id);
       const visite = {
         id: crypto.randomUUID(),
         colonie_id: colonie.id,
@@ -109,6 +113,7 @@ function CarteColonieRevue({ ruche, colonie, audio, onEnregistre }) {
         suspicion_reglementee: false,
         source_agregats: 'saisie_directe',
         observation_libre: observationLibre || null,
+        meteo_domicile: meteoDomicile,
         provenance_champs: null,
         created_at: maintenant.toISOString(),
         updated_at: maintenant.toISOString(),

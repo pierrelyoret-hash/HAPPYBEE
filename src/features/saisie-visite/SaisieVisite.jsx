@@ -17,6 +17,7 @@ import {
   creerTacheSuspicionSiNecessaire,
   creerRappelsInterventionSiNecessaire,
 } from '../../lib/reglesVisite.js';
+import { capturerMeteoDomicileSiApplicable } from '../../lib/netatmo.js';
 
 // Correction écrans L1 §7/§9.2 : un seul contrôle pour la ponte, sur 0-5.
 // "Mâles" n'est pas un degré de compacité — il est sorti de cette échelle
@@ -213,6 +214,10 @@ export function SaisieVisite({
 
   async function construireVisite() {
     const maintenant = new Date();
+    // Extension F2.4 (15/08/2026) : relevé extérieur de la station Netatmo
+    // personnelle, uniquement si ce rucher est celui où elle se trouve —
+    // capturerMeteoDomicileSiApplicable ne lève jamais, renvoie null sinon.
+    const meteoDomicile = await capturerMeteoDomicileSiApplicable(contexteActuel?.rucher?.id);
     return {
       id: crypto.randomUUID(),
       colonie_id: colonieId,
@@ -236,6 +241,7 @@ export function SaisieVisite({
       suspicion_reglementee: suspicionReglementee,
       source_agregats: 'saisie_directe',
       observation_libre: observationLibre || null,
+      meteo_domicile: meteoDomicile,
       provenance_champs: {
         ...provenance,
         observation_libre: observationLibre ? 'saisi' : 'vide',
