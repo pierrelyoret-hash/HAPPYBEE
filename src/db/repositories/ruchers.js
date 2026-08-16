@@ -36,3 +36,16 @@ export async function mettreAJourOrdreTournee(rucherId, ordreTournee) {
     updated_at: new Date().toISOString(),
   });
 }
+
+// Extension F2.4 (15/08/2026) : la station Netatmo personnelle n'est
+// physiquement qu'à un seul endroit — un seul rucher peut être marqué à la
+// fois. Cocher la case sur un rucher décoche donc implicitement les autres.
+export async function retirerStationMeteoAutresRuchers(rucherIdConserve) {
+  const maintenant = new Date().toISOString();
+  const autres = await db.rucher
+    .filter((r) => r.id !== rucherIdConserve && r.station_meteo_ici)
+    .toArray();
+  await Promise.all(
+    autres.map((r) => db.rucher.update(r.id, { station_meteo_ici: false, updated_at: maintenant }))
+  );
+}

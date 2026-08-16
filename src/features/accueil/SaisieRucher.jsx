@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import { EnTeteEcran } from '../../components/EnTeteEcran.jsx';
+import { Interrupteur } from '../../components/Interrupteur.jsx';
 import {
   obtenirRucher,
   creerRucher,
   modifierRucher,
   archiverRucher,
+  retirerStationMeteoAutresRuchers,
 } from '../../db/repositories/ruchers.js';
 
 const CHAMP_CLASSE =
@@ -19,6 +21,7 @@ export function SaisieRucher({ rucherId, onRetour, onEnregistre }) {
   const [longitude, setLongitude] = useState('');
   const [altitude, setAltitude] = useState('');
   const [notes, setNotes] = useState('');
+  const [stationMeteoIci, setStationMeteoIci] = useState(false);
   const [message, setMessage] = useState(null);
 
   useEffect(() => {
@@ -31,6 +34,7 @@ export function SaisieRucher({ rucherId, onRetour, onEnregistre }) {
       setLongitude(rucher.longitude ?? '');
       setAltitude(rucher.altitude ?? '');
       setNotes(rucher.notes ?? '');
+      setStationMeteoIci(rucher.station_meteo_ici ?? false);
     });
   }, [rucherId]);
 
@@ -44,12 +48,13 @@ export function SaisieRucher({ rucherId, onRetour, onEnregistre }) {
         longitude: longitude !== '' ? Number(longitude) : null,
         altitude: altitude !== '' ? Number(altitude) : null,
         notes: notes || null,
+        station_meteo_ici: stationMeteoIci,
       };
+      let id = rucherId;
       if (rucherId) {
         await modifierRucher(rucherId, champs);
-        onEnregistre?.(rucherId);
       } else {
-        const id = crypto.randomUUID();
+        id = crypto.randomUUID();
         await creerRucher({
           id,
           ...champs,
@@ -61,8 +66,13 @@ export function SaisieRucher({ rucherId, onRetour, onEnregistre }) {
           updated_at: maintenant,
           deleted_at: null,
         });
-        onEnregistre?.(id);
       }
+      // Un seul rucher à la fois (voir retirerStationMeteoAutresRuchers) :
+      // la station Netatmo n'est physiquement qu'à un seul endroit.
+      if (stationMeteoIci) {
+        await retirerStationMeteoAutresRuchers(id);
+      }
+      onEnregistre?.(id);
     } catch (err) {
       console.error('[rucher] échec enregistrement', err);
       setMessage("Erreur : le rucher n'a pas pu être enregistré.");
@@ -161,6 +171,18 @@ export function SaisieRucher({ rucherId, onRetour, onEnregistre }) {
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
           />
+        </div>
+        <div>
+          <Interrupteur
+            label="Station météo Netatmo ici"
+            value={stationMeteoIci}
+            provenance="saisi"
+            onChange={setStationMeteoIci}
+          />
+          <p className="text-11 text-ink-muted mt-1">
+            Les visites de ce rucher enregistrent automatiquement un relevé extérieur
+            (température, vent, pluie) de ta station Netatmo personnelle.
+          </p>
         </div>
       </section>
 

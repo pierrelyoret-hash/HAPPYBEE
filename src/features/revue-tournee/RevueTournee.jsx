@@ -11,6 +11,11 @@ import { enregistrerVisite } from '../../db/repositories/visites.js';
 import { enregistrerTraitement, enregistrerNourrissement } from '../../db/repositories/sanitaire.js';
 import { structurerDictee } from '../../lib/structurationIA.js';
 import { VOIE_LIBELLES, TYPE_NOURRISSEMENT_LIBELLES } from '../../lib/libellesSanitaire.js';
+import {
+  creerTacheSuspicionSiNecessaire,
+  creerRappelsInterventionSiNecessaire,
+} from '../../lib/reglesVisite.js';
+import { capturerMeteoDomicileSiApplicable } from '../../lib/netatmo.js';
 
 const ANOMALIE_OPTIONS = [
   { value: 'bourdonneuse', label: 'Bourdonneuse' },
@@ -82,6 +87,9 @@ function CarteColonieRevue({ ruche, colonie, audio, onEnregistre }) {
   async function enregistrer() {
     try {
       const maintenant = new Date();
+      // Extension F2.4 (15/08/2026) : même capture météo que l'écran de
+      // saisie manuelle (src/lib/netatmo.js) — silencieuse, jamais bloquante.
+      const meteoDomicile = await capturerMeteoDomicileSiApplicable(ruche.rucher_id);
       const visite = {
         id: crypto.randomUUID(),
         colonie_id: colonie.id,
@@ -98,12 +106,14 @@ function CarteColonieRevue({ ruche, colonie, audio, onEnregistre }) {
         batisse: valeurs.batisse ?? null,
         cellules_royales_nb: 0,
         cellules_royales_type: null,
+        hausses_posees: false,
         anomalies,
         score_ponte: valeurs.score_ponte ?? null,
         signes_sanitaires: [],
         suspicion_reglementee: false,
         source_agregats: 'saisie_directe',
         observation_libre: observationLibre || null,
+        meteo_domicile: meteoDomicile,
         provenance_champs: null,
         created_at: maintenant.toISOString(),
         updated_at: maintenant.toISOString(),
@@ -111,6 +121,17 @@ function CarteColonieRevue({ ruche, colonie, audio, onEnregistre }) {
       };
       await enregistrerVisite(visite);
       await rattacherVisite(audio.id, visite.id);
+      // Mêmes règles §6.3 / suspicion catégorie 1 que l'écran de saisie
+      // manuelle (src/lib/reglesVisite.js) — "cadre de couvain introduit"
+      // n'existe pas dans le périmètre de cet écran (cf. commentaire de
+      // CarteColonieRevue ci-dessus), donc jamais transmis ici.
+      await creerTacheSuspicionSiNecessaire(visite, {
+        rucherId: ruche.rucher_id ?? null,
+        rucheNumero: ruche.numero,
+      });
+      await creerRappelsInterventionSiNecessaire(visite, {
+        rucherId: ruche.rucher_id ?? null,
+      });
 
       // Pas de délai d'attente extrait de la dictée (jamais demandé au
       // modèle) : aucun rappel automatique généré ici — cohérent avec

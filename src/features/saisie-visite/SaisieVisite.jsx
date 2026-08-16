@@ -10,11 +10,15 @@ import {
   obtenirDerniereVisite,
   enregistrerVisite,
 } from '../../db/repositories/visites.js';
-import { creerTache } from '../../db/repositories/taches.js';
 import { enregistrerPhoto } from '../../db/repositories/photos.js';
 import { comprimerImage } from '../../lib/compressionImage.js';
 import { joursDepuis } from '../../lib/etats.js';
 import { SIGNES_SANITAIRES_OPTIONS, SIGNES_CATEGORIE1 } from '../../lib/taxonomieSanitaire.js';
+import {
+  creerTacheSuspicionSiNecessaire,
+  creerRappelsInterventionSiNecessaire,
+} from '../../lib/reglesVisite.js';
+import { capturerMeteoDomicileSiApplicable } from '../../lib/netatmo.js';
 
 // Correction écrans L1 §7/§9.2 : un seul contrôle pour la ponte, sur 0-5.
 // "Mâles" n'est pas un degré de compacité — il est sorti de cette échelle
@@ -48,23 +52,6 @@ const ANOMALIE_OPTIONS = [
   { value: 'autre', label: 'Autre' },
 ];
 
-// Génération automatique de tâches par anomalie (§6.3, retour d'usage réel
-// du 15/08/2026) — une tâche directe par anomalie sélectionnée, à la
-// différence de la cascade orpheline/bourdonneuse ci-dessous qui suit une
-// intervention précise (cadre de couvain introduit), pas l'anomalie seule.
-// "Autre" et "orpheline" volontairement absentes : "Autre" est trop
-// générique pour un libellé actionnable, "orpheline" seule (sans cadre de
-// couvain introduit) ne déclenche encore aucune action définie.
-const REGLES_ANOMALIE = [
-  ['bourdonneuse', 0, 'Secouer les cadres à 50m de la ruche pour faire tomber les pondeuses', 'urgente', 'visite_bourdonneuse_secouer'],
-  ['pillage', 3, "Vérifier l'état de la colonie après le pillage", 'urgente', 'visite_pillage'],
-  ['fausse_teigne', 14, 'Contrôler l’évolution de la fausse teigne', 'moyenne', 'visite_fausse_teigne'],
-  ['mortalite_anormale', 3, 'Contrôler la colonie après mortalité anormale', 'urgente', 'visite_mortalite_anormale'],
-  ['diarrhee', 7, 'Contrôler l’évolution (suspicion nosémose)', 'moyenne', 'visite_diarrhee'],
-  ['abeilles_tremblantes', 3, 'Contrôler l’évolution (abeilles tremblantes)', 'urgente', 'visite_abeilles_tremblantes'],
-  ['ponte_males', 10, 'Recontrôler la ponte', 'moyenne', 'visite_ponte_males'],
-];
-
 // Champs pouvant être reportés d'une visite à l'autre (les anomalies en
 // sont explicitement exclues — §3 addendum ergonomie). ponte_qualite a été
 // retiré du schéma (correction écrans L1 §7) ; score_ponte, qui le
@@ -84,12 +71,6 @@ const CHAMPS_REPORTABLES = [
 ];
 
 const ECHELLE_1_A_5 = [1, 2, 3, 4, 5].map((n) => ({ value: n, label: String(n) }));
-
-function ajouterJours(dateIso, jours) {
-  const d = new Date(dateIso);
-  d.setDate(d.getDate() + jours);
-  return d.toISOString();
-}
 
 const CELLULES_ROYALES_TYPE_OPTIONS = [
   { value: 'essaimage', label: 'Essaimage' },
@@ -242,6 +223,10 @@ export function SaisieVisite({
 
   async function construireVisite() {
     const maintenant = new Date();
+    // Extension F2.4 (15/08/2026) : relevé extérieur de la station Netatmo
+    // personnelle, uniquement si ce rucher est celui où elle se trouve —
+    // capturerMeteoDomicileSiApplicable ne lève jamais, renvoie null sinon.
+    const meteoDomicile = await capturerMeteoDomicileSiApplicable(contexteActuel?.rucher?.id);
     return {
       id: crypto.randomUUID(),
       colonie_id: colonieId,
@@ -265,6 +250,7 @@ export function SaisieVisite({
       suspicion_reglementee: suspicionReglementee,
       source_agregats: 'saisie_directe',
       observation_libre: observationLibre || null,
+      meteo_domicile: meteoDomicile,
       provenance_champs: {
         ...provenance,
         observation_libre: observationLibre ? 'saisi' : 'vide',
@@ -277,121 +263,6 @@ export function SaisieVisite({
       updated_at: maintenant.toISOString(),
       deleted_at: null,
     };
-  }
-
-  // Étape 5 du parcours catégorie 1 (brief L1+ §5) : la tâche urgente n'est
-  // créée qu'une fois la visite effectivement enregistrée, pour pouvoir la
-  // rattacher via visite_declencheuse_id.
-  async function creerTacheSuspicionSiNecessaire(visite) {
-    if (!visite.suspicion_reglementee) return;
-    const maintenant = new Date().toISOString();
-    await creerTache({
-      id: crypto.randomUUID(),
-      colonie_id: visite.colonie_id,
-      rucher_id: contexteActuel?.rucher?.id ?? null,
-      libelle: `Suspicion de danger sanitaire de catégorie 1 — Ruche ${contexteActuel?.ruche?.numero ?? ''} : déclaration et prélèvement à organiser`,
-      // Échéance = maintenant : l'état "urgent" (lib/etats.js) ne se
-      // déclenche que sur une échéance échue, pas sur le champ `priorite`.
-      // Une suspicion catégorie 1 n'a pas de délai — elle est due immédiatement.
-      date_echeance: maintenant,
-      priorite: 'urgente',
-      origine: 'manuelle',
-      statut: 'a_faire',
-      visite_declencheuse_id: visite.id,
-      created_at: maintenant,
-      updated_at: maintenant,
-      deleted_at: null,
-    });
-  }
-
-  // Rappels fixes (cahier des charges §6.3), même logique que ci-dessus :
-  // créés une fois la visite enregistrée, pour les rattacher.
-  async function creerRappelsInterventionSiNecessaire(visite) {
-    const maintenant = new Date().toISOString();
-    const rucherId = contexteActuel?.rucher?.id ?? null;
-
-    if (visite.cellules_royales_type === 'essaimage' && visite.cellules_royales_nb > 0) {
-      await creerTache({
-        id: crypto.randomUUID(),
-        colonie_id: visite.colonie_id,
-        rucher_id: rucherId,
-        libelle: "Contrôler l'essaimage",
-        date_echeance: ajouterJours(visite.date, 7),
-        priorite: 'moyenne',
-        origine: 'generee',
-        regle_origine: 'visite_cellules_essaimage',
-        statut: 'a_faire',
-        visite_declencheuse_id: visite.id,
-        created_at: maintenant,
-        updated_at: maintenant,
-        deleted_at: null,
-      });
-    }
-
-    if (visite.hausses_posees) {
-      await creerTache({
-        id: crypto.randomUUID(),
-        colonie_id: visite.colonie_id,
-        rucher_id: rucherId,
-        libelle: 'Contrôler le remplissage',
-        date_echeance: ajouterJours(visite.date, 14),
-        priorite: 'moyenne',
-        origine: 'generee',
-        regle_origine: 'visite_hausse_posee',
-        statut: 'a_faire',
-        visite_declencheuse_id: visite.id,
-        created_at: maintenant,
-        updated_at: maintenant,
-        deleted_at: null,
-      });
-    }
-
-    // "Introduction d'un cadre de couvain frais" ne fait pas partie du
-    // schéma `visite` (§4.2) — signal ponctuel de cet écran uniquement,
-    // jamais persisté, seulement utilisé ici pour déclencher la cascade.
-    if (cadreCouvainIntroduit && (anomalies.includes('orpheline') || anomalies.includes('bourdonneuse'))) {
-      const cascade = [
-        [9, "Vérifier l'operculation des cellules royales"],
-        [16, 'Vérifier la naissance'],
-        [28, 'Contrôler la ponte'],
-      ];
-      for (const [jours, libelle] of cascade) {
-        await creerTache({
-          id: crypto.randomUUID(),
-          colonie_id: visite.colonie_id,
-          rucher_id: rucherId,
-          libelle,
-          date_echeance: ajouterJours(visite.date, jours),
-          priorite: 'moyenne',
-          origine: 'generee',
-          regle_origine: 'visite_cadre_couvain_introduit',
-          statut: 'a_faire',
-          visite_declencheuse_id: visite.id,
-          created_at: maintenant,
-          updated_at: maintenant,
-          deleted_at: null,
-        });
-      }
-    }
-
-    for (const [anomalie, jours, libelle, priorite, regleOrigine] of REGLES_ANOMALIE) {
-      if (!anomalies.includes(anomalie)) continue;
-      await creerTache({
-        id: crypto.randomUUID(),
-        colonie_id: visite.colonie_id,
-        rucher_id: rucherId,
-        libelle,
-        date_echeance: ajouterJours(visite.date, jours),
-        priorite,
-        origine: 'generee',
-        regle_origine: regleOrigine,
-        statut: 'a_faire',
-        visite_declencheuse_id: visite.id,
-        created_at: maintenant,
-        updated_at: maintenant,
-        deleted_at: null,
-      });
-    }
   }
 
   // Comprimées dès l'ajout (pas à l'enregistrement) : l'aperçu affiché est
@@ -434,8 +305,14 @@ export function SaisieVisite({
     try {
       const visite = await construireVisite();
       await enregistrerVisite(visite);
-      await creerTacheSuspicionSiNecessaire(visite);
-      await creerRappelsInterventionSiNecessaire(visite);
+      await creerTacheSuspicionSiNecessaire(visite, {
+        rucherId: contexteActuel?.rucher?.id ?? null,
+        rucheNumero: contexteActuel?.ruche?.numero,
+      });
+      await creerRappelsInterventionSiNecessaire(visite, {
+        rucherId: contexteActuel?.rucher?.id ?? null,
+        cadreCouvainIntroduit,
+      });
       await enregistrerPhotosEnAttente(visite.id);
       setDerniereVisite(visite);
       setMessage('Visite enregistrée.');
@@ -450,8 +327,14 @@ export function SaisieVisite({
     try {
       const visite = await construireVisite();
       await enregistrerVisite(visite);
-      await creerTacheSuspicionSiNecessaire(visite);
-      await creerRappelsInterventionSiNecessaire(visite);
+      await creerTacheSuspicionSiNecessaire(visite, {
+        rucherId: contexteActuel?.rucher?.id ?? null,
+        rucheNumero: contexteActuel?.ruche?.numero,
+      });
+      await creerRappelsInterventionSiNecessaire(visite, {
+        rucherId: contexteActuel?.rucher?.id ?? null,
+        cadreCouvainIntroduit,
+      });
       await enregistrerPhotosEnAttente(visite.id);
       setDerniereVisite(visite);
       setMessage('Visite enregistrée — rien à signaler.');
