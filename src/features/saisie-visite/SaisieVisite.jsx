@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Compteur } from '../../components/Compteur.jsx';
 import { EnTeteEcran } from '../../components/EnTeteEcran.jsx';
 import { Segmente } from '../../components/Segmente.jsx';
@@ -10,15 +10,20 @@ import {
   obtenirDerniereVisite,
   enregistrerVisite,
 } from '../../db/repositories/visites.js';
+import { enregistrerTraitement, enregistrerNourrissement } from '../../db/repositories/sanitaire.js';
 import { enregistrerPhoto } from '../../db/repositories/photos.js';
 import { comprimerImage } from '../../lib/compressionImage.js';
 import { joursDepuis } from '../../lib/etats.js';
 import { SIGNES_SANITAIRES_OPTIONS, SIGNES_CATEGORIE1 } from '../../lib/taxonomieSanitaire.js';
+import { VOIE_LIBELLES, TYPE_NOURRISSEMENT_LIBELLES } from '../../lib/libellesSanitaire.js';
 import {
   creerTacheSuspicionSiNecessaire,
   creerRappelsInterventionSiNecessaire,
 } from '../../lib/reglesVisite.js';
 import { capturerMeteoDomicileSiApplicable } from '../../lib/netatmo.js';
+import { transcrire } from '../../lib/transcription.js';
+import { corrigerGlossaire } from '../../lib/glossaireDictee.js';
+import { structurerDictee } from '../../lib/structurationIA.js';
 
 // Correction écrans L1 §7/§9.2 : un seul contrôle pour la ponte, sur 0-5.
 // "Mâles" n'est pas un degré de compacité — il est sorti de cette échelle
@@ -130,6 +135,25 @@ export function SaisieVisite({
   const [photosEnAttente, setPhotosEnAttente] = useState([]);
   const [compressionEnCours, setCompressionEnCours] = useState(false);
   const [message, setMessage] = useState(null);
+  // Dictée intégrée (15/08/2026) : disponible ici plutôt que seulement dans
+  // le parcours "Tournée vocale" séparé, puisque c'est cet écran qui reçoit
+  // à la fois l'accès via le fil de tournée et l'accès direct à une ruche.
+  // Contrairement à ce parcours différé, l'audio n'est jamais persisté :
+  // il sert une fois à extraire le texte, puis est jeté — dicter remplit
+  // le formulaire immédiatement, review par relecture du formulaire lui-même.
+  const [dicteeStatut, setDicteeStatut] = useState('inactif'); // 'inactif' | 'enregistrement' | 'transcription' | 'structuration' | 'erreur'
+  const [transcriptionBrute, setTranscriptionBrute] = useState(null);
+  const [progresModele, setProgresModele] = useState(null);
+  const [traitementsDictes, setTraitementsDictes] = useState([]);
+  const [nourrissementsDictes, setNourrissementsDictes] = useState([]);
+  const mediaRecorderRef = useRef(null);
+  const streamRef = useRef(null);
+  const chunksRef = useRef([]);
+  // Transporte l'information « une dictée a été abandonnée » du nettoyage
+  // d'effet vers le corps de l'effet suivant : React exécute le nettoyage
+  // avant, et le corps remet `message` à null — poser le message depuis le
+  // nettoyage le ferait donc écraser aussitôt.
+  const dicteeInterrompueRef = useRef(false);
 
   // Multi-rucher (14/08/2026) : sans ce filtre, le sélecteur mélangeait les
   // colonies de tous les ruchers — deux "Ruche 1" côte à côte dès qu'un
@@ -183,8 +207,29 @@ export function SaisieVisite({
         precedentes.forEach((p) => URL.revokeObjectURL(p.url));
         return [];
       });
-      setMessage(null);
+      // Dictée jamais reportée d'une colonie à l'autre — même logique que
+      // les photos et cellules royales ci-dessus.
+      setDicteeStatut('inactif');
+      setTranscriptionBrute(null);
+      setTraitementsDictes([]);
+      setNourrissementsDictes([]);
+      // Une dictée abandonnée ne disparaît pas en silence (arbitrage du
+      // 16/08/2026) : gants aux mains au rucher, perdre un enregistrement
+      // sans aucun signal est le vrai risque. Posé ici, après la remise à
+      // zéro de `message`, sinon il serait écrasé.
+      setMessage(
+        dicteeInterrompueRef.current ? 'Dictée interrompue — changement de colonie.' : null
+      );
+      dicteeInterrompueRef.current = false;
     });
+    // Changer de colonie (ou quitter l'écran) pendant une dictée coupe le
+    // micro pour de bon — voir annulerDictee. Sans ce nettoyage,
+    // l'enregistrement se poursuivait en arrière-plan alors que le bouton
+    // était revenu à "Dicter la visite", et sa transcription atterrissait sur
+    // la colonie affichée à l'arrivée.
+    return () => {
+      if (annulerDictee()) dicteeInterrompueRef.current = true;
+    };
   }, [colonieId]);
 
   const contexteActuel = contextes.find((c) => c.colonie.id === colonieId);
@@ -201,6 +246,118 @@ export function SaisieVisite({
   function modifierChamp(champ, valeur) {
     setValeurs((v) => ({ ...v, [champ]: valeur }));
     setProvenance((p) => ({ ...p, [champ]: 'saisi' }));
+  }
+
+  // Abandonne une dictée en cours sans la transcrire : le handler onstop est
+  // détaché d'abord, sinon arrêter le recorder déclencherait quand même la
+  // transcription — qui viendrait remplir le formulaire de la colonie
+  // affichée à ce moment-là, pas celle qui avait été dictée. Coupe aussi les
+  // pistes du stream : sans ça le micro reste ouvert indéfiniment (témoin
+  // d'enregistrement allumé), le recorder n'étant plus jamais arrêté.
+  // Uniquement des refs, aucun setState : cette fonction sert aussi de
+  // nettoyage d'effet, y compris au démontage de l'écran.
+  // Renvoie true si une dictée était réellement en cours — l'appelant décide
+  // s'il y a lieu d'en informer l'exploitant.
+  function annulerDictee() {
+    const recorder = mediaRecorderRef.current;
+    const interrompue = !!recorder && recorder.state !== 'inactive';
+    if (interrompue) {
+      recorder.onstop = null;
+      recorder.stop();
+    }
+    streamRef.current?.getTracks().forEach((t) => t.stop());
+    mediaRecorderRef.current = null;
+    streamRef.current = null;
+    chunksRef.current = [];
+    return interrompue;
+  }
+
+  async function demarrerDictee() {
+    // Filet de sécurité : jamais deux captures simultanées, la précédente
+    // deviendrait orpheline (micro impossible à couper depuis l'UI).
+    annulerDictee();
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream);
+      chunksRef.current = [];
+
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) chunksRef.current.push(e.data);
+      };
+
+      recorder.onstop = async () => {
+        stream.getTracks().forEach((t) => t.stop());
+        streamRef.current = null;
+        mediaRecorderRef.current = null;
+        const blob = new Blob(chunksRef.current, { type: recorder.mimeType });
+        await traiterDictee(blob);
+      };
+
+      mediaRecorderRef.current = recorder;
+      streamRef.current = stream;
+      recorder.start();
+      setTranscriptionBrute(null);
+      setDicteeStatut('enregistrement');
+    } catch (err) {
+      console.error('[écran B] accès micro refusé', err);
+      setDicteeStatut('erreur');
+    }
+  }
+
+  function arreterDictee() {
+    mediaRecorderRef.current?.stop();
+  }
+
+  // Complète le formulaire sans l'écraser : seuls les champs que l'IA a
+  // effectivement entendus sont posés (via modifierChamp, comme une saisie
+  // manuelle) — tout ce qui n'a pas été dicté garde sa valeur reportée de la
+  // visite précédente. C'est le formulaire déjà affiché qui sert de relecture,
+  // pas un écran de revue séparé.
+  async function traiterDictee(blob) {
+    setDicteeStatut('transcription');
+    try {
+      const brut = await transcrire(blob, { onProgres: onProgresModele });
+      const corrige = corrigerGlossaire(brut);
+      setTranscriptionBrute(corrige);
+      setProgresModele(null);
+      setDicteeStatut('structuration');
+      const champs = await structurerDictee(corrige);
+
+      for (const champ of CHAMPS_REPORTABLES) {
+        if (champs[champ] !== undefined && champs[champ] !== null) {
+          modifierChamp(champ, champs[champ]);
+        }
+      }
+      if (champs.score_ponte != null) setScorePonte(champs.score_ponte);
+      if (champs.anomalies?.length > 0) setAnomalies(champs.anomalies);
+      if (champs.observation_libre) setObservationLibre(champs.observation_libre);
+      if (champs.traitements?.length > 0) setTraitementsDictes(champs.traitements);
+      if (champs.nourrissements?.length > 0) setNourrissementsDictes(champs.nourrissements);
+
+      setDicteeStatut('inactif');
+    } catch (err) {
+      console.error('[écran B] échec de la dictée', err);
+      setDicteeStatut('erreur');
+    }
+  }
+
+  // La pipeline de transcription émet des événements de progression, pas un
+  // pourcentage — même normalisation que TourneeVocale.jsx, sans quoi
+  // l'objet brut atterrit dans l'affichage ("[object Object]%").
+  function onProgresModele(evenement) {
+    if (evenement?.status === 'progress' && evenement.total) {
+      setProgresModele(Math.round((evenement.loaded / evenement.total) * 100));
+    } else if (evenement?.status === 'done') {
+      setProgresModele(null);
+    }
+  }
+
+  function retirerTraitementDicte(index) {
+    setTraitementsDictes((liste) => liste.filter((_, i) => i !== index));
+  }
+
+  function retirerNourrissementDicte(index) {
+    setNourrissementsDictes((liste) => liste.filter((_, i) => i !== index));
   }
 
   // Déclenchement du parcours catégorie 1 (brief L1+ §5) : uniquement au
@@ -300,6 +457,55 @@ export function SaisieVisite({
     setPhotosEnAttente([]);
   }
 
+  // Traitements/nourrissements détectés par la dictée (§ traiterDictee) —
+  // même construction que RevueTournee.jsx : la dictée ne fournit que
+  // produit/voie/dosage/motif ou type/quantite/unite/composition, le reste
+  // des champs du schéma reste à null, faute d'avoir été dit.
+  async function enregistrerTraitementsEtNourrissementsDictes(visite) {
+    for (const t of traitementsDictes) {
+      const maintenant = new Date().toISOString();
+      await enregistrerTraitement({
+        id: crypto.randomUUID(),
+        colonie_id: visite.colonie_id,
+        date_debut: visite.date.slice(0, 10),
+        date_fin: visite.date.slice(0, 10),
+        produit: t.produit || null,
+        numero_amm: null,
+        numero_lot: null,
+        dosage: t.dosage || null,
+        voie: t.voie || null,
+        motif: t.motif || null,
+        delai_attente_jours: null,
+        date_fin_delai_attente: null,
+        ordonnance_document_id: null,
+        conforme_bio: null,
+        notes: null,
+        created_at: maintenant,
+        updated_at: maintenant,
+        deleted_at: null,
+      });
+    }
+    for (const n of nourrissementsDictes) {
+      const maintenant = new Date().toISOString();
+      await enregistrerNourrissement({
+        id: crypto.randomUUID(),
+        colonie_id: visite.colonie_id,
+        date: visite.date.slice(0, 10),
+        type: n.type || null,
+        quantite: n.quantite ?? null,
+        unite: n.unite || null,
+        composition: n.composition || null,
+        origine_produit: null,
+        notes: null,
+        created_at: maintenant,
+        updated_at: maintenant,
+        deleted_at: null,
+      });
+    }
+    setTraitementsDictes([]);
+    setNourrissementsDictes([]);
+  }
+
   async function enregistrer() {
     if (!colonieId) return;
     try {
@@ -314,6 +520,7 @@ export function SaisieVisite({
         cadreCouvainIntroduit,
       });
       await enregistrerPhotosEnAttente(visite.id);
+      await enregistrerTraitementsEtNourrissementsDictes(visite);
       setDerniereVisite(visite);
       setMessage('Visite enregistrée.');
     } catch (err) {
@@ -336,6 +543,7 @@ export function SaisieVisite({
         cadreCouvainIntroduit,
       });
       await enregistrerPhotosEnAttente(visite.id);
+      await enregistrerTraitementsEtNourrissementsDictes(visite);
       setDerniereVisite(visite);
       setMessage('Visite enregistrée — rien à signaler.');
     } catch (err) {
@@ -388,6 +596,83 @@ export function SaisieVisite({
       />
 
       <div className="p-4 flex flex-col gap-4">
+
+      <section className="flex flex-col gap-2">
+        <button
+          type="button"
+          onClick={dicteeStatut === 'enregistrement' ? arreterDictee : demarrerDictee}
+          disabled={dicteeStatut === 'transcription' || dicteeStatut === 'structuration'}
+          className={`h-11 w-full rounded text-15 font-bold ${
+            dicteeStatut === 'enregistrement'
+              ? 'bg-urgent-ink text-surface'
+              : 'bg-ink text-surface disabled:opacity-40'
+          }`}
+        >
+          {dicteeStatut === 'enregistrement' ? '■ Arrêter' : '● Dicter la visite'}
+        </button>
+        {dicteeStatut === 'transcription' && (
+          <p className="text-11 text-ink-muted">
+            Transcription en cours…
+            {progresModele != null && ` Téléchargement du modèle (une seule fois) : ${progresModele}%`}
+          </p>
+        )}
+        {dicteeStatut === 'structuration' && (
+          <p className="text-11 text-ink-muted">Structuration en cours…</p>
+        )}
+        {dicteeStatut === 'erreur' && (
+          <p className="text-11 text-urgent-ink">
+            Échec — micro refusé, ou dictée impossible hors-ligne avant le premier téléchargement
+            du modèle et sans réseau pour la structuration.
+          </p>
+        )}
+        {transcriptionBrute && (
+          <p className="text-12 text-ink-secondary italic">« {transcriptionBrute} »</p>
+        )}
+
+        {traitementsDictes.length > 0 && (
+          <div className="border border-rule rounded p-3 flex flex-col gap-2">
+            <p className="text-13 font-bold text-ink-secondary">Traitement(s) détecté(s) dans la dictée</p>
+            {traitementsDictes.map((t, index) => (
+              <div key={index} className="flex items-start justify-between gap-2 text-13">
+                <span>
+                  {t.produit || 'Produit non précisé'}
+                  {t.voie && ` — ${VOIE_LIBELLES[t.voie] ?? t.voie}`}
+                  {t.dosage && ` — ${t.dosage}`}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => retirerTraitementDicte(index)}
+                  className="text-12 text-ink-secondary underline shrink-0"
+                >
+                  Retirer
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {nourrissementsDictes.length > 0 && (
+          <div className="border border-rule rounded p-3 flex flex-col gap-2">
+            <p className="text-13 font-bold text-ink-secondary">Nourrissement(s) détecté(s) dans la dictée</p>
+            {nourrissementsDictes.map((n, index) => (
+              <div key={index} className="flex items-start justify-between gap-2 text-13">
+                <span>
+                  {n.type ? TYPE_NOURRISSEMENT_LIBELLES[n.type] ?? n.type : 'Type non précisé'}
+                  {n.quantite != null && ` — ${n.quantite}${n.unite ? ` ${n.unite}` : ''}`}
+                  {n.composition && ` (${n.composition})`}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => retirerNourrissementDicte(index)}
+                  className="text-12 text-ink-secondary underline shrink-0"
+                >
+                  Retirer
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
 
       {/* Mosaïque d'accès rapide (retour d'usage réel du 14/08/2026) : ces
           quatre écrans étaient injoignables sans défiler tout le formulaire
