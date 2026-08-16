@@ -382,9 +382,9 @@ export function RevueTournee({ rucherId, onRetour, onOuvrirSaisieVisite }) {
       if (!ruche || !colonie) continue;
 
       const audios = await listerAudioColonie(colonie.id);
-      // Le plus récent audio non encore rattaché à une visite (L2.4 : un
-      // enregistrement à la fois par colonie — recommencer écrase l'ancien
-      // côté saisie, mais plusieurs lignes peuvent subsister ici).
+      // Le plus récent audio, trié par date réelle (listerAudioColonie) —
+      // un "Refaire" remplace la tentative précédente (enregistrerAudio),
+      // donc au plus une ligne non rattachée subsiste par colonie.
       const dernier = audios[audios.length - 1];
 
       if (!dernier || !dernier.transcription_brute) {
