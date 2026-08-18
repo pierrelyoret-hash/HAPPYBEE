@@ -206,7 +206,7 @@ export function VueEnsemble({
         <section>
           <div className="flex items-center justify-between mb-2 px-4">
             <p className="text-13 text-ink-secondary">Ordre de tournée</p>
-            {modeEdition && (
+            {modeEdition ? (
               <button
                 type="button"
                 onClick={() => setModeEdition(false)}
@@ -214,6 +214,20 @@ export function VueEnsemble({
               >
                 Terminé
               </button>
+            ) : (
+              // Masqué à moins de deux colonies : rien à réordonner entre une
+              // seule ligne. L'appui long sur une ligne reste le déclencheur
+              // habituel (onEntrerModeEdition) — ce lien n'ajoute qu'une
+              // seconde façon d'atteindre le même mode édition.
+              lignes.length >= 2 && (
+                <button
+                  type="button"
+                  onClick={() => setModeEdition(true)}
+                  className="text-12 text-ink-secondary underline"
+                >
+                  Modifier l'ordre
+                </button>
+              )
             )}
           </div>
           <ul className="bg-surface border-t border-b border-rule divide-y divide-rule">
