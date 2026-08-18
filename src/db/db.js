@@ -1,4 +1,5 @@
 import Dexie from 'dexie';
+import { normaliserPonteQualite } from '../lib/migrationPonteQualite.js';
 
 export const db = new Dexie('happybee');
 
@@ -47,20 +48,7 @@ db.version(4)
       .table('visite')
       .toCollection()
       .modify((visite) => {
-        if (visite.ponte_qualite === 'males') {
-          visite.anomalies = Array.isArray(visite.anomalies) ? visite.anomalies : [];
-          if (!visite.anomalies.includes('ponte_males')) {
-            visite.anomalies.push('ponte_males');
-          }
-          if (visite.score_ponte == null) {
-            visite.score_ponte = 0;
-          }
-        } else if (visite.score_ponte == null) {
-          if (visite.ponte_qualite === 'compacte') visite.score_ponte = 4;
-          else if (visite.ponte_qualite === 'lacunaire') visite.score_ponte = 2;
-          else if (visite.ponte_qualite === 'absente') visite.score_ponte = 0;
-        }
-        delete visite.ponte_qualite;
+        normaliserPonteQualite(visite);
       });
   });
 

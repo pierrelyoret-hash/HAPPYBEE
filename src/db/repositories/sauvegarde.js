@@ -1,4 +1,5 @@
 import { db } from '../db.js';
+import { normaliserPonteQualite } from '../../lib/migrationPonteQualite.js';
 
 const TABLES = [
   'rucher',
@@ -22,7 +23,13 @@ export async function exporterDonnees() {
     tables[nom] = await db[nom].toArray();
   }
   return {
-    version: 1,
+    // Incrémenté pour la première fois ici (16/08/2026) — jusque-là figé à 1
+    // depuis l'origine du module, donc impropre à distinguer un fichier
+    // antérieur à la migration Dexie v4 (ponte_qualite) d'un fichier récent.
+    // Les fichiers déjà sur disque restent en version 1 : c'est pour ça que
+    // restaurerDonnees ci-dessous se base sur la présence du champ
+    // ponte_qualite, pas sur ce numéro.
+    version: 2,
     exporte_le: new Date().toISOString(),
     tables,
   };
@@ -44,6 +51,20 @@ export async function restaurerDonnees(sauvegarde) {
         await db[nom].clear();
         const lignes = sauvegarde.tables[nom];
         if (Array.isArray(lignes) && lignes.length > 0) {
+          // clear() + bulkAdd() n'est pas une migration Dexie : celles-ci ne
+          // se déclenchent qu'au changement de version du schéma, jamais à
+          // une insertion. Une sauvegarde antérieure à la migration v4
+          // (ponte_qualite → score_ponte) réintroduirait donc le champ tel
+          // quel sur une base déjà en v10+ — rejoué ici ligne par ligne,
+          // par présence du champ plutôt que par le numéro de version (voir
+          // exporterDonnees ci-dessus).
+          if (nom === 'visite') {
+            for (const visite of lignes) {
+              if ('ponte_qualite' in visite) {
+                normaliserPonteQualite(visite);
+              }
+            }
+          }
           await db[nom].bulkAdd(lignes);
         }
       }
