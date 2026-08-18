@@ -154,6 +154,13 @@ export function SaisieVisite({
   // avant, et le corps remet `message` à null — poser le message depuis le
   // nettoyage le ferait donc écraser aussitôt.
   const dicteeInterrompueRef = useRef(false);
+  // Valeur à jour de colonieId, lisible depuis les callbacks asynchrones de
+  // traiterDictee (transcription/structuration) — la variable colonieId,
+  // elle, reste figée à sa valeur au moment de l'appel (fermeture). Mise à
+  // jour à chaque rendu, sans passer par un effet : elle doit refléter la
+  // colonie affichée immédiatement, pas après le prochain cycle d'effets.
+  const colonieIdRef = useRef(colonieId);
+  colonieIdRef.current = colonieId;
 
   // Multi-rucher (14/08/2026) : sans ce filtre, le sélecteur mélangeait les
   // colonies de tous les ruchers — deux "Ruche 1" côte à côte dès qu'un
@@ -276,6 +283,10 @@ export function SaisieVisite({
     // Filet de sécurité : jamais deux captures simultanées, la précédente
     // deviendrait orpheline (micro impossible à couper depuis l'UI).
     annulerDictee();
+    // Colonie visée par CETTE dictée, figée dès le départ — traiterDictee
+    // s'en sert pour détecter un changement de colonie survenu pendant la
+    // transcription/structuration (voir son commentaire).
+    const colonieIdOrigine = colonieId;
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const recorder = new MediaRecorder(stream);
@@ -290,7 +301,7 @@ export function SaisieVisite({
         streamRef.current = null;
         mediaRecorderRef.current = null;
         const blob = new Blob(chunksRef.current, { type: recorder.mimeType });
-        await traiterDictee(blob);
+        await traiterDictee(blob, colonieIdOrigine);
       };
 
       mediaRecorderRef.current = recorder;
@@ -308,20 +319,46 @@ export function SaisieVisite({
     mediaRecorderRef.current?.stop();
   }
 
+  // Une fois l'enregistrement arrêté (bouton ou changement de colonie), la
+  // fuite micro est déjà exclue (annulerDictee coupe le stream) — mais rien
+  // n'empêchait jusqu'ici l'exploitant de changer de colonie PENDANT la
+  // transcription ou la structuration, qui prennent, elles, plusieurs
+  // secondes (modèle local + appel réseau). Sans garde-fou, la dictée de la
+  // colonie quittée continuait en arrière-plan et sa transcription
+  // atterrissait — via modifierChamp/setAnomalies/etc., du simple state React
+  // partagé par tout l'écran — dans le formulaire de la colonie affichée à ce
+  // moment-là : des valeurs plausibles, appliquées à la mauvaise ruche, sans
+  // rien pour les distinguer d'une saisie normale.
+  // Comparer colonieIdOrigine (figé à l'appel) à colonieIdRef.current (à
+  // jour) après CHAQUE await détecte ce changement, à quelque étape qu'il
+  // survienne. Abandon franc dans ce cas — même principe que pendant
+  // l'enregistrement (annulerDictee) : rien n'est appliqué à la colonie
+  // affichée, et dicteeStatut/message sont remis à un état cohérent pour
+  // elle plutôt que de rester bloqués sur "transcription en cours" pour une
+  // dictée qui ne la concerne pas.
+  function dicteeDevenueObsolete(colonieIdOrigine) {
+    if (colonieIdRef.current === colonieIdOrigine) return false;
+    setDicteeStatut('inactif');
+    setMessage('Dictée interrompue — changement de colonie.');
+    return true;
+  }
+
   // Complète le formulaire sans l'écraser : seuls les champs que l'IA a
   // effectivement entendus sont posés (via modifierChamp, comme une saisie
   // manuelle) — tout ce qui n'a pas été dicté garde sa valeur reportée de la
   // visite précédente. C'est le formulaire déjà affiché qui sert de relecture,
   // pas un écran de revue séparé.
-  async function traiterDictee(blob) {
+  async function traiterDictee(blob, colonieIdOrigine) {
     setDicteeStatut('transcription');
     try {
       const brut = await transcrire(blob, { onProgres: onProgresModele });
+      if (dicteeDevenueObsolete(colonieIdOrigine)) return;
       const corrige = corrigerGlossaire(brut);
       setTranscriptionBrute(corrige);
       setProgresModele(null);
       setDicteeStatut('structuration');
       const champs = await structurerDictee(corrige);
+      if (dicteeDevenueObsolete(colonieIdOrigine)) return;
 
       for (const champ of CHAMPS_REPORTABLES) {
         if (champs[champ] !== undefined && champs[champ] !== null) {
@@ -336,6 +373,7 @@ export function SaisieVisite({
 
       setDicteeStatut('inactif');
     } catch (err) {
+      if (dicteeDevenueObsolete(colonieIdOrigine)) return;
       console.error('[écran B] échec de la dictée', err);
       setDicteeStatut('erreur');
     }
