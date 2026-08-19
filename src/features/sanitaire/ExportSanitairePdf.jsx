@@ -15,8 +15,11 @@ const CHAMP_CLASSE =
   'w-full h-11 text-15 border border-rule-strong rounded px-2 bg-surface text-ink';
 
 // Sélection de période (brief §2 point 8, cohérent F5.3) — par défaut
-// l'exercice en cours, ici l'année civile faute d'un exercice défini
-// ailleurs dans le modèle.
+// l'exercice en cours, ici l'année civile. Ce n'est PAS un pis-aller technique
+// faute de mieux : le registre sanitaire (F5.1, arrêté du 5 juin 2000) se
+// tient par année civile, à ne surtout pas aligner sur la "campagne apicole
+// avril-mars" utilisée ailleurs (historique consolidé, export CSV) — les
+// deux découpages coexistent volontairement, chacun pour son usage.
 export function ExportSanitairePdf({ onRetour }) {
   const [periodeDebut, setPeriodeDebut] = useState(premierJanvier());
   const [periodeFin, setPeriodeFin] = useState(dateDuJour());
