@@ -300,35 +300,33 @@ Lot inséré le 12/08/2026 entre L2 et L3 — voir `brief_L2.2_sanitaire.md` pou
 
 L3.1, L3.3, L3.4, L3.5 et L3.10 sont passés en L2.2 (arbitrage du 12/08/2026, voir ci-dessus) — numérotation d'origine conservée à titre d'historique, non réutilisée.
 
-## L3bis — Météo et moteur de recommandations
+## L3bis — Météo et moteur de recommandations *(brief rédigé le 18/08/2026)*
+
+> Spécifié dans **`brief_L3bis_moteur_regles.md`**, qui prime sur l'addendum M12 partout où
+> les deux divergent — M12 date du 10/08 et est antérieur à L2.2, L3 et aux arbitrages des
+> 14 au 16/08. Arbitrages d'ouverture : cahier des charges §21.
 
 | Réf | Fonctionnalité | Prio |
 |---|---|---|
-| L3b.1 | Reconstitution de l'historique météo par API d'archive | M |
+| L3b.1 | Reconstitution de l'historique météo par API d'archive — Open-Meteo, déjà le fournisseur du module M8, remonte à 1940 : contrairement à l'avertissement de M12 §9, aucune donnée passée n'est perdue | M |
 | L3b.2 | Rafraîchissement quotidien, cache local | M |
 | L3b.3 | Agrégats : canicule, sécheresse, pluie prolongée, gel tardif | M |
 | L3b.4 | Moteur de règles déterministe, versionné | M |
-| L3b.5 | Catalogue initial de quinze règles | M |
-| L3b.6 | Génération automatique de tâches — règles météo-dépendantes uniquement ; les trois règles à seuil fixe (traitement, varroa) sont livrées en L2.2 | M |
-| L3b.7 | Cycle de vie : proposée / validée / différée / rejetée | M |
+| L3b.5 | Catalogue de **huit règles nouvelles**, et non quinze — six des quinze de M12 sont déjà livrées, une est écartée (R-ORPH-01) et une reportée en L5 (R-REGL-01). Détail au §2.2 du brief | M |
+| L3b.6 | Génération de tâches — **deux régimes coexistent** (§21) : les quatorze règles livrées, déclenchées par un fait saisi, créent une tâche directement ; les règles du moteur, déclenchées par une inférence, émettent une proposition à valider | M |
+| L3b.7 | Cycle de vie : proposée / validée / différée / rejetée — **pour les règles du moteur uniquement** | M |
 | L3b.8 | Traçabilité complète du déclenchement | M |
 | L3b.9 | Paramétrage des seuils par règle | M |
 | L3b.10 | Plafond de deux urgences par rucher | M |
 | L3b.11 | Effet observé rattaché à la visite suivante | S |
 | L3b.12 | Fenêtre météo favorable à une visite | S |
 
-## L4 — Registre d'élevage
+## L4 — Économique *(anciennement L5)*
 
-| Réf | Fonctionnalité | Prio |
-|---|---|---|
-| L4.1 | Export PDF paginé, cinq blocs réglementaires — réutilise la génération PDF de L2.2 pour les blocs « encadrement sanitaire » et « interventions vétérinaires », construit les trois blocs restants (fiche synthétique, mouvements des animaux, entretien et soins) et l'assemblage paginé complet | M |
-| L4.2 | Classement chronologique par type de données | M |
-| L4.3 | Sélection de période | M |
-| L4.4 | Annexe des documents rattachés | M |
-| L4.5 | Rappel trimestriel d'impression | S |
-| L4.6 | Conservation cinq ans, aucune purge | M |
-
-## L5 — Économique
+> **Inversion actée le 18/08/2026** (cahier des charges §21) : l'économique passe devant le
+> registre. Les références `L5.x` ci-dessous sont **conservées telles quelles** — même
+> convention que pour L3 plus haut : la numérotation d'origine reste un identifiant stable
+> et ne suit pas le renommage du lot.
 
 | Réf | Fonctionnalité | Prio |
 |---|---|---|
@@ -344,6 +342,20 @@ L3.1, L3.3, L3.4, L3.5 et L3.10 sont passés en L2.2 (arbitrage du 12/08/2026, v
 | L5.10 | Coût cumulé d'une colonie perdue | S |
 | L5.11 | Extraction IA des justificatifs | C |
 | L5.12 | Champs fiscaux captés, exports désactivés | M |
+
+## L5 — Registre d'élevage *(anciennement L4)*
+
+> **Inversion actée le 18/08/2026** (cahier des charges §21). Références `L4.x` conservées,
+> même convention que ci-dessus.
+
+| Réf | Fonctionnalité | Prio |
+|---|---|---|
+| L4.1 | Export PDF paginé, cinq blocs réglementaires — réutilise la génération PDF de L2.2 pour les blocs « encadrement sanitaire » et « interventions vétérinaires », construit les trois blocs restants (fiche synthétique, mouvements des animaux, entretien et soins) et l'assemblage paginé complet | M |
+| L4.2 | Classement chronologique par type de données | M |
+| L4.3 | Sélection de période | M |
+| L4.4 | Annexe des documents rattachés | M |
+| L4.5 | Rappel trimestriel d'impression — **la règle R-REGL-01 du moteur M12 y est rattachée**, reportée de L3bis faute de registre à imprimer avant ce lot (§21) | S |
+| L4.6 | Conservation cinq ans, aucune purge | M |
 
 ## L6 — Assistant IA et finitions
 

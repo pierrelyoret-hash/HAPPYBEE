@@ -445,18 +445,20 @@ Affichage systématiquement accompagné de la série pluriannuelle. **Un ratio i
 | Lot | Contenu | Critère de sortie | Statut |
 |---|---|---|---|
 | **L1** | M1 + M2 hors photos, en local uniquement, **plus M10 et M11 anticipés** (voir note §1) | Une visite complète saisie au rucher en moins d'une minute, sans réseau | **Livré 10/08/2026** |
-| **L1+** | Complément à L1 : score de ponte, taxonomie sanitaire, parcours danger catégorie 1, table `observation_cadre` au schéma sans interface | Cocher un signe de catégorie 1 affiche la conduite à tenir | **À ouvrir maintenant** |
-| **Revue ergo** | Révision de l'ergonomie après 3 visites réelles avec L1+ | Corrections identifiées et arbitrées | À faire avant L2 |
+| **L1+** | Complément à L1 : score de ponte, taxonomie sanitaire, parcours danger catégorie 1, table `observation_cadre` au schéma sans interface | Cocher un signe de catégorie 1 affiche la conduite à tenir | **Livré** — entre le 10 et le 12/08/2026, date exacte non consignée |
+| **Revue ergo** | Révision de l'ergonomie après 3 visites réelles avec L1+ | Corrections identifiées et arbitrées | **Réalisée** — revue sur captures du 11/08 (`brief_corrections_ecrans_L1.md`), puis retours d'usage réel du 14/08 (§16-17) et refonte visuelle du 15/08 |
 | **L2** | Synchronisation + photos + dictée + revue de tournée + **M13 observation cadre par cadre** | Une visite saisie sur le téléphone apparaît sur l'ordinateur ; un cadre remarquable se saisit en 15 s | **Livré 13/08/2026** (vérifié techniquement de bout en bout ; confirmation en conditions réelles de rucher à faire par l'exploitant, sans bloquer la suite — cf. `observation_cadre_et_cartographie_lots.md`) |
 | **L2.2** | M3 sanitaire : traitements, comptages varroa, nourrissement, rappels fixes (§6.3), export PDF ciblé aux deux blocs sanitaires du registre (F5.1) — cf. `brief_L2.2_sanitaire.md` | Un traitement et un comptage varroa se saisissent, génèrent automatiquement les trois rappels prévus, et s'exportent en PDF sur une période choisie | **Livré 12/08/2026** |
 | **L3** | M4 + M7 + reste de M3 (mouvements, récoltes, rendement, tâches manuelles) | Les tâches se génèrent seules après une intervention | **Livré 13/08/2026** (vérifié techniquement de bout en bout — récolte 6 modes, interlock délai d'attente F3.2, tableau de rendement, mouvements, 8 règles §6.3, création manuelle et vue "à faire" consolidée ; confirmation en conditions réelles de rucher à faire par l'exploitant, sans bloquer la suite) |
 | **M8** | Module météo (F8.1-F8.3) : prévisions 7-16 jours aux coordonnées du rucher, cache hors-ligne, repère de créneau favorable | La prévision d'un rucher s'affiche, reste consultable hors-ligne, sans clé ni coût | **Livré 15/08/2026** |
-| **L3bis** | Ingestion météo quotidienne + moteur de règles (3 règles pilotes) — cf. addendum M12 | — | Planifié |
-| **L4** | M5 (registre complet, 5 blocs — réutilise la génération PDF de L2.2 pour 2 des 5 blocs) | Un PDF de registre conforme est produit et imprimé | Planifié |
-| **L5** | M6 | Le coût de revient au kg d'une ruche est calculé sur une saison réelle | Planifié |
+| **L3bis** | Historique météo par rucher + moteur de règles déterministe versionné + catalogue de huit règles nouvelles — cf. `brief_L3bis_moteur_regles.md` | Une règle météo-dépendante émet une recommandation traçable, dont la validation crée une tâche | **En cours** — brief rédigé le 18/08/2026 |
+| **L4** | **M6 économique** : écritures, affectation analytique, amortissements, coût de revient — *anciennement L5, inversé le 18/08/2026 (§21)* | Le coût de revient au kg d'une ruche est calculé sur une saison réelle | Planifié |
+| **L5** | **M5 registre d'élevage complet**, cinq blocs — réutilise la génération PDF de L2.2 pour deux des cinq blocs — *anciennement L4, inversé le 18/08/2026 (§21)* | Un PDF de registre conforme est produit et imprimé | Planifié |
 | **L6** | M9 + reste de M10/M11 (export CSV par table, rappel mensuel) | L'historique CSV est importé, l'export intégral fonctionne hors-ligne | Planifié |
 
-**Recommandation de séquencement.** Ne pas engager L3 avant d'avoir utilisé L1 et L2 sur au moins trois visites réelles au rucher. La cause la plus fréquente d'abandon d'un outil personnel est une V1 trop ambitieuse livrée d'un bloc. **L1 est livré. L1+ s'ouvre maintenant** — il complète le socle sans rien reconstruire. **L2 est devenu le lot le plus lourd de la trajectoire** du fait de l'intégration de M13 : le séquencer en interne (synchronisation → photos → dictée → revue → cadre par cadre → agrégation), avec passage au rucher entre chaque étape.
+**Recommandation de séquencement.** *(mise à jour du 18/08/2026 — le paragraphe d'origine, écrit avant l'ouverture de L1+, est remplacé)* Tout le socle terrain est livré : L1, L1+, L2, L2.2, L3, M8, et la refonte visuelle du 15/08. La trajectoire restante est **L3bis → L4 (économique) → L5 (registre) → L6**, l'inversion L4/L5 étant actée au §21.
+
+Le principe de séquencement d'origine reste valable et n'a pas été démenti : ne pas livrer un lot d'un bloc sans confrontation au terrain — la cause la plus fréquente d'abandon d'un outil personnel est une V1 trop ambitieuse. L3bis étant le premier lot à produire des propositions plutôt que des enregistrements, le passage au rucher y est plus déterminant encore qu'ailleurs : une règle mal calibrée se voit à l'usage, pas en revue de code.
 
 ---
 
@@ -645,3 +647,77 @@ Jusqu'ici, seules les anomalies « orpheline » et « bourdonneuse » déclencha
 | « Autre » | Volontairement exclue — libellé trop générique pour une tâche actionnable |
 | Implémentation | Table de règles `REGLES_ANOMALIE` (anomalie → délai, libellé, priorité, `regle_origine`) dans `SaisieVisite.jsx`, même convention que les 8 règles existantes (pas de déduplication — comme toutes les règles déclenchées à la sauvegarde d'une visite, à la différence de la règle "21 jours" recalculée à chaque chargement) |
 | Limite connue, non corrigée dans ce lot | La revue de tournée (`RevueTournee.jsx`, saisie vocale) n'appelle aucune règle §6.3 — ni les nouvelles, ni les 8 existantes (essaimage, hausse posée, cascade couvain, et même la tâche urgente de suspicion catégorie 1). Une visite saisie par dictée vocale ne génère donc aucune tâche automatique. Gap constaté pendant la vérification, existant avant ce lot, non corrigé ici — signalé séparément |
+
+---
+
+## 21. Arbitrages actés — 18 août 2026 (séquence des lots, ouverture de L3bis)
+
+### Inversion de L4 et L5
+
+| Question | Décision |
+|---|---|
+| Ordre des deux lots restants du socle | **L4 devient le module économique (M6)**, **L5 devient le registre d'élevage (M5)** — l'ordre d'origine est inversé. La numérotation des lots suit désormais l'ordre de réalisation, pas l'affectation d'origine ; les références « L4 = registre » antérieures à cette date sont à lire comme « L5 » |
+
+### Ouverture de L3bis — trois arbitrages structurants
+
+Le lot est spécifié dans `brief_L3bis_moteur_regles.md`. L'addendum M12 datant du 10/08, il est antérieur à L2.2, L3 et aux arbitrages des 14 au 16/08 : **six de ses quinze règles étaient déjà livrées** au moment d'ouvrir le lot. D'où trois arbitrages.
+
+| Question | Décision |
+|---|---|
+| Régime de génération des tâches | **Deux régimes coexistent, la frontière étant le déterminisme.** Une règle déclenchée par un **fait saisi par l'exploitant** (anomalie cochée, hausse posée, traitement enregistré) crée une tâche **directement, sans validation** — c'est le régime des quatorze règles livrées, arbitré au §20, inchangé. Une règle déclenchée par une **inférence du moteur** (croisement météo, absence d'observation, seuil calculé) émet une **proposition à valider**. M12 §8.1 (« aucune tâche sans validation ») ne s'applique donc qu'au second régime |
+| R-ORPH-01 (bourdonneuse) | **Redéfinie en règle du moteur, à validation** *(précision de l'exploitant, 18/08/2026)*. Face à une bourdonneuse, **trois conduites sont possibles** — secouer les cadres à 50 m (immédiate, réversible, sans coût) · introduire un cadre de couvain frais (déclenche la cascade J+9/16/28 de R-ORPH-02) · introduire une nouvelle reine (remplacement direct). Le choix dépend de la force de la colonie et de l'avancement de la saison : il n'appartient donc pas à la machine. La règle **présente les trois et l'exploitant valide**. La tâche « secouer » restant créée directement par `visite_bourdonneuse_secouer` (premier régime), la recommandation la présente comme **déjà planifiée** et ne soumet à validation que les deux autres — sans quoi la même action apparaîtrait deux fois |
+| R-REGL-01 (impression trimestrielle du registre) | **Reportée en L5**, avec le registre : la règle n'aurait rien à déclencher avant lui. Le moteur étant versionné et son catalogue extensible, l'ajout ultérieur est sans coût |
+| Périmètre réel du catalogue | **Neuf règles nouvelles**, non quinze : six sont déjà livrées (R-ORPH-02, R-ESSA-01, R-VARR-01, R-VARR-02, R-SANI-01, R-VISI-01) et une est reportée en L5 (R-REGL-01). À noter que `mouvement_division`, livré, ne figure dans aucun des quinze codes de M12 — le catalogue réel déborde déjà l'addendum |
+| Couche IA de M12 (F12.12 à F12.14) | **Renvoyée en L6.** M12 §2.1 la classe lui-même comme « réseau requis », donc incompatible avec le parcours de saisie au rucher. Le moteur déterministe doit être complet sans elle |
+| Table `evenement` de M12 §3 | **Écartée** : elle dupliquerait des données déjà lisibles dans `visite`, `meteo_journaliere` et `comptage_varroa`, sans usage identifié. La traçabilité est assurée par `recommandation.donnees_declenchement` |
+
+### Correction d'une limite consignée au §20
+
+Le §20 signalait que la revue de tournée vocale n'appelait aucune règle §6.3. **C'est corrigé** : `RevueTournee.jsx` appelle `creerRappelsInterventionSiNecessaire` depuis le commit `7aebe6c`. La mention « non corrigée dans ce lot » du §20 ne vaut plus que pour l'historique.
+
+### Statut de l'addendum M12
+
+`addendum_M12_moteur_recommandations.md` n'existe que dans `files/Archives/` et n'a jamais été mis à jour depuis le 10/08. Il reste la source d'origine du moteur, mais **`brief_L3bis_moteur_regles.md` prime sur lui** partout où les deux divergent.
+
+---
+
+## 22. Arbitrages actés — 18 août 2026 (ouverture de L4, économique)
+
+Le lot est spécifié dans `brief_L4_economique.md`, validé par l'exploitant avant ouverture du
+développement.
+
+| Question | Décision |
+|---|---|
+| Définition de `ecriture.exercice` | **La campagne apicole avril-mars**, et non l'année civile — cohérent avec l'arbitrage du 14/08 (§16) et avec `src/lib/saison.js`. Motif : le coût de revient (§6.5) divise les charges de l'exercice par les kilos produits sur ce même exercice ; deux découpages différents auraient imputé le nourrissement d'automne à la mauvaise récolte, produisant un indicateur faux sans aucun signal. La date de chaque écriture restant stockée, un découpage en année civile reste calculable si une structure fiscale est créée un jour |
+| « Clôture de l'exercice » (§6.2) | **Aucune clôture explicite n'est introduite** — la notion n'existait ni au modèle ni au code. Le recalcul des clés « prorata production » se déclenche **sur événement** : toute récolte enregistrée, modifiée ou supprimée, et toute écriture créée ou modifiée sous cette clé. `calcule_le` reste la trace du dernier recalcul |
+| F6.8 / L5.11 — extraction IA des justificatifs | **Renvoyée en L6** avec le reste de la couche IA, comme pour L3bis (§21) : priorité C, et réseau requis. La photographie du justificatif (F6.4) reste dans L4 |
+| Indicateurs F6.6 non définis (marge, contribution, seuil de rentabilité) | **Définis à l'ouverture du lot** — F6.6 les nommait sans qu'aucune formule existe nulle part. `marge(ruche) = produits affectés − charges totales`, en euros. `contribution(ruche) = marge / résultat de l'exercice`, **non affichée si le résultat est nul ou négatif** (le pourcentage s'inverserait et une ruche rentable afficherait une contribution négative) — seule la marge en euros est alors présentée. **Seuil de rentabilité au niveau de l'exploitation, jamais par ruche** : un seuil sur trois colonies serait du bruit (§6.5) |
+| Expression du seuil de rentabilité | **Indicateur principal : le prix de vente minimum au kilo** (`charges totales / kg produits`), qui ne suppose rien et reste juste en toutes circonstances. Le seuil exprimé **en kilos à vendre** vient en second, avec son hypothèse affichée |
+| Suivi des quantités vendues | **Hors périmètre.** L'application connaît les kilos **produits**, jamais les kilos **vendus** — aucun stock n'est suivi depuis L2.2. Le seuil exprimé en kilos suppose donc que toute la production de l'exercice est vendue sur le même exercice, et dérive si une part est stockée, donnée ou consommée. Arbitrage : cette dérive est assumée plutôt que d'alourdir la saisie d'une vente d'un champ de quantité |
+
+### Précisions de calcul ajoutées à l'ouverture du lot
+
+Le cahier des charges nommait ces cas sans les définir. Ils produisent des chiffres faux
+plutôt que des erreurs visibles, d'où leur inscription ici :
+
+- **Une ruche peut héberger plusieurs colonies successives dans un même exercice** (mortalité
+  puis repeuplement, transvasement). `kg_produits(ruche, exercice)` somme la production de
+  **toutes** les colonies qui l'ont occupée. Ne compter que la colonie courante gonflerait
+  artificiellement le coût de revient des ruches accidentées — précisément celles à analyser.
+- **Production nulle** : le coût de revient s'affiche « non calculable — aucune production »,
+  jamais un ratio infini ni zéro, en indiquant le total des charges portées.
+- **Clé manuelle dont la somme n'atteint pas 100 %** : l'écart est affiché en permanence mais
+  **jamais bloquant**, conformément au principe « aucun champ obligatoire ». Une saisie bloquée
+  produit un contournement, donc une donnée fausse.
+- **Sélection vide ou production totale nulle** sous clé « prorata production » : aucune
+  affectation n'est écrite, l'écriture reste au niveau supérieur et est signalée comme non
+  affectée. Jamais de `0` ni de `NaN` en base.
+
+### Entrée de l'ordinateur dans le projet
+
+L4 lève la règle transverse « aucune interface ordinateur avant L4 ». Les écrans de ce lot ne
+sont **pas** des écrans de terrain : ils ne sont pas soumis aux contraintes « gants aux mains,
+en plein soleil, sous la minute », mais à la saisie de nombres au clavier, aux tableaux
+comparatifs denses et à la lecture longue. Cible retenue : **utilisables sur les deux
+appareils, pensés pour l'ordinateur** — la saisie d'une dépense doit rester possible au
+téléphone, facture en main.
