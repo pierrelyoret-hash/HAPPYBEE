@@ -5,6 +5,7 @@ import { compterRuchesActivesParRucher } from '../../db/repositories/ruches.js';
 import { listerColoniesActives } from '../../db/repositories/colonies.js';
 import { obtenirDerniereVisite } from '../../db/repositories/visites.js';
 import { listerToutesTachesOuvertes } from '../../db/repositories/taches.js';
+import { listerRecommandationsEnAttente } from '../../db/repositories/recommandations.js';
 import { exporterDonnees, compterEnregistrements } from '../../db/repositories/sauvegarde.js';
 import { listerEvenementsExportConsolide } from '../../db/repositories/historiqueConsolide.js';
 import {
@@ -88,17 +89,22 @@ export function Accueil({
   onOuvrirTaches,
   onOuvrirMeteo,
   onOuvrirFilTournee,
+  onOuvrirRecommandations,
 }) {
   const [ruchers, setRuchers] = useState(null);
   const [nbRuchesParRucher, setNbRuchesParRucher] = useState(new Map());
   const [stats, setStats] = useState(null);
   const [messageSauvegarde, setMessageSauvegarde] = useState(null);
+  // L3bis F12.2 : à côté du bloc "Tâches" existant, jamais à sa place —
+  // une recommandation n'est pas une tâche tant qu'elle n'est pas validée.
+  const [nbRecommandationsEnAttente, setNbRecommandationsEnAttente] = useState(0);
 
   async function charger() {
     const liste = await listerRuchers();
     setRuchers(liste);
     setNbRuchesParRucher(await compterRuchesActivesParRucher(liste.map((r) => r.id)));
     setStats(await calculerStatsSaison());
+    setNbRecommandationsEnAttente((await listerRecommandationsEnAttente()).length);
   }
 
   useEffect(() => {
@@ -255,6 +261,20 @@ export function Accueil({
           >
             Météo
           </button>
+          {onOuvrirRecommandations && (
+            <button
+              type="button"
+              onClick={onOuvrirRecommandations}
+              className="h-16 rounded bg-bordeaux text-surface text-13 font-bold flex flex-col items-center justify-center text-center px-2 gap-0.5"
+            >
+              Recommandations
+              {nbRecommandationsEnAttente > 0 && (
+                <span className="text-11 font-normal bg-surface text-bordeaux rounded px-1.5 py-0.5">
+                  {nbRecommandationsEnAttente} en attente
+                </span>
+              )}
+            </button>
+          )}
         </section>
 
         <div className="flex flex-col gap-1 pt-2 border-t border-rule">

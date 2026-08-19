@@ -39,7 +39,7 @@ function estEpisodeActuel(episode, dernierJourConnu) {
 
 async function evaluerCanicule(regle, rucher, jours) {
   if (jours.length === 0) return null;
-  const seuils = regle.parametres_utilisateur ?? SEUILS_PAR_DEFAUT.canicule;
+  const seuils = regle.parametres_utilisateur ?? regle.parametres_defaut ?? SEUILS_PAR_DEFAUT.canicule;
   const episodes = detecterCanicule(jours, seuils);
   if (episodes.length === 0) return null;
 
@@ -71,7 +71,7 @@ const EVALUATEURS_RUCHER = {
 async function evaluerFenetreVisiteRetard(regle, rucher, colonie, jours) {
   if (jours.length === 0) return null;
   const dernierJour = jours[jours.length - 1];
-  const seuils = regle.parametres_utilisateur ?? SEUILS_PAR_DEFAUT.fenetreVisite;
+  const seuils = regle.parametres_utilisateur ?? regle.parametres_defaut ?? SEUILS_PAR_DEFAUT.fenetreVisite;
   if (!estFenetreVisiteFavorable(dernierJour, seuils)) return null;
 
   const derniereVisite = await obtenirDerniereVisite(colonie.id);
@@ -102,7 +102,7 @@ async function evaluerAbsenceComptageVarroa(regle, rucher, colonie) {
     if (mois < fenetre.moisDebut || mois > fenetre.moisFin) return null;
   }
 
-  const seuilJours = regle.declencheur.seuilJours;
+  const seuilJours = (regle.parametres_utilisateur ?? regle.parametres_defaut)?.seuilJours ?? regle.declencheur.seuilJours;
   const dernier = await obtenirDernierComptageVarroa(colonie.id);
   const joursDepuisComptage = dernier ? joursDepuis(dernier.date) : null;
   if (joursDepuisComptage != null && joursDepuisComptage <= seuilJours) return null;

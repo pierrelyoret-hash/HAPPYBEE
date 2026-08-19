@@ -28,6 +28,13 @@ export async function listerReglesActives() {
   return db.regle.filter((r) => r.active && !r.deleted_at).toArray();
 }
 
+// Paramétrage (F12.8/F12.9) : actives ET inactives, pour pouvoir réactiver
+// une règle désactivée — listerReglesActives ne suffit pas pour cet écran.
+export async function listerToutesRegles() {
+  const regles = await db.regle.filter((r) => !r.deleted_at).toArray();
+  return regles.sort((a, b) => a.code.localeCompare(b.code));
+}
+
 export async function obtenirRegle(code) {
   return db.regle.where('code').equals(code).first();
 }

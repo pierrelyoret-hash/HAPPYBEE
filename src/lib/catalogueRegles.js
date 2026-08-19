@@ -20,6 +20,11 @@ export const CATALOGUE_REGLES_PAR_DEFAUT = [
     famille: 'climat',
     portee: 'rucher',
     declencheur: { type: 'agregat', agregat: 'canicule' },
+    // Reflète SEUILS_PAR_DEFAUT.canicule (src/lib/agregatsMeteo.js) — géré
+    // ici en plus pour que l'écran de paramétrage (F12.8) puisse l'éditer
+    // uniformément avec les autres règles ; le moteur lit
+    // regle.parametres_utilisateur en priorité, ce défaut sinon.
+    parametres_defaut: { tMaxMin: 32, joursConsecutifsMin: 3 },
     fenetre_saisonniere: null, // aucune restriction : une canicule reste un risque à toute période chaude
     enonce_modele:
       "Épisode de canicule en cours sur ce rucher (température maximale ≥ {tMaxMin} °C depuis {dureeJours} jours).",
@@ -52,6 +57,9 @@ export const CATALOGUE_REGLES_PAR_DEFAUT = [
     // rucher, ou l'inverse.
     portee: 'colonie',
     declencheur: { type: 'agregat', agregat: 'fenetreVisiteRetard' },
+    // Reflète SEUILS_PAR_DEFAUT.fenetreVisite (src/lib/agregatsMeteo.js) —
+    // voir le commentaire équivalent sur R-CLIM-01.
+    parametres_defaut: { tMaxMin: 15, tMaxMax: 28, ventMaxKmh: 20, precipitationsMaxMm: 0 },
     fenetre_saisonniere: null,
     enonce_modele:
       "Créneau favorable à une visite aujourd'hui, et ce rucher n'a pas été visité depuis {joursDepuisVisite} jours.",
@@ -74,6 +82,11 @@ export const CATALOGUE_REGLES_PAR_DEFAUT = [
     famille: 'varroa',
     portee: 'colonie',
     declencheur: { type: 'absence', cible: 'comptage_varroa', seuilJours: 45 },
+    // Dupliqué depuis declencheur.seuilJours pour que le moteur puisse le
+    // surcharger via parametres_utilisateur (voir moteurRegles.js) —
+    // declencheur reste la valeur d'origine de la règle, parametres_defaut
+    // celle éditable.
+    parametres_defaut: { seuilJours: 45 },
     // Fenêtre confirmée par 1-SPEC/Pierre (19/08/2026) : avril à octobre.
     fenetre_saisonniere: { moisDebut: 4, moisFin: 10 },
     enonce_modele:

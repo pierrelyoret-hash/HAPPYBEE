@@ -21,12 +21,19 @@ import { SaisieRecolte, HistoriqueRecolte, RendementRecolte } from './features/r
 import { SaisieMouvement, HistoriqueMouvement } from './features/mouvement';
 import { TachesAFaire } from './features/taches';
 import { Meteo } from './features/meteo';
+import {
+  RecommandationsEnAttente,
+  DetailRecommandation,
+  HistoriqueRecommandations,
+  ParametrageRegles,
+} from './features/recommandations';
 
 export function App() {
   const [ecran, setEcran] = useState('accueil');
   const [rucherSelectionne, setRucherSelectionne] = useState(null);
   const [colonieSelectionnee, setColonieSelectionnee] = useState(null);
   const [visiteSelectionnee, setVisiteSelectionnee] = useState(null);
+  const [recommandationSelectionnee, setRecommandationSelectionnee] = useState(null);
   // Écran vers lequel revenir après une saisie de visite — la plupart des
   // parcours viennent de la vue d'ensemble, mais le fil de tournée doit
   // pouvoir y ramener directement plutôt que de renvoyer systématiquement
@@ -103,6 +110,23 @@ export function App() {
 
   function ouvrirMeteo() {
     setEcran('meteo');
+  }
+
+  function ouvrirRecommandations() {
+    setEcran('recommandations');
+  }
+
+  function ouvrirDetailRecommandation(recommandationId) {
+    setRecommandationSelectionnee(recommandationId);
+    setEcran('detail_recommandation');
+  }
+
+  function ouvrirHistoriqueRecommandations() {
+    setEcran('historique_recommandations');
+  }
+
+  function ouvrirParametrageRegles() {
+    setEcran('parametrage_regles');
   }
 
   function ouvrirSaisieTraitement(colonieId) {
@@ -321,6 +345,35 @@ export function App() {
     );
   }
 
+  if (ecran === 'recommandations') {
+    return (
+      <RecommandationsEnAttente
+        onRetour={ouvrirAccueil}
+        onOuvrirDetail={ouvrirDetailRecommandation}
+        onOuvrirHistorique={ouvrirHistoriqueRecommandations}
+        onOuvrirParametrage={ouvrirParametrageRegles}
+      />
+    );
+  }
+
+  if (ecran === 'detail_recommandation') {
+    return (
+      <DetailRecommandation
+        recommandationId={recommandationSelectionnee}
+        onRetour={ouvrirRecommandations}
+        onTraitee={ouvrirRecommandations}
+      />
+    );
+  }
+
+  if (ecran === 'historique_recommandations') {
+    return <HistoriqueRecommandations onRetour={ouvrirRecommandations} />;
+  }
+
+  if (ecran === 'parametrage_regles') {
+    return <ParametrageRegles onRetour={ouvrirRecommandations} />;
+  }
+
   if (ecran === 'export_sanitaire_pdf') {
     return <ExportSanitairePdf onRetour={ouvrirAccueil} />;
   }
@@ -396,6 +449,7 @@ export function App() {
       onOuvrirTaches={ouvrirTaches}
       onOuvrirMeteo={ouvrirMeteo}
       onOuvrirFilTournee={ouvrirFilTournee}
+      onOuvrirRecommandations={ouvrirRecommandations}
     />
   );
 }

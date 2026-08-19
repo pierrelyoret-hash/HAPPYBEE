@@ -109,6 +109,55 @@ export async function listerRecommandationsEnAttente() {
   return db.recommandation.filter((r) => !r.deleted_at && r.statut === 'proposee').toArray();
 }
 
+export async function obtenirRecommandation(id) {
+  return db.recommandation.get(id);
+}
+
+// Historique (F12.10) : décisions déjà prises, rejetées comprises avec leur
+// motif — jamais les "proposee" (c'est l'écran "en attente" qui les montre).
+export async function listerRecommandationsHistorique() {
+  const recommandations = await db.recommandation
+    .filter((r) => !r.deleted_at && r.statut !== 'proposee')
+    .toArray();
+  return recommandations.sort((a, b) => (b.traitee_le ?? '').localeCompare(a.traitee_le ?? ''));
+}
+
+// Enrichit une liste de recommandations avec le numéro de ruche et le nom
+// du rucher pour l'affichage — même construction que
+// listerTachesAvecContexte (src/db/repositories/taches.js) : ruche.numero
+// n'est pas porté directement par recommandation, il faut passer par
+// colonie_id → ruche.
+export async function enrichirAvecContexte(recommandations) {
+  const colonieIds = [...new Set(recommandations.map((r) => r.colonie_id).filter(Boolean))];
+  const colonies = await db.colonie.bulkGet(colonieIds);
+  const rucheIds = [...new Set(colonies.map((c) => c?.ruche_id).filter(Boolean))];
+  const ruches = await db.ruche.bulkGet(rucheIds);
+  const rucheParId = new Map(ruches.filter(Boolean).map((r) => [r.id, r]));
+  const rucherIds = [
+    ...new Set([
+      ...ruches.filter(Boolean).map((r) => r.rucher_id),
+      ...recommandations.map((r) => r.rucher_id),
+    ].filter(Boolean)),
+  ];
+  const ruchers = await db.rucher.bulkGet(rucherIds);
+  const rucherParId = new Map(ruchers.filter(Boolean).map((r) => [r.id, r]));
+  const rucheParColonieId = new Map(
+    colonies.filter(Boolean).map((c) => [c.id, rucheParId.get(c.ruche_id)])
+  );
+
+  return recommandations.map((r) => {
+    const ruche = rucheParColonieId.get(r.colonie_id);
+    return {
+      ...r,
+      rucheNumero: ruche?.numero ?? null,
+      // Fallback sur rucher_id direct (portée "exploitation"/"rucher" sans
+      // colonie associée, ex. R-CLIM-01, R-REGL-02) quand il n'y a pas de
+      // ruche à traverser.
+      rucherNom: rucherParId.get(ruche?.rucher_id ?? r.rucher_id)?.nom ?? null,
+    };
+  });
+}
+
 // Garde-fou §8 n°1 : c'est la SEULE façon de faire naître une tâche depuis
 // une recommandation — jamais automatique, toujours un geste explicite de
 // l'exploitant. La ou les tâches créées restent modifiables ensuite comme
