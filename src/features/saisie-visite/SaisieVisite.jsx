@@ -350,6 +350,19 @@ export function SaisieVisite({
   // pas un écran de revue séparé.
   async function traiterDictee(blob, colonieIdOrigine) {
     setDicteeStatut('transcription');
+    // @huggingface/transformers exécute l'inférence Whisper en WASM sur le
+    // thread principal (pas de Worker) — le calcul peut geler l'interface
+    // plusieurs secondes, surtout au premier chargement du modèle (~1 Go en
+    // fp32) sur un téléphone. Sans ce point de reprise, le changement de
+    // dicteeStatut ci-dessus n'a pas le temps d'être peint à l'écran avant
+    // que le blocage ne commence : l'exploitant clique "Arrêter" et ne voit
+    // jamais "Transcription en cours…", juste une interface figée sans
+    // aucun signal. Un setTimeout(0) laisse le navigateur peindre entre les
+    // deux — n'élimine pas le gel pendant l'inférence elle-même (ça
+    // demanderait de déporter la pipeline dans un Worker, hors périmètre
+    // ici), mais l'exploitant voit au moins que sa dictée a été prise en
+    // compte avant que ça bloque.
+    await new Promise((resolve) => setTimeout(resolve, 0));
     try {
       const brut = await transcrire(blob, { onProgres: onProgresModele });
       if (dicteeDevenueObsolete(colonieIdOrigine)) return;
