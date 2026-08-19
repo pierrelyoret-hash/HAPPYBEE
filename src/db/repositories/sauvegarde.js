@@ -15,6 +15,15 @@ const TABLES = [
   'nourrissement',
   'document',
   'audio',
+  // L3bis (brief_L3bis_moteur_regles.md §10.13) : meteo_journaliere est
+  // reconstructible depuis l'archive Open-Meteo (comme meteo_cache, absente
+  // de cette liste), mais son inclusion ici sert de méthode de vérification
+  // à l'ingestion elle-même (§9 étape 1, "vérification par export JSON
+  // avant/après") — pas seulement une sauvegarde de confort.
+  'meteo_journaliere',
+  'regle',
+  'recommandation',
+  'observation_effet',
 ];
 
 export async function exporterDonnees() {

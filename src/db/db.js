@@ -132,3 +132,33 @@ db.version(9)
 db.version(10).stores({
   meteo_cache: 'rucher_id',
 });
+
+// v11 (lot L3bis, brief_L3bis_moteur_regles.md §5) : quatre nouvelles
+// tables, additive uniquement.
+//
+// meteo_journaliere — relevé observé (jamais une prévision) par rucher et
+// par jour, base des agrégats du moteur (canicule, sécheresse...). Clé
+// primaire composite [rucher_id+date] : au plus une ligne par jour et par
+// rucher, écriture par upsert (put), pas d'id séparé. Locale uniquement,
+// jamais listée dans lib/sync.js — même logique que meteo_cache (§5 du
+// brief) : reconstructible à tout moment depuis l'API d'archive
+// Open-Meteo, la synchroniser gonflerait le volume sans bénéfice.
+//
+// regle — catalogue des règles du moteur, `code` unique (ex. "R-CLIM-01"),
+// versionné (`version`) pour que la traçabilité d'une recommandation
+// survive à une évolution ultérieure de la règle qui l'a produite.
+//
+// recommandation — une proposition du moteur, jamais une tâche tant
+// qu'elle n'est pas validée (cycle de vie proposee/validee/differee/
+// rejetee/ignoree, §2.1 du brief — ce régime ne concerne QUE les règles du
+// moteur, les 14 règles à seuil fixe déjà livrées continuent de créer
+// leurs tâches directement, sans passer par ici).
+//
+// observation_effet — effet constaté d'une recommandation validée, à la
+// visite suivante (L3b.11, priorité secondaire).
+db.version(11).stores({
+  meteo_journaliere: '[rucher_id+date]',
+  regle: 'id, &code, deleted_at',
+  recommandation: 'id, colonie_id, rucher_id, statut, regle_code, date_emission, deleted_at',
+  observation_effet: 'id, recommandation_id, visite_id, deleted_at',
+});
