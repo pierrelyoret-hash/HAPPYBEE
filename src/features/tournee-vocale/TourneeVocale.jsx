@@ -143,9 +143,13 @@ export function TourneeVocale({ rucherId, onRetour, onOuvrirRevueTournee }) {
     charger();
   }, [rucherId]);
 
+  // 'progress_total' (pas 'progress') : voir le commentaire équivalent dans
+  // SaisieVisite.jsx — whisper-small télécharge plusieurs fichiers, chacun
+  // avec son propre loaded/total ; 'progress_total' est l'événement de
+  // synthèse déjà agrégé (émis automatiquement en plus de 'progress').
   function onProgresModele(evenement) {
-    if (evenement?.status === 'progress' && evenement.total) {
-      setProgresModele(Math.round((evenement.loaded / evenement.total) * 100));
+    if (evenement?.status === 'progress_total') {
+      setProgresModele(Math.round(evenement.progress));
     } else if (evenement?.status === 'done') {
       setProgresModele(null);
     }

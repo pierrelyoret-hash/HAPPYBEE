@@ -142,6 +142,12 @@ export function SaisieVisite({
   // il sert une fois à extraire le texte, puis est jeté — dicter remplit
   // le formulaire immédiatement, review par relecture du formulaire lui-même.
   const [dicteeStatut, setDicteeStatut] = useState('inactif'); // 'inactif' | 'enregistrement' | 'transcription' | 'structuration' | 'erreur'
+  // Message de l'erreur réellement levée (réseau, décodage, mémoire...) —
+  // affiché à côté du texte générique ci-dessous. Sans ce détail, toute
+  // panne remonte comme "micro refusé, ou dictée impossible hors-ligne",
+  // qu'elle ait ou non un rapport avec ça (constaté le 19/08/2026 : aucun
+  // moyen de savoir ce qui a vraiment échoué sans rouvrir la console).
+  const [dicteeErreurDetail, setDicteeErreurDetail] = useState(null);
   const [transcriptionBrute, setTranscriptionBrute] = useState(null);
   const [progresModele, setProgresModele] = useState(null);
   const [traitementsDictes, setTraitementsDictes] = useState([]);
@@ -217,6 +223,7 @@ export function SaisieVisite({
       // Dictée jamais reportée d'une colonie à l'autre — même logique que
       // les photos et cellules royales ci-dessus.
       setDicteeStatut('inactif');
+      setDicteeErreurDetail(null);
       setTranscriptionBrute(null);
       setTraitementsDictes([]);
       setNourrissementsDictes([]);
@@ -308,9 +315,11 @@ export function SaisieVisite({
       streamRef.current = stream;
       recorder.start();
       setTranscriptionBrute(null);
+      setDicteeErreurDetail(null);
       setDicteeStatut('enregistrement');
     } catch (err) {
       console.error('[écran B] accès micro refusé', err);
+      setDicteeErreurDetail(err.message || String(err));
       setDicteeStatut('erreur');
     }
   }
@@ -388,6 +397,7 @@ export function SaisieVisite({
     } catch (err) {
       if (dicteeDevenueObsolete(colonieIdOrigine)) return;
       console.error('[écran B] échec de la dictée', err);
+      setDicteeErreurDetail(err.message || String(err));
       setDicteeStatut('erreur');
     }
   }
@@ -395,9 +405,18 @@ export function SaisieVisite({
   // La pipeline de transcription émet des événements de progression, pas un
   // pourcentage — même normalisation que TourneeVocale.jsx, sans quoi
   // l'objet brut atterrit dans l'affichage ("[object Object]%").
+  // 'progress_total' (pas 'progress') : whisper-small télécharge plusieurs
+  // fichiers (tokenizer, encodeur, décodeur...), chacun émettant ses propres
+  // événements 'progress' avec un loaded/total qui lui est propre — les
+  // utiliser tels quels fait redémarrer le pourcentage affiché à chaque
+  // nouveau fichier (ex. 100 % puis retour à 5 %), perçu comme une
+  // progression erratique puis un plantage (constaté par Pierre, 19/08/2026).
+  // 'progress_total' est un événement de synthèse déjà agrégé sur tous les
+  // fichiers vus jusque-là (DefaultProgressCallback, @huggingface/transformers
+  // core.js), émis automatiquement en plus de 'progress' — rien à activer.
   function onProgresModele(evenement) {
-    if (evenement?.status === 'progress' && evenement.total) {
-      setProgresModele(Math.round((evenement.loaded / evenement.total) * 100));
+    if (evenement?.status === 'progress_total') {
+      setProgresModele(Math.round(evenement.progress));
     } else if (evenement?.status === 'done') {
       setProgresModele(null);
     }
@@ -674,6 +693,7 @@ export function SaisieVisite({
           <p className="text-11 text-urgent-ink">
             Échec — micro refusé, ou dictée impossible hors-ligne avant le premier téléchargement
             du modèle et sans réseau pour la structuration.
+            {dicteeErreurDetail && ` (détail : ${dicteeErreurDetail})`}
           </p>
         )}
         {transcriptionBrute && (
