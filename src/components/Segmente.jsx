@@ -9,13 +9,15 @@ export function Segmente({ options, value, provenance, referenceDate, libelles, 
 
   return (
     <div className="flex flex-col gap-1">
-      <div className="flex gap-1">
+      <div className="flex gap-1" role="radiogroup">
         {options.map((option) => {
           const selectionne = option.value === value;
           return (
             <button
               key={String(option.value)}
               type="button"
+              role="radio"
+              aria-checked={selectionne}
               onClick={() => onChange(option.value)}
               className={`flex-1 h-11 rounded text-13 font-bold border ${
                 selectionne

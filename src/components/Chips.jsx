@@ -17,6 +17,7 @@ export function Chips({ options, value, onChange }) {
           <button
             key={option.value}
             type="button"
+            aria-pressed={selectionne}
             onClick={() => basculer(option.value)}
             className={`rounded border text-13 h-[34px] px-3 ${
               selectionne ? 'bg-ink border-ink text-surface' : 'bg-surface border-rule-strong text-ink'
