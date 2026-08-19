@@ -8,6 +8,20 @@ export async function enregistrerComptageVarroa(comptage) {
   return db.comptage_varroa.add(comptage);
 }
 
+// L3bis, R-VARR-03 : comptage_varroa n'a pas d'index composé [colonie_id+date]
+// (peu de lignes par colonie, un scan puis tri suffit) — même principe que
+// obtenirDerniereVisite (src/db/repositories/visites.js) mais sans
+// l'optimisation d'index, inutile ici.
+export async function obtenirDernierComptageVarroa(colonieId) {
+  const comptages = await db.comptage_varroa
+    .where('colonie_id')
+    .equals(colonieId)
+    .and((c) => !c.deleted_at)
+    .toArray();
+  if (comptages.length === 0) return null;
+  return comptages.sort((a, b) => b.date.localeCompare(a.date))[0];
+}
+
 export async function enregistrerNourrissement(nourrissement) {
   return db.nourrissement.add(nourrissement);
 }

@@ -1,4 +1,5 @@
 import { creerTache } from '../db/repositories/taches.js';
+import { evaluerVisite } from './moteurRegles.js';
 
 // Extrait de src/features/saisie-visite/SaisieVisite.jsx (écran B) pour être
 // partagé avec la revue de tournée (écran L2.7) — les deux écrans enregistrent
@@ -147,4 +148,12 @@ export async function creerRappelsInterventionSiNecessaire(
       deleted_at: null,
     });
   }
+
+  // L3bis, R-ORPH-01 (bourdonneuse → recommandation à validation, pas une
+  // tâche directe — régime différent des règles ci-dessus, voir §2.1/§2.2
+  // du brief L3bis). Même point d'appel que le reste de cette fonction :
+  // les deux écrans de saisie bénéficient donc automatiquement des
+  // évolutions futures du moteur, sans re-câblage à chaque nouvelle règle
+  // déclenchée par visite.
+  await evaluerVisite(visite, rucherId ?? null);
 }
