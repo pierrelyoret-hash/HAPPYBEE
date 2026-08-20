@@ -3,6 +3,7 @@ import { db } from '../../db/db.js';
 import { listerHistoriqueConsolideColonie } from '../../db/repositories/historiqueConsolide.js';
 import { surSync } from '../../lib/sync.js';
 import { EnTeteEcran } from '../../components/EnTeteEcran.jsx';
+import { coutCumuleColoniePerdue } from '../../lib/repartitionEconomique.js';
 import { PhotosVisite } from '../../components/PhotosVisite.jsx';
 import { SIGNES_SANITAIRES_LIBELLES } from '../../lib/taxonomieSanitaire.js';
 import {
@@ -336,6 +337,10 @@ export function Historique({ colonieId, onRetour }) {
   const [ruche, setRuche] = useState(null);
   const [saisons, setSaisons] = useState(null); // null = en cours de chargement
   const [cadresOuverts, setCadresOuverts] = useState(new Set());
+  // L4/L5.10 (priorité S) : coût cumulé, uniquement pour une colonie qui
+  // n'est plus active (voir coutCumuleColoniePerdue) — null tant qu'elle
+  // n'est pas connue, undefined si non applicable (colonie encore active).
+  const [coutCumule, setCoutCumule] = useState(undefined);
 
   useEffect(() => {
     if (!colonieId) return;
@@ -344,6 +349,7 @@ export function Historique({ colonieId, onRetour }) {
       const r = colonie ? await db.ruche.get(colonie.ruche_id) : null;
       setRuche(r ?? null);
       setSaisons(await listerHistoriqueConsolideColonie(colonieId));
+      setCoutCumule(colonie?.date_fin ? await coutCumuleColoniePerdue(colonieId) : undefined);
     }
     charger();
     // Se recharge tout seul quand une synchronisation en arrière-plan a pu
@@ -377,6 +383,18 @@ export function Historique({ colonieId, onRetour }) {
       <p className="text-13 text-ink-secondary">
         Visites, sanitaire, récoltes et mouvements consolidés par saison apicole (avril à mars).
       </p>
+
+      {coutCumule && (
+        <section className="bg-surface border border-rule rounded p-3 flex flex-col gap-1">
+          <p className="text-11 font-mono uppercase text-ink-secondary">Coût cumulé (L4, colonie perdue)</p>
+          <p className="text-20 font-bold font-mono">{coutCumule.total.toFixed(2)} €</p>
+          <p className="text-11 text-ink-secondary">
+            Charges du rucher sur les exercices d'occupation de cette colonie — inclut les charges d'une
+            autre colonie ayant occupé la même ruche sur un exercice chevauchant, faute de granularité
+            journalière dans les écritures.
+          </p>
+        </section>
+      )}
 
       {totalEvenements === 0 && (
         <p className="text-13 text-ink-secondary">Aucun événement enregistré pour cette colonie.</p>

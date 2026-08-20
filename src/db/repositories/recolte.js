@@ -1,4 +1,6 @@
 import { db } from '../db.js';
+import { obtenirSaison } from '../../lib/saison.js';
+import { recalculerEcrituresProrataExercice } from '../../lib/repartitionEconomique.js';
 
 // Poids moyen d'un cadre récolté — valeur par défaut donnée explicitement
 // par le cahier des charges (§6.1), modifiable au cas par cas dans le
@@ -34,8 +36,20 @@ export function calculerPoidsNet(recolte) {
   }
 }
 
+// L4 (brief_L4_economique.md §6.2) : toute récolte enregistrée déclenche le
+// recalcul des écritures en clé "prorata_production" de son exercice — dans
+// le repository, pas dans l'écran, pour ne toucher aucun écran existant
+// (§8 étape 9 du brief). Silencieux si L4 n'a encore aucune écriture dans
+// cet exercice (recalculerEcrituresProrataExercice ne trouve rien à faire).
+async function declencherRecalculEconomique(recolte) {
+  const saison = obtenirSaison(recolte.date);
+  if (saison) await recalculerEcrituresProrataExercice(saison.debut);
+}
+
 export async function enregistrerRecolte(recolte) {
-  return db.recolte.add(recolte);
+  const id = await db.recolte.add(recolte);
+  await declencherRecalculEconomique(recolte);
+  return id;
 }
 
 // F4.2 — pesée globale répartie entre colonies. `repartitions` :
@@ -76,7 +90,9 @@ export async function enregistrerRecoltePeseeGlobale({
       deleted_at: null,
     };
   });
-  return db.recolte.bulkAdd(lignes);
+  const resultat = await db.recolte.bulkAdd(lignes);
+  if (lignes.length > 0) await declencherRecalculEconomique(lignes[0]);
+  return resultat;
 }
 
 export async function listerHistoriqueRecolte(colonieId) {

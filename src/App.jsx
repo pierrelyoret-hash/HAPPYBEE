@@ -1,4 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { initialiserCatalogue } from './db/repositories/regles.js';
+import { initialiserCategoriesParDefaut } from './db/repositories/economie.js';
 import { BarreOnglets } from './components/BarreOnglets.jsx';
 import { Accueil, SaisieRucher, SaisieRuche } from './features/accueil';
 import { VueEnsemble } from './features/vue-ensemble';
@@ -27,6 +29,16 @@ import {
   HistoriqueRecommandations,
   ParametrageRegles,
 } from './features/recommandations';
+import {
+  AccueilEconomique,
+  SaisieEcriture,
+  JournalEcritures,
+  Tiers,
+  Immobilisations,
+  FicheImmobilisation,
+  TableauDeBord,
+  ComparaisonPluriannuelle,
+} from './features/economie';
 
 export function App() {
   const [ecran, setEcran] = useState('accueil');
@@ -34,12 +46,24 @@ export function App() {
   const [colonieSelectionnee, setColonieSelectionnee] = useState(null);
   const [visiteSelectionnee, setVisiteSelectionnee] = useState(null);
   const [recommandationSelectionnee, setRecommandationSelectionnee] = useState(null);
+  const [immobilisationSelectionnee, setImmobilisationSelectionnee] = useState(null);
   // Écran vers lequel revenir après une saisie de visite — la plupart des
   // parcours viennent de la vue d'ensemble, mais le fil de tournée doit
   // pouvoir y ramener directement plutôt que de renvoyer systématiquement
   // vers vue_ensemble (retour d'usage réel, 15/08/2026, relevé en relisant
   // FilTournee.jsx).
   const [ecranRetourSaisie, setEcranRetourSaisie] = useState('vue_ensemble');
+
+  // Écriture locale, indépendante du jumelage/de la synchronisation (données
+  // hors-ligne d'abord) : doit s'exécuter même si l'exploitant a "reporté"
+  // le jumelage. initialiserCatalogue (L3bis) n'était jusqu'ici jamais
+  // appelée nulle part dans l'application — bug constaté en câblant celle
+  // de L4 juste en dessous : sur un appareil neuf, `regle` restait vide et
+  // aucune des règles du moteur L3bis ne s'évaluait jamais. Corrigé ici.
+  useEffect(() => {
+    initialiserCatalogue();
+    initialiserCategoriesParDefaut();
+  }, []);
 
   function ouvrirAccueil() {
     setEcran('accueil');
@@ -127,6 +151,39 @@ export function App() {
 
   function ouvrirParametrageRegles() {
     setEcran('parametrage_regles');
+  }
+
+  function ouvrirEconomique() {
+    setEcran('economique');
+  }
+
+  function ouvrirSaisieEcriture() {
+    setEcran('saisie_ecriture');
+  }
+
+  function ouvrirJournalEcritures() {
+    setEcran('journal_ecritures');
+  }
+
+  function ouvrirTiersEconomie() {
+    setEcran('tiers_economie');
+  }
+
+  function ouvrirImmobilisations() {
+    setEcran('immobilisations');
+  }
+
+  function ouvrirFicheImmobilisation(immobilisationId) {
+    setImmobilisationSelectionnee(immobilisationId);
+    setEcran('fiche_immobilisation');
+  }
+
+  function ouvrirTableauDeBordEconomique() {
+    setEcran('tableau_de_bord_economique');
+  }
+
+  function ouvrirComparaisonPluriannuelle() {
+    setEcran('comparaison_pluriannuelle');
   }
 
   function ouvrirSaisieTraitement(colonieId) {
@@ -374,6 +431,48 @@ export function App() {
     return <ParametrageRegles onRetour={ouvrirRecommandations} />;
   }
 
+  if (ecran === 'economique') {
+    return (
+      <AccueilEconomique
+        onRetour={ouvrirAccueil}
+        onOuvrirSaisie={ouvrirSaisieEcriture}
+        onOuvrirJournal={ouvrirJournalEcritures}
+        onOuvrirTableauDeBord={ouvrirTableauDeBordEconomique}
+        onOuvrirImmobilisations={ouvrirImmobilisations}
+        onOuvrirTiers={ouvrirTiersEconomie}
+        onOuvrirComparaison={ouvrirComparaisonPluriannuelle}
+      />
+    );
+  }
+
+  if (ecran === 'comparaison_pluriannuelle') {
+    return <ComparaisonPluriannuelle onRetour={ouvrirEconomique} />;
+  }
+
+  if (ecran === 'saisie_ecriture') {
+    return <SaisieEcriture onRetour={ouvrirEconomique} />;
+  }
+
+  if (ecran === 'journal_ecritures') {
+    return <JournalEcritures onOuvrirSaisie={ouvrirSaisieEcriture} onRetour={ouvrirEconomique} />;
+  }
+
+  if (ecran === 'tiers_economie') {
+    return <Tiers onRetour={ouvrirEconomique} />;
+  }
+
+  if (ecran === 'immobilisations') {
+    return <Immobilisations onOuvrirFiche={ouvrirFicheImmobilisation} onRetour={ouvrirEconomique} />;
+  }
+
+  if (ecran === 'fiche_immobilisation') {
+    return <FicheImmobilisation immobilisationId={immobilisationSelectionnee} onRetour={ouvrirImmobilisations} />;
+  }
+
+  if (ecran === 'tableau_de_bord_economique') {
+    return <TableauDeBord onRetour={ouvrirEconomique} />;
+  }
+
   if (ecran === 'export_sanitaire_pdf') {
     return <ExportSanitairePdf onRetour={ouvrirAccueil} />;
   }
@@ -450,6 +549,7 @@ export function App() {
       onOuvrirMeteo={ouvrirMeteo}
       onOuvrirFilTournee={ouvrirFilTournee}
       onOuvrirRecommandations={ouvrirRecommandations}
+      onOuvrirEconomique={ouvrirEconomique}
     />
   );
 }

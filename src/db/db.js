@@ -162,3 +162,48 @@ db.version(11).stores({
   recommandation: 'id, colonie_id, rucher_id, statut, regle_code, date_emission, deleted_at',
   observation_effet: 'id, recommandation_id, visite_id, deleted_at',
 });
+
+// v12 (lot L4 économique, brief_L4_economique.md §5) : six nouvelles tables,
+// additive uniquement — aucune table ni index existant n'est modifié.
+//
+// categorie / tiers — référentiels pré-remplis au premier lancement
+// (initialiserCategoriesParDefaut, src/db/repositories/economie.js),
+// modifiables ensuite comme toute donnée de l'application.
+//
+// ecriture — une dépense ou un produit (§4.3 du cahier des charges). Index
+// composé [exercice+cle_repartition] : c'est la clé d'accès du moteur de
+// recalcul (§6.2) — retrouver, pour un exercice donné, toutes les écritures
+// en clé "prorata_production" à recalculer quand une récolte change.
+//
+// ecriture_affectation — dérivée, jamais saisie : une ligne par ruche
+// concernée, régénérée entièrement à chaque recalcul (§6.2). Locale
+// uniquement, jamais listée dans lib/sync.js — même logique que
+// meteo_journaliere (v11) : recalculable à tout moment depuis `ecriture` et
+// `recolte` (déjà synchronisées), la synchroniser gonflerait le volume sans
+// bénéfice et risquerait un dernier-écrit-gagne incohérent avec la donnée
+// source qui l'a produite. Clé primaire composite [ecriture_id+ruche_id] :
+// au plus une ligne par ruche et par écriture, écriture par upsert (put),
+// pas d'id séparé — même idiome que meteo_journaliere.
+//
+// immobilisation / amortissement_annuel — §6.4. amortissement_annuel est
+// "généré" (§4.3) mais sa clé de répartition reste un choix par exercice
+// (§6.4 du brief : la dotation "se répartit... selon
+// amortissement_annuel.cle_repartition"), donc une vraie table
+// synchronisée, pas une dérivation pure comme ecriture_affectation.
+//
+// document_blob — même mécanique que photo_blob/audio_blob (v6/v7) :
+// `document` existe en schéma depuis v5 (L2.2) mais n'a jamais eu de
+// premier utilisateur réel (grep "db.document" négatif dans tout le code
+// avant ce lot) ; L4 (justificatif photographié, F6.4) en est le premier.
+// L'octet transite par Supabase Storage (bucket "documents", à créer côté
+// infrastructure — hors du périmètre code de ce lot), jamais en JSON.
+db.version(12).stores({
+  categorie: 'id, sens, deleted_at',
+  tiers: 'id, type, deleted_at',
+  ecriture:
+    'id, date, exercice, sens, categorie_id, tiers_id, rucher_id, cle_repartition, [exercice+cle_repartition], deleted_at',
+  ecriture_affectation: '[ecriture_id+ruche_id], ruche_id',
+  immobilisation: 'id, deleted_at',
+  amortissement_annuel: 'id, immobilisation_id, exercice, deleted_at',
+  document_blob: 'document_id',
+});

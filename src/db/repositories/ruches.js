@@ -1,5 +1,13 @@
 import { db } from '../db.js';
 
+// L4 (brief_L4_economique.md §7) : sélection libre de ruches, tous ruchers
+// confondus — le seul appel existant jusqu'ici (listerRuchesRucher) est
+// borné à un rucher.
+export async function listerToutesLesRuches() {
+  const ruches = await db.ruche.filter((r) => !r.deleted_at).toArray();
+  return ruches.sort((a, b) => a.numero - b.numero);
+}
+
 export async function listerRuchesRucher(rucherId) {
   const ruches = await db.ruche
     .where('rucher_id')
@@ -111,10 +119,17 @@ export async function deplacerRucheVersRucher(rucheId, rucherOrigineId, rucherDe
 // reste de l'application le fait déjà (jamais de suppression définitive) ;
 // elle sort seulement de l'ordre de tournée, qui pilote ce qui s'affiche
 // dans l'écran de tournée.
+// `date_reforme` (ajouté sans bump de version, comme score_ponte en v3 :
+// champ non indexé, pas besoin de figurer dans stores()) sert au calcul
+// L4 "ruches actives sur la période" (brief_L4_economique.md §6.1) — sans
+// cette date, impossible de savoir si une ruche réformée l'était déjà avant
+// l'exercice ou en cours d'exercice (auquel cas elle compte). Les ruches
+// réformées avant ce champ n'en ont pas : voir le commentaire de
+// estActiveSurExercice (src/lib/repartitionEconomique.js) sur ce cas.
 export async function archiverRuche(rucheId, rucherId) {
   const maintenant = new Date().toISOString();
   await db.transaction('rw', db.ruche, db.rucher, async () => {
-    await db.ruche.update(rucheId, { statut: 'reformee', updated_at: maintenant });
+    await db.ruche.update(rucheId, { statut: 'reformee', date_reforme: maintenant, updated_at: maintenant });
     const rucher = await db.rucher.get(rucherId);
     if (rucher) {
       await db.rucher.update(rucherId, {

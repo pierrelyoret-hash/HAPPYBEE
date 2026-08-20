@@ -24,6 +24,15 @@ const TABLES = [
   'regle',
   'recommandation',
   'observation_effet',
+  // L4 (brief_L4_economique.md §5) : ecriture_affectation est dérivée (voir
+  // db.js v12) et volontairement absente d'ici — elle se régénère depuis
+  // ecriture + recolte, l'exporter figerait un calcul qui redeviendrait
+  // faux dès la restauration sur une base dont les récoltes ont changé.
+  'categorie',
+  'tiers',
+  'ecriture',
+  'immobilisation',
+  'amortissement_annuel',
 ];
 
 export async function exporterDonnees() {

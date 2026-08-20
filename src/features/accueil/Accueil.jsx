@@ -90,6 +90,7 @@ export function Accueil({
   onOuvrirMeteo,
   onOuvrirFilTournee,
   onOuvrirRecommandations,
+  onOuvrirEconomique,
 }) {
   const [ruchers, setRuchers] = useState(null);
   const [nbRuchesParRucher, setNbRuchesParRucher] = useState(new Map());
@@ -243,16 +244,15 @@ export function Accueil({
           >
             Tâches
           </button>
-          {/* Économique (M6) : module planifié, pas encore construit — la
-              place lui est réservée ici plutôt que d'attendre que tout soit
-              prêt pour toucher à cet écran. */}
+          {/* Économique (M6/L4) — point d'entrée tranché le 18/08/2026
+              (cadrage_ux_L4_economique.md §6.3) : la tuile plutôt qu'un
+              onglet, la barre d'onglets étant la navigation du terrain. */}
           <button
             type="button"
-            disabled
-            className="h-16 rounded bg-surface-sunk border border-rule text-ink-muted text-13 font-bold flex flex-col items-center justify-center text-center px-2 cursor-not-allowed"
+            onClick={onOuvrirEconomique}
+            className="h-16 rounded bg-surface border border-rule-strong text-ink text-13 font-bold flex items-center justify-center text-center px-2"
           >
             Économique
-            <span className="text-11 font-normal">à venir</span>
           </button>
           <button
             type="button"

@@ -21,6 +21,14 @@ const TABLES = [
   'audio',
   'recolte',
   'mouvement',
+  // L4 (brief_L4_economique.md §5) : ecriture_affectation n'y figure pas —
+  // dérivée de ecriture + recolte, régénérée localement sur chaque appareil
+  // (voir le commentaire db.js v12), jamais synchronisée en tant que ligne.
+  'categorie',
+  'tiers',
+  'ecriture',
+  'immobilisation',
+  'amortissement_annuel',
 ];
 
 const CLE_CURSEURS = 'happybee_sync_curseurs';
@@ -88,6 +96,10 @@ async function tirerTable(table, curseurs) {
 const TABLES_BLOB = [
   { table: 'photo', blobTable: 'photo_blob', champId: 'photo_id', bucket: 'photos', extension: 'jpg', type: 'image/jpeg' },
   { table: 'audio', blobTable: 'audio_blob', champId: 'audio_id', bucket: 'audio', extension: 'webm', type: 'audio/webm' },
+  // L4, justificatif photographié (F6.4) : premier usage réel de `document`
+  // (schéma inutilisé depuis v5/L2.2). Bucket "documents" à créer côté
+  // Supabase avant déploiement — pas dans le périmètre code de ce lot.
+  { table: 'document', blobTable: 'document_blob', champId: 'document_id', bucket: 'documents', extension: 'jpg', type: 'image/jpeg' },
 ];
 
 // Envoie vers Supabase Storage les lignes dont le blob local n'est pas
@@ -145,6 +157,10 @@ export async function obtenirUrlAffichagePhoto(photo) {
 
 export async function obtenirUrlAffichageAudio(audio) {
   return obtenirUrlAffichageBlob(audio, TABLES_BLOB[1]);
+}
+
+export async function obtenirUrlAffichageDocument(document) {
+  return obtenirUrlAffichageBlob(document, TABLES_BLOB[2]);
 }
 
 let synchronisationEnCours = false;

@@ -8,20 +8,30 @@ import { CATALOGUE_REGLES_PAR_DEFAUT } from '../../lib/catalogueRegles.js';
 // touchée, y compris si son contenu par défaut a changé depuis — une
 // évolution de règle passe par une nouvelle `version`, pas une réécriture
 // silencieuse (traçabilité, §5 du brief).
+//
+// Transaction unique (rw sur `regle`) pour protéger l'idempotence contre un
+// double appel quasi simultané — constaté avec React.StrictMode (le premier
+// rendu de App.jsx est doublé en développement) : sans elle, le deuxième
+// appel voyait encore la table vide et retentait les mêmes id, provoquant
+// une ConstraintError sur l'index unique `&code` (promesse rejetée, jamais
+// interceptée). Avec la transaction, IndexedDB sérialise les deux appels :
+// le second voit les lignes déjà insérées par le premier et ne fait rien.
 export async function initialiserCatalogue() {
   const maintenant = new Date().toISOString();
-  for (const definition of CATALOGUE_REGLES_PAR_DEFAUT) {
-    const existante = await db.regle.where('code').equals(definition.code).first();
-    if (existante) continue;
-    await db.regle.add({
-      id: crypto.randomUUID(),
-      ...definition,
-      parametres_utilisateur: null,
-      created_at: maintenant,
-      updated_at: maintenant,
-      deleted_at: null,
-    });
-  }
+  await db.transaction('rw', db.regle, async () => {
+    for (const definition of CATALOGUE_REGLES_PAR_DEFAUT) {
+      const existante = await db.regle.where('code').equals(definition.code).first();
+      if (existante) continue;
+      await db.regle.add({
+        id: crypto.randomUUID(),
+        ...definition,
+        parametres_utilisateur: null,
+        created_at: maintenant,
+        updated_at: maintenant,
+        deleted_at: null,
+      });
+    }
+  });
 }
 
 export async function listerReglesActives() {
