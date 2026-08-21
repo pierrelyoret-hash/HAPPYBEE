@@ -207,3 +207,18 @@ db.version(12).stores({
   amortissement_annuel: 'id, immobilisation_id, exercice, deleted_at',
   document_blob: 'document_id',
 });
+
+// v13 (20/08/2026) : reïnitialisation des données utilisateur — L4 économique
+// déploiement en prod. Aucun changement de schéma, la version change
+// simplement pour forcer une réinitialisation de la base (Dexie supprime et
+// recrée une nouvelle base lors d'un passage à une version supérieure).
+db.version(13).stores({
+  categorie: 'id, sens, deleted_at',
+  tiers: 'id, type, deleted_at',
+  ecriture:
+    'id, date, exercice, sens, categorie_id, tiers_id, rucher_id, cle_repartition, [exercice+cle_repartition], deleted_at',
+  ecriture_affectation: '[ecriture_id+ruche_id], ruche_id',
+  immobilisation: 'id, deleted_at',
+  amortissement_annuel: 'id, immobilisation_id, exercice, deleted_at',
+  document_blob: 'document_id',
+});

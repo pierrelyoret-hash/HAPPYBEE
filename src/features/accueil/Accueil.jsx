@@ -250,7 +250,7 @@ export function Accueil({
           <button
             type="button"
             onClick={onOuvrirEconomique}
-            className="h-16 rounded bg-surface border border-rule-strong text-ink text-13 font-bold flex items-center justify-center text-center px-2"
+            className="h-16 rounded bg-rule-strong border border-rule-strong text-ink text-13 font-bold flex items-center justify-center text-center px-2"
           >
             Économique
           </button>
